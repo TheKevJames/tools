@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# mysqltuner.pl - Version 1.1.1
+# mysqltuner.pl - Version 1.1.0
 # High Performance MySQL Tuning Script
 # Copyright (C) 2006-2009 Major Hayden - major@mhtx.net
 #
@@ -20,16 +20,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # This project would not be possible without help from:
-#   Matthew Montgomery     Paul Kehrer          Dave Burgess
-#   Jonathan Hinds         Mike Jackson         Nils Breunese
-#   Shawn Ashlee           Luuk Vosslamber      Ville Skytta
-#   Trent Hornibrook       Jason Gill           Mark Imbriaco
-#   Greg Eden              Aubin Galinotti      Giovanni Bechis
-#   Bill Bradford          Ryan Novosielski     Michael Scheidell
-#   Blair Christensen      Hans du Plooy        Victor Trac
-#   Everett Barnes         Tom Krouper          Gary Barrueto
-#   Simon Greenaway        Adam Stein           Isart Montane
-#   Baptiste M.
+#   Matthew Montgomery     Paul Kehrer
+#   Dave Burgess           Jonathan Hinds
+#   Mike Jackson           Nils Breunese
+#   Shawn Ashlee           Luuk Vosslamber
+#   Ville Skytta           Trent Hornibrook
+#   Jason Gill             Mark Imbriaco
+#   Greg Eden              Aubin Galinotti
+#   Giovanni Bechis        Bill Bradford
+#   Ryan Novosielski       Michael Scheidell
+#   Blair Christensen      Hans du Plooy
+#   Victor Trac            Everett Barnes
+#   Tom Krouper            Gary Barrueto
+#   Simon Greenaway        Adam Stein
 #
 # Inspired by Matthew Montgomery's tuning-primer.sh script:
 # http://forge.mysql.com/projects/view.php?id=44
@@ -40,24 +43,24 @@ use diagnostics;
 use Getopt::Long;
 
 # Set up a few variables for use in the script
-my $tunerversion = "1.1.1";
+my $tunerversion = "1.0.1";
 my (@adjvars, @generalrec);
 
 # Set defaults
 my %opt = (
-		"nobad" 		=> 0,
-		"nogood" 		=> 0,
-		"noinfo" 		=> 0,
-		"nocolor" 		=> 0,
-		"forcemem" 		=> 0,
-		"forceswap" 	=> 0,
-		"host" 			=> 0,
-		"socket" 		=> 0,
-		"port" 			=> 0,
-		"user" 			=> 0,
-		"pass"			=> 0,
-		"skipsize" 		=> 0,
-		"checkversion" 	=> 0,
+		"nobad" => 0,
+		"nogood" => 0,
+		"noinfo" => 0,
+		"nocolor" => 0,
+		"forcemem" => 0,
+		"forceswap" => 0,
+		"host" => 0,
+		"socket" => 0,
+		"port" => 0,
+		"user" => 0,
+		"pass" => 0,
+		"skipsize" => 0,
+		"checkversion" => 0,
 	);
 	
 # Gather the options from the command line
@@ -229,13 +232,6 @@ sub os_setup {
 			$physical_memory = `/usr/sbin/prtconf | grep Memory | cut -f 3 -d ' '` or memerror;
 			chomp($physical_memory);
 			$physical_memory = $physical_memory*1024*1024;
-		} elsif ($os =~ /AIX/) {
-			$physical_memory = `lsattr -El sys0 | grep realmem | awk '{print \$2}'` or memerror;
-			chomp($physical_memory);
-			$physical_memory = $physical_memory*1024;
-			$swap_memory = `lsps -as | awk -F"(MB| +)" '/MB /{print \$2}'` or memerror;
-			chomp($swap_memory);
-			$swap_memory = $swap_memory*1024*1024;
 		}
 	}
 	chomp($physical_memory);
@@ -356,31 +352,6 @@ sub get_all_vars {
 	}
 }
 
-sub security_recommendations {
-	print "\n-------- Security Recommendations  -------------------------------------------\n";
-	my @mysqlstatlist = `mysql $mysqllogin -Bse "SELECT user FROM mysql.user WHERE password = '' OR password IS NULL;"`;
-	if (@mysqlstatlist) {
-		foreach my $line (@mysqlstatlist) {
-			chomp($line);
-			badprint "User '".$line."' has no password set.\n";
-		}
-	} else {
-		goodprint "All database users have passwords assigned\n";
-	}
-}
-
-sub get_replication_status {
-	my $io_running = `mysql -Bse "show slave status\\G"|grep -i slave_io_running|awk '{ print \$2}'`;
-	my $sql_running = `mysql -Bse "show slave status\\G"|grep -i slave_sql_running|awk '{ print \$2}'`;
-	if ($io_running eq 'Yes' && $sql_running eq 'Yes') {
-		if ($myvar{'read_only'} eq 'OFF') {
-			badprint "This replication slave running with read_only option disabled.";
-		} else {
-			goodprint "This replication slave is running with the read_only option enabled.";
-		}
-	}
-}
-
 # Checks for updates to MySQLTuner
 sub validate_tuner_version {
 	print "\n-------- General Statistics --------------------------------------------------\n";
@@ -427,9 +398,6 @@ sub check_architecture {
 		$arch = 64;
 		goodprint "Operating on 64-bit architecture\n";
 	} elsif (`uname` !~ /SunOS/ && `uname -m` =~ /64/) {
-		$arch = 64;
-		goodprint "Operating on 64-bit architecture\n";
-	} elsif (`uname` =~ /AIX/ && `bootinfo -K` =~ /64/) {
 		$arch = 64;
 		goodprint "Operating on 64-bit architecture\n";
 	} else {
@@ -914,7 +882,6 @@ validate_tuner_version;			# Check current MySQLTuner version
 validate_mysql_version;			# Check current MySQL version
 check_architecture;				# Suggest 64-bit upgrade
 check_storage_engines;			# Show enabled storage engines
-security_recommendations;		# Display some security recommendations
 calculations;					# Calculate everything we need
 mysql_stats;					# Print the server stats
 make_recommendations;			# Make recommendations based on stats
