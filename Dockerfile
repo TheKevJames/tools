@@ -1,4 +1,4 @@
-FROM alpine:edge
+FROM alpine:latest
 
 MAINTAINER Kevin James <kevinjames@thekev.in>
 
