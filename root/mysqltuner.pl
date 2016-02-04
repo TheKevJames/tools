@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# mysqltuner.pl - Version 1.6.4
+# mysqltuner.pl - Version 1.6.0
 # High Performance MySQL Tuning Script
 # Copyright (C) 2006-2015 Major Hayden - major@mhtx.net
 #
@@ -35,23 +35,504 @@
 # Inspired by Matthew Montgomery's tuning-primer.sh script:
 # http://forge.mysql.com/projects/view.php?id=44
 #
-package main;
 
-use 5.005;
+# ---------------------------------------------------------------------------
+# BEGIN TEXT TEMPLATE MODULE
+# ---------------------------------------------------------------------------
+# Text::Template.pm
+#
+# Fill in `templates'
+#
+# Copyright 2013 M. J. Dominus.
+# You may copy and distribute this program under the
+# same terms as Perl itself.  
+# If in doubt, write to mjd-perl-template+@plover.com for a license.
+#
+# Version 1.46
+
+package Text::Template;
+require 5.004;
+use Exporter;
+#use no strict;
+@ISA = qw(Exporter);
+@EXPORT_OK = qw(fill_in_file fill_in_string TTerror);
+use vars '$ERROR';
+use strict;
+
+$Text::Template::VERSION = '1.46';
+my %GLOBAL_PREPEND = ('Text::Template' => '');
+
+sub Version {
+  $Text::Template::VERSION;
+}
+
+sub _param {
+  my $kk;
+  my ($k, %h) = @_;
+  for $kk ($k, "\u$k", "\U$k", "-$k", "-\u$k", "-\U$k") {
+    return $h{$kk} if exists $h{$kk};
+  }
+  return;
+}
+
+sub always_prepend
+{
+  my $pack = shift;
+  my $old = $GLOBAL_PREPEND{$pack};
+  $GLOBAL_PREPEND{$pack} = shift;
+  $old;
+}
+
+{
+  my %LEGAL_TYPE;
+  BEGIN { 
+    %LEGAL_TYPE = map {$_=>1} qw(FILE FILEHANDLE STRING ARRAY);
+  }
+  sub new {
+    my $pack = shift;
+    my %a = @_;
+    my $stype = uc(_param('type', %a) || "FILE");
+    my $source = _param('source', %a);
+    my $untaint = _param('untaint', %a);
+    my $prepend = _param('prepend', %a);
+    my $alt_delim = _param('delimiters', %a);
+    my $broken = _param('broken', %a);
+    unless (defined $source) {
+      require Carp;
+      Carp::croak("Usage: $ {pack}::new(TYPE => ..., SOURCE => ...)");
+    }
+    unless ($LEGAL_TYPE{$stype}) {
+      require Carp;
+      Carp::croak("Illegal value `$stype' for TYPE parameter");
+    }
+    my $self = {TYPE => $stype,
+    PREPEND => $prepend,
+                UNTAINT => $untaint,
+                BROKEN => $broken,
+    (defined $alt_delim ? (DELIM => $alt_delim) : ()),
+         };
+    # Under 5.005_03, if any of $stype, $prepend, $untaint, or $broken
+    # are tainted, all the others become tainted too as a result of
+    # sharing the expression with them.  We install $source separately
+    # to prevent it from acquiring a spurious taint.
+    $self->{SOURCE} = $source;
+
+    bless $self => $pack;
+    return unless $self->_acquire_data;
+    
+    $self;
+  }
+}
+
+# Convert template objects of various types to type STRING,
+# in which the template data is embedded in the object itself.
+sub _acquire_data {
+  my ($self) = @_;
+  my $type = $self->{TYPE};
+  if ($type eq 'STRING') {
+    # nothing necessary    
+  } elsif ($type eq 'FILE') {
+    my $data = _load_text($self->{SOURCE});
+    unless (defined $data) {
+      # _load_text already set $ERROR
+      return undef;
+    }
+    if ($self->{UNTAINT} && _is_clean($self->{SOURCE})) {
+      _unconditionally_untaint($data);
+    }
+    $self->{TYPE} = 'STRING';
+    $self->{FILENAME} = $self->{SOURCE};
+    $self->{SOURCE} = $data;
+  } elsif ($type eq 'ARRAY') {
+    $self->{TYPE} = 'STRING';
+    $self->{SOURCE} = join '', @{$self->{SOURCE}};
+  } elsif ($type eq 'FILEHANDLE') {
+    $self->{TYPE} = 'STRING';
+    local $/;
+    my $fh = $self->{SOURCE};
+    my $data = <$fh>; # Extra assignment avoids bug in Solaris perl5.00[45].
+    if ($self->{UNTAINT}) {
+      _unconditionally_untaint($data);
+    }
+    $self->{SOURCE} = $data;
+  } else {
+    # This should have been caught long ago, so it represents a 
+    # drastic `can't-happen' sort of failure
+    my $pack = ref $self;
+    die "Can only acquire data for $pack objects of subtype STRING, but this is $type; aborting";
+  }
+  $self->{DATA_ACQUIRED} = 1;
+}
+
+sub source {
+  my ($self) = @_;
+  $self->_acquire_data unless $self->{DATA_ACQUIRED};
+  return $self->{SOURCE};
+}
+
+sub set_source_data {
+  my ($self, $newdata) = @_;
+  $self->{SOURCE} = $newdata;
+  $self->{DATA_ACQUIRED} = 1;
+  $self->{TYPE} = 'STRING';
+  1;
+}
+
+sub compile {
+  my $self = shift;
+
+  return 1 if $self->{TYPE} eq 'PREPARSED';
+
+  return undef unless $self->_acquire_data;
+  unless ($self->{TYPE} eq 'STRING') {
+    my $pack = ref $self;
+    # This should have been caught long ago, so it represents a 
+    # drastic `can't-happen' sort of failure
+    die "Can only compile $pack objects of subtype STRING, but this is $self->{TYPE}; aborting";
+  }
+
+  my @tokens;
+  my $delim_pats = shift() || $self->{DELIM};
+
+  
+
+  my ($t_open, $t_close) = ('{', '}');
+  my $DELIM;      # Regex matches a delimiter if $delim_pats
+  if (defined $delim_pats) {
+    ($t_open, $t_close) = @$delim_pats;
+    $DELIM = "(?:(?:\Q$t_open\E)|(?:\Q$t_close\E))";
+    @tokens = split /($DELIM|\n)/, $self->{SOURCE};
+  } else {
+    @tokens = split /(\\\\(?=\\*[{}])|\\[{}]|[{}\n])/, $self->{SOURCE};
+  }
+  my $state = 'TEXT';
+  my $depth = 0;
+  my $lineno = 1;
+  my @content;
+  my $cur_item = '';
+  my $prog_start;
+  while (@tokens) {
+    my $t = shift @tokens;
+    next if $t eq '';
+    if ($t eq $t_open) {  # Brace or other opening delimiter
+      if ($depth == 0) {
+  push @content, [$state, $cur_item, $lineno] if $cur_item ne '';
+  $cur_item = '';
+  $state = 'PROG';
+  $prog_start = $lineno;
+      } else {
+  $cur_item .= $t;
+      }
+      $depth++;
+    } elsif ($t eq $t_close) {  # Brace or other closing delimiter
+      $depth--;
+      if ($depth < 0) {
+  $ERROR = "Unmatched close brace at line $lineno";
+  return undef;
+      } elsif ($depth == 0) {
+  push @content, [$state, $cur_item, $prog_start] if $cur_item ne '';
+  $state = 'TEXT';
+  $cur_item = '';
+      } else {
+  $cur_item .= $t;
+      }
+    } elsif (!$delim_pats && $t eq '\\\\') { # precedes \\\..\\\{ or \\\..\\\}
+      $cur_item .= '\\';
+    } elsif (!$delim_pats && $t =~ /^\\([{}])$/) { # Escaped (literal) brace?
+  $cur_item .= $1;
+    } elsif ($t eq "\n") {  # Newline
+      $lineno++;
+      $cur_item .= $t;
+    } else {      # Anything else
+      $cur_item .= $t;
+    }
+  }
+
+  if ($state eq 'PROG') {
+    $ERROR = "End of data inside program text that began at line $prog_start";
+    return undef;
+  } elsif ($state eq 'TEXT') {
+    push @content, [$state, $cur_item, $lineno] if $cur_item ne '';
+  } else {
+    die "Can't happen error #1";
+  }
+  
+  $self->{TYPE} = 'PREPARSED';
+  $self->{SOURCE} = \@content;
+  1;
+}
+
+sub prepend_text {
+  my ($self) = @_;
+  my $t = $self->{PREPEND};
+  unless (defined $t) {
+    $t = $GLOBAL_PREPEND{ref $self};
+    unless (defined $t) {
+      $t = $GLOBAL_PREPEND{'Text::Template'};
+    }
+  }
+  $self->{PREPEND} = $_[1] if $#_ >= 1;
+  return $t;
+}
+
+sub fill_in {
+  my $fi_self = shift;
+  my %fi_a = @_;
+
+  unless ($fi_self->{TYPE} eq 'PREPARSED') {
+    my $delims = _param('delimiters', %fi_a);
+    my @delim_arg = (defined $delims ? ($delims) : ());
+    $fi_self->compile(@delim_arg)
+      or return undef;
+  }
+
+  my $fi_varhash = _param('hash', %fi_a);
+  my $fi_package = _param('package', %fi_a) ;
+  my $fi_broken  = 
+    _param('broken', %fi_a)  || $fi_self->{BROKEN} || \&_default_broken;
+  my $fi_broken_arg = _param('broken_arg', %fi_a) || [];
+  my $fi_safe = _param('safe', %fi_a);
+  my $fi_ofh = _param('output', %fi_a);
+  my $fi_eval_package;
+  my $fi_scrub_package = 0;
+  my $fi_filename = _param('filename') || $fi_self->{FILENAME} || 'template';
+
+  my $fi_prepend = _param('prepend', %fi_a);
+  unless (defined $fi_prepend) {
+    $fi_prepend = $fi_self->prepend_text;
+  }
+
+  if (defined $fi_safe) {
+    $fi_eval_package = 'main';
+  } elsif (defined $fi_package) {
+    $fi_eval_package = $fi_package;
+  } elsif (defined $fi_varhash) {
+    $fi_eval_package = _gensym();
+    $fi_scrub_package = 1;
+  } else {
+    $fi_eval_package = caller;
+  }
+
+  my $fi_install_package;
+  if (defined $fi_varhash) {
+    if (defined $fi_package) {
+      $fi_install_package = $fi_package;
+    } elsif (defined $fi_safe) {
+      $fi_install_package = $fi_safe->root;
+    } else {
+      $fi_install_package = $fi_eval_package; # The gensymmed one
+    }
+    _install_hash($fi_varhash => $fi_install_package);
+  }
+
+  if (defined $fi_package && defined $fi_safe) {
+    no strict 'refs';
+    # Big fat magic here: Fix it so that the user-specified package
+    # is the default one available in the safe compartment.
+    *{$fi_safe->root . '::'} = \%{$fi_package . '::'};   # LOD
+  }
+
+  my $fi_r = '';
+  my $fi_item;
+  foreach $fi_item (@{$fi_self->{SOURCE}}) {
+    my ($fi_type, $fi_text, $fi_lineno) = @$fi_item;
+    if ($fi_type eq 'TEXT') {
+      $fi_self->append_text_to_output(
+        text   => $fi_text,
+        handle => $fi_ofh,
+        out    => \$fi_r,
+        type   => $fi_type,
+      );
+    } elsif ($fi_type eq 'PROG') {
+      no strict;
+      my $fi_lcomment = "#line $fi_lineno $fi_filename";
+      my $fi_progtext = 
+        "package $fi_eval_package; $fi_prepend;\n$fi_lcomment\n$fi_text;";
+      my $fi_res;
+      my $fi_eval_err = '';
+      if ($fi_safe) {
+        $fi_safe->reval(q{undef $OUT});
+  $fi_res = $fi_safe->reval($fi_progtext);
+  $fi_eval_err = $@;
+  my $OUT = $fi_safe->reval('$OUT');
+  $fi_res = $OUT if defined $OUT;
+      } else {
+  my $OUT;
+  $fi_res = eval $fi_progtext;
+  $fi_eval_err = $@;
+  $fi_res = $OUT if defined $OUT;
+      }
+
+      # If the value of the filled-in text really was undef,
+      # change it to an explicit empty string to avoid undefined
+      # value warnings later.
+      $fi_res = '' unless defined $fi_res;
+
+      if ($fi_eval_err) {
+  $fi_res = $fi_broken->(text => $fi_text,
+             error => $fi_eval_err,
+             lineno => $fi_lineno,
+             arg => $fi_broken_arg,
+             );
+  if (defined $fi_res) {
+          $fi_self->append_text_to_output(
+            text   => $fi_res,
+            handle => $fi_ofh,
+            out    => \$fi_r,
+            type   => $fi_type,
+          );
+  } else {
+    return $fi_res;   # Undefined means abort processing
+  }
+      } else {
+        $fi_self->append_text_to_output(
+          text   => $fi_res,
+          handle => $fi_ofh,
+          out    => \$fi_r,
+          type   => $fi_type,
+        );
+      }
+    } else {
+      die "Can't happen error #2";
+    }
+  }
+
+  _scrubpkg($fi_eval_package) if $fi_scrub_package;
+  defined $fi_ofh ? 1 : $fi_r;
+}
+
+sub append_text_to_output {
+  my ($self, %arg) = @_;
+
+  if (defined $arg{handle}) {
+    print { $arg{handle} } $arg{text};
+  } else {
+    ${ $arg{out} } .= $arg{text};
+  }
+
+  return;
+}
+
+sub fill_this_in {
+  my $pack = shift;
+  my $text = shift;
+  my $templ = $pack->new(TYPE => 'STRING', SOURCE => $text, @_)
+    or return undef;
+  $templ->compile or return undef;
+  my $result = $templ->fill_in(@_);
+  $result;
+}
+
+sub fill_in_string {
+  my $string = shift;
+  my $package = _param('package', @_);
+  push @_, 'package' => scalar(caller) unless defined $package;
+  Text::Template->fill_this_in($string, @_);
+}
+
+sub fill_in_file {
+  my $fn = shift;
+  my $templ = Text::Template->new(TYPE => 'FILE', SOURCE => $fn, @_)
+    or return undef;
+  $templ->compile or return undef;
+  my $text = $templ->fill_in(@_);
+  $text;
+}
+
+sub _default_broken {
+  my %a = @_;
+  my $prog_text = $a{text};
+  my $err = $a{error};
+  my $lineno = $a{lineno};
+  chomp $err;
+#  $err =~ s/\s+at .*//s;
+  "Program fragment delivered error ``$err''";
+}
+
+sub _load_text {
+  my $fn = shift;
+  local *F;
+  unless (open F, $fn) {
+    $ERROR = "Couldn't open file $fn: $!";
+    return undef;
+  }
+  local $/;
+  <F>;
+}
+
+sub _is_clean {
+  my $z;
+  eval { ($z = join('', @_)), eval '#' . substr($z,0,0); 1 }   # LOD
+}
+
+sub _unconditionally_untaint {
+  for (@_) {
+    ($_) = /(.*)/s;
+  }
+}
+
+{
+  my $seqno = 0;
+  sub _gensym {
+    __PACKAGE__ . '::GEN' . $seqno++;
+  }
+  sub _scrubpkg {
+    my $s = shift;
+    $s =~ s/^Text::Template:://;
+    no strict 'refs';
+    my $hash = $Text::Template::{$s."::"};
+    foreach my $key (keys %$hash) {
+      undef $hash->{$key};
+    }
+  }
+}
+  
+# Given a hashful of variables (or a list of such hashes)
+# install the variables into the specified package,
+# overwriting whatever variables were there before.
+sub _install_hash {
+  my $hashlist = shift;
+  my $dest = shift;
+  if (UNIVERSAL::isa($hashlist, 'HASH')) {
+    $hashlist = [$hashlist];
+  }
+  my $hash;
+  foreach $hash (@$hashlist) {
+    my $name;
+    foreach $name (keys %$hash) {
+      my $val = $hash->{$name};
+      no strict 'refs';
+      local *SYM = *{"$ {dest}::$name"};
+      if (! defined $val) {
+  delete ${"$ {dest}::"}{$name};
+      } elsif (ref $val) {
+  *SYM = $val;
+      } else {
+  *SYM = \$val;
+      }
+    }
+  }
+}
+
+sub TTerror { $ERROR }
+
+1;
+# ---------------------------------------------------------------------------
+# END TEXT TEMPLATE MODULE
+# ---------------------------------------------------------------------------
+
+
+package main;
 use strict;
 use warnings;
-
 use diagnostics;
 use File::Spec;
 use Getopt::Long;
 use File::Basename;
 use Cwd 'abs_path';
 
-use Data::Dumper;
-$Data::Dumper::Pair = " : ";
-
 # Set up a few variables for use in the script
-my $tunerversion = "1.6.4";
+my $tunerversion = "1.6.0";
 my ( @adjvars, @generalrec );
 
 # Set defaults
@@ -79,7 +560,6 @@ my %opt = (
     "skippassword" => 0,
     "noask"        => 0,
     "template"     => 0,
-    "json"         => 0,
     "reportfile"   => 0
 );
 
@@ -90,8 +570,8 @@ GetOptions(
     'host=s',         'socket=s',     'port=i',       'user=s',
     'pass=s',         'skipsize',     'checkversion', 'mysqladmin=s',
     'mysqlcmd=s',     'help',         'buffers',      'skippassword',
-    'passwordfile=s', 'outputfile=s', 'silent',       'dbstat', 'json',
-    'idxstat', 'noask', 'template=s', 'reportfile=s', 'cvefile=s',
+    'passwordfile=s', 'outputfile=s', 'silent',       'dbstat',
+    'idxstat', 'noask', 'template=s', 'reportfile=s'
 );
 
 if ( defined $opt{'help'} && $opt{'help'} == 1 ) { usage(); }
@@ -134,9 +614,7 @@ sub usage {
       . "      --debug              Print debug information\n"
       . "      --dbstat             Print database information\n"
       . "      --idxstat            Print index information\n"
-      . "      --cvefile            CVE File for vulnerability checks\n"
       . "      --nocolor            Don't print output in color\n"
-      . "      --json               Print result as JSON string\n"
       . "      --buffers            Print global and per-thread buffer values\n"
       . "      --outputfile <path>  Path to a output txt file\n" . "\n"
       . "      --reportfile <path>  Path to a report txt file\n" . "\n"
@@ -154,11 +632,6 @@ my $basic_password_files =
 $basic_password_files = "/usr/share/mysqltuner/basic_passwords.txt"
   unless -f "$basic_password_files";
 
-# for RPM distributions
-$opt{cvefile} = "/usr/share/mysqltuner/vulnerabilities.csv"
-  unless ( defined $opt{cvefile} and -f "$opt{cvefile}");
-$opt{cvefile} ='' unless -f "$opt{cvefile}";
-
 #
 my $outputfile = undef;
 $outputfile = abs_path( $opt{outputfile} ) unless $opt{outputfile} eq "0";
@@ -175,7 +648,7 @@ my $bad  = ( $opt{nocolor} == 0 ) ? "[\e[0;31m!!\e[0m]" : "[!!]";
 my $info = ( $opt{nocolor} == 0 ) ? "[\e[0;34m--\e[0m]" : "[--]";
 my $deb  = ( $opt{nocolor} == 0 ) ? "[\e[0;31mDG\e[0m]" : "[DG]";
 
-# Super structure containing all information
+# Super sturucture containing all informations
 my %result;
 
 # Functions that handle the print styles
@@ -195,7 +668,7 @@ sub greenwrap {
     return ( $opt{nocolor} == 0 ) ? "\e[0;32m" . $_[0] . "\e[0m" : $_[0];
 }
 
-# Calculates the parameter passed in bytes, then rounds it to one decimal place
+# Calculates the parameter passed in bytes, and then rounds it to one decimal place
 sub hr_bytes {
     my $num = shift;
     if ( $num >= ( 1024**3 ) ) {    #GB
@@ -212,7 +685,7 @@ sub hr_bytes {
     }
 }
 
-# Calculates the parameter passed in bytes, then rounds it to the nearest integer
+# Calculates the parameter passed in bytes, and then rounds it to the nearest integer
 sub hr_bytes_rnd {
     my $num = shift;
     if ( $num >= ( 1024**3 ) ) {       #GB
@@ -282,6 +755,7 @@ sub pretty_uptime {
 my ( $physical_memory, $swap_memory, $duflags );
 
 sub os_setup {
+
     sub memerror {
         badprint
 "Unable to determine total memory/swap; use '--forcemem' and '--forceswap'";
@@ -303,7 +777,7 @@ sub os_setup {
         }
     }
     else {
-        if ( $os =~ /Linux|CYGWIN/ ) {
+        if ( $os =~ /Linux/ ) {
             $physical_memory =
               `grep -i memtotal: /proc/meminfo | awk '{print \$2}'`
               or memerror;
@@ -379,30 +853,30 @@ sub validate_tuner_version {
   chomp($httpcli);
   if ( 1 != 1 and defined($httpcli) and -e "$httpcli" ) {
     debugprint "$httpcli is available.";
-
+    
     debugprint "$httpcli --connect-timeout 5 -silent '$url' 2>/dev/null | grep 'my \$tunerversion'| cut -d\\\" -f2";
     $update = `$httpcli --connect-timeout 5 -silent '$url' 2>/dev/null | grep 'my \$tunerversion'| cut -d\\\" -f2`;
     chomp($update);
     debugprint "VERSION: $update";
-
-
+    
+    
     compare_tuner_version($update);
     return;
   }
 
-
+  
   $httpcli=`which wget`;
   chomp($httpcli);
   if ( defined($httpcli) and -e "$httpcli" ) {
     debugprint "$httpcli is available.";
-
+    
     debugprint "$httpcli -e timestamping=off -T 5 -O - '$url' 2>$devnull| grep 'my \$tunerversion'| cut -d\\\" -f2";
     $update = `$httpcli -e timestamping=off -T 5 -O - '$url' 2>$devnull| grep 'my \$tunerversion'| cut -d\\\" -f2`;
     chomp($update);
     compare_tuner_version($update);
     return;
   }
-  debugprint "curl and wget are not available.";
+  debugprint "curl and wget are not avalaible.";
   infoprint "Unable to check for the latest MySQLTuner version";
 }
 
@@ -421,13 +895,6 @@ sub compare_tuner_version {
 # Checks to see if a MySQL login is possible
 my ( $mysqllogin, $doremote, $remotestring, $mysqlcmd, $mysqladmincmd );
 
-my $osname = $^O;
-if( $osname eq 'MSWin32' ) {
-  eval { require Win32; } or last;
-  $osname = Win32::GetOSName();
-  infoprint "* Windows OS($osname) is not fully supported.\n";
-  #exit 1;
-}
 sub mysql_setup {
     $doremote     = 0;
     $remotestring = '';
@@ -485,16 +952,14 @@ sub mysql_setup {
         $opt{port} = ( $opt{port} eq 0 ) ? 3306 : $opt{port};
 
         # If we're doing a remote connection, but forcemem wasn't specified, we need to exit
-        if ( $opt{'forcemem'} eq 0 && ($opt{host} ne "127.0.0.1") && ($opt{host} ne "localhost")) {
+        if ( $opt{'forcemem'} eq 0 ) {
             badprint
               "The --forcemem option is required for remote connections";
             exit 1;
         }
         infoprint "Performing tests on $opt{host}:$opt{port}";
         $remotestring = " -h $opt{host} -P $opt{port}";
-		if (($opt{host} ne "127.0.0.1") && ($opt{host} ne "localhost")) {
-        	$doremote     = 1;
-		}
+        $doremote     = 1;
     }
 
     # Did we already get a username and password passed on the command line?
@@ -658,7 +1123,7 @@ sub mysql_setup {
 sub select_array {
     my $req = shift;
     debugprint "PERFORM: $req ";
-    my @result = `$mysqlcmd $mysqllogin -Bse "$req" 2>>/dev/null`;
+    my @result = `$mysqlcmd $mysqllogin -Bse "$req"`;
     chomp(@result);
     return @result;
 }
@@ -667,7 +1132,7 @@ sub select_array {
 sub select_one {
     my $req = shift;
     debugprint "PERFORM: $req ";
-    my $result = `$mysqlcmd $mysqllogin -Bse "$req" 2>>/dev/null`;
+    my $result = `$mysqlcmd $mysqllogin -Bse "$req"`;
     chomp($result);
     return $result;
 }
@@ -754,6 +1219,8 @@ sub get_all_vars {
         }
     }
 
+    #print Dumper(%myrepl);
+    #exit 0;
     my @mysqlslaves = select_array "SHOW SLAVE HOSTS";
     my @lineitems   = ();
     foreach my $line (@mysqlslaves) {
@@ -772,36 +1239,6 @@ sub get_basic_passwords {
     return @lines;
 }
 
-sub cve_recommendations {
-    prettyprint
-"\n-------- CVE Security Recommendations  ---------------------------------------";
-    unless ( defined($opt{cvefile}) && -f "$opt{cvefile}" ) {
-        infoprint "Skipped due to --cvefile option undefined";
-        return;
-    }
-
-    #prettyprint "Look for related CVE for $myvar{'version'} or lower in $opt{cvefile}";
-    my $cvefound=0;
-    open( FH, "<$opt{cvefile}" ) or die "Can't open $opt{cvefile} for read: $!";
-    while (my $cveline = <FH>)
-    {
-      my @cve=split (';', $cveline);
-      if (mysql_micro_version_le ($cve[1], $cve[2], $cve[3])) {
-        badprint "$cve[4] : $cve[5]";
-        $cvefound++;
-      }
-    
-    }
-    close FH or die "Cannot close $opt{cvefile}: $!";
-    if ($cvefound==0) {
-      goodprint "NO SECURITY CVE FOUND FOR YOUR VERSION";
-      return;
-    } 
-    badprint $cvefound . " CVE(s) found for your MySQL release.";
-    push( @generalrec, $cvefound . " CVE(s) found for your MySQL release. Consider upgrading your version !" );
-}
-
-
 sub security_recommendations {
     prettyprint
 "\n-------- Security Recommendations  -------------------------------------------";
@@ -810,12 +1247,6 @@ sub security_recommendations {
         return;
     }
 
-    my $PASS_COLUMN_NAME='password';
-    if ($myvar{'version'} =~ /5.7/) {
-      $PASS_COLUMN_NAME='authentication_string';
-    }
-    debugprint "Password column = $PASS_COLUMN_NAME";
-    #exit(0);
     # Looking for Anonymous users
     my @mysqlstatlist = select_array
 "SELECT CONCAT(user, '\@', host) FROM mysql.user WHERE TRIM(USER) = '' OR USER IS NULL";
@@ -827,15 +1258,15 @@ sub security_recommendations {
         push( @generalrec,
                 "Remove Anonymous User accounts - there are "
               . scalar(@mysqlstatlist)
-              . " anonymous accounts." );
+              . " Anonymous accounts." );
     }
     else {
-        goodprint "There are no anonymous accounts for any database users";
+        goodprint "There is no anonymous account in all database users";
     }
 
     # Looking for Empty Password
     @mysqlstatlist = select_array
-"SELECT CONCAT(user, '\@', host) FROM mysql.user WHERE $PASS_COLUMN_NAME = '' OR $PASS_COLUMN_NAME IS NULL";
+"SELECT CONCAT(user, '\@', host) FROM mysql.user WHERE password = '' OR password IS NULL";
     if (@mysqlstatlist) {
         foreach my $line ( sort @mysqlstatlist ) {
             chomp($line);
@@ -851,7 +1282,7 @@ sub security_recommendations {
 
     # Looking for User with user/ uppercase /capitalise user as password
     @mysqlstatlist = select_array
-"SELECT CONCAT(user, '\@', host) FROM mysql.user WHERE CAST($PASS_COLUMN_NAME as Binary) = PASSWORD(user) OR CAST($PASS_COLUMN_NAME as Binary) = PASSWORD(UPPER(user)) OR CAST($PASS_COLUMN_NAME as Binary) = PASSWORD(UPPER(LEFT(User, 1)) + SUBSTRING(User, 2, LENGTH(User)))";
+"SELECT CONCAT(user, '\@', host) FROM mysql.user WHERE CAST(password as Binary) = PASSWORD(user) OR CAST(password as Binary) = PASSWORD(UPPER(user)) OR CAST(password as Binary) = PASSWORD(UPPER(LEFT(User, 1)) + SUBSTRING(User, 2, LENGTH(User)))";
     if (@mysqlstatlist) {
         foreach my $line ( sort @mysqlstatlist ) {
             chomp($line);
@@ -874,12 +1305,12 @@ sub security_recommendations {
     }
 
     unless ( -f $basic_password_files ) {
-        badprint "There is no basic password file list!";
+        badprint "There is not basic password file list !";
         return;
     }
 
     my @passwords = get_basic_passwords $basic_password_files;
-    infoprint "There are "
+    infoprint "There is "
       . scalar(@passwords)
       . " basic passwords in the list.";
     my $nbins = 0;
@@ -892,11 +1323,11 @@ sub security_recommendations {
             # Looking for User with user/ uppercase /capitalise weak password
             @mysqlstatlist =
               select_array
-"SELECT CONCAT(user, '\@', host) FROM mysql.user WHERE $PASS_COLUMN_NAME = PASSWORD('"
+"SELECT CONCAT(user, '\@', host) FROM mysql.user WHERE password = PASSWORD('"
               . $pass
-              . "') OR $PASS_COLUMN_NAME = PASSWORD(UPPER('"
+              . "') OR password = PASSWORD(UPPER('"
               . $pass
-              . "')) OR $PASS_COLUMN_NAME = PASSWORD(UPPER(LEFT('"
+              . "')) OR password = PASSWORD(UPPER(LEFT('"
               . $pass
               . "', 1)) + SUBSTRING('"
               . $pass
@@ -969,7 +1400,7 @@ sub get_replication_status {
 "This replication slave is lagging and slave has $seconds_behind_master second(s) behind master host.";
         }
         else {
-            goodprint "This replication slave is up to date with master.";
+            goodprint "This replication slave is uptodate with master.";
         }
     }
 }
@@ -1016,14 +1447,6 @@ sub mysql_version_le {
       || $mysqlvermajor == $maj
       && ( $mysqlverminor < $min
         || $mysqlverminor == $min && $mysqlvermicro <= $mic );
-}
-
-# Checks if MySQL micro version is lower than equal to (major, minor, micro)
-sub mysql_micro_version_le {
-    my ( $maj, $min, $mic ) = @_;
-    return $mysqlvermajor == $maj
-      && ( $mysqlverminor == $min
-      && $mysqlvermicro <= $mic );
 }
 
 # Checks for 32-bit boxes with more than 2GB of RAM
@@ -1178,7 +1601,7 @@ sub check_storage_engines {
             chomp($db);
             if (   $db eq "information_schema"
                 or $db eq "performance_schema"
-                or $db eq "mysql"
+                or $db eq "mysql" 
                 or $db eq "lost+found" )
             {
                 next;
@@ -1486,7 +1909,7 @@ sub calculations {
     elsif ( mysql_version_ge(5) ) {
         $mycalc{'total_myisam_indexes'} = select_one
 "SELECT IFNULL(SUM(INDEX_LENGTH),0) FROM information_schema.TABLES WHERE TABLE_SCHEMA NOT IN ('information_schema') AND ENGINE = 'MyISAM';";
-        $mycalc{'total_aria_indexes'} = select_one
+        $mycalc{'total_aria_indexe'} = select_one
 "SELECT IFNULL(SUM(INDEX_LENGTH),0) FROM information_schema.TABLES WHERE TABLE_SCHEMA NOT IN ('information_schema') AND ENGINE = 'Aria';";
     }
     if ( defined $mycalc{'total_myisam_indexes'}
@@ -1733,7 +2156,7 @@ sub mysql_stats {
 
         if ( defined $myvar{'query_cache_type'} ) {
             infoprint "Query Cache Buffers";
-            infoprint " +-- Query Cache: "
+            infoprint " +-- Query Cache: " 
               . $myvar{'query_cache_type'} . " - "
               . (
                 $myvar{'query_cache_type'} eq 0 |
@@ -2168,10 +2591,13 @@ sub mysql_stats {
     }
 }
 
-# Recommendations for MyISAM
+# Recommandations for MyISAM
 sub mysql_myisam {
     prettyprint
-"\n-------- MyISAM Metrics ------------------------------------------------------";
+"\n-------- MyISAM Metrics -----------------------------------------------------";
+
+    # AriaDB
+
     # Key buffer usage
     if ( defined( $mycalc{'pct_key_buffer_used'} ) ) {
         if ( $mycalc{'pct_key_buffer_used'} < 90 ) {
@@ -2204,7 +2630,7 @@ sub mysql_myisam {
           . " used / "
           . hr_num( $myvar{'key_buffer_size'} )
           . " cache)";
-    }
+    } 
 
     # Key buffer
     if ( !defined( $mycalc{'total_myisam_indexes'} ) and $doremote == 1 ) {
@@ -2293,26 +2719,10 @@ sub mysql_myisam {
     }
 }
 
-# Recommendations for ThreadPool
-sub mariadb_threadpool {
+# Recommandations for Ariadb
+sub mysql_ariadb {
     prettyprint
-"\n-------- ThreadPool Metrics --------------------------------------------------";
-
-    # AriaDB
-    unless ( defined $myvar{'have_threadpool'}
-        && $myvar{'have_threadpool'} eq "YES"
-        && defined $enginestats{'Aria'} )
-    {
-        infoprint "ThreadPool stat is disabled.";
-        return;
-    }
-    infoprint "ThreadPool stat is enabled.";
-}
-
-# Recommendations for Ariadb
-sub mariadb_ariadb {
-    prettyprint
-"\n-------- AriaDB Metrics ------------------------------------------------------";
+"\n-------- AriaDB Metrics -----------------------------------------------------";
 
     # AriaDB
     unless ( defined $myvar{'have_aria'}
@@ -2380,46 +2790,10 @@ sub mariadb_ariadb {
     }
 }
 
-
-# Recommendations for TokuDB
-sub mariadb_tokudb {
-    prettyprint
-"\n-------- TokuDB Metrics ------------------------------------------------------";
-
-    # AriaDB
-    unless ( defined $myvar{'have_tokudb'}
-        && $myvar{'have_tokudb'} eq "YES"
-        && defined $enginestats{'TokuDb'} )
-    {
-        infoprint "TokuDB is disabled.";
-        return;
-    }
-    infoprint "TokuDB is enabled.";
-
-    # All is to done here
-}
-
-# Recommendations for Galera
-sub mariadb_galera {
-    prettyprint
-"\n-------- Galera Metrics ------------------------------------------------------";
-
-    # AriaDB
-    unless ( defined $myvar{'have_galera'}
-        && $myvar{'have_galera'} eq "YES"
-        && defined $enginestats{'Galera'} )
-    {
-        infoprint "Galera is disabled.";
-        return;
-    }
-    infoprint "Galera is enabled.";
-    # All is to done here
-}
-
-# Recommendations for InnoDB
+# Recommandations for Innodb
 sub mysql_innodb {
     prettyprint
-"\n-------- InnoDB Metrics ------------------------------------------------------";
+"\n-------- InnoDB Metrics -----------------------------------------------------";
 
     # InnoDB
     unless ( defined $myvar{'have_innodb'}
@@ -2626,12 +3000,12 @@ sub mysql_innodb {
     $result{'Calculations'} = {%mycalc};
 }
 
-# Recommendations for Database metrics
+# Recommandations for MySQL Databases
 sub mysql_databases {
     return if ( $opt{dbstat} == 0 );
 
     prettyprint
-"\n-------- Database Metrics ----------------------------------------------------";
+"\n-------- Database Metrics ------------------------------------------------";
     unless ( mysql_version_ge( 5, 5 ) ) {
         infoprint
 "Skip Database metrics from information schema missing in this version";
@@ -2696,7 +3070,7 @@ sub mysql_databases {
         infoprint " +-- TOTAL: " . hr_bytes( $dbinfo[4] ) . "";
         badprint "Index size is larger than data size for $dbinfo[0] \n"
           if $dbinfo[2] < $dbinfo[3];
-        badprint "There are " . $dbinfo[5] . " storage engines. Be careful. \n"
+        badprint "There " . $dbinfo[5] . " storage engines. Be careful \n"
           if $dbinfo[5] > 1;
         $result{'Databases'}{ $dbinfo[0] }{'Rows'}      = $dbinfo[1];
         $result{'Databases'}{ $dbinfo[0] }{'Data Size'} = $dbinfo[2];
@@ -2709,12 +3083,12 @@ sub mysql_databases {
     }
 }
 
-# Recommendations for Indexes metrics
+# Recommandations for MySQL Databases
 sub mysql_indexes {
     return if ( $opt{idxstat} == 0 );
 
     prettyprint
-"\n-------- Indexes Metrics -----------------------------------------------------";
+"\n-------- Indexes Metrics -------------------------------------------------";
     unless ( mysql_version_ge( 5, 5 ) ) {
         infoprint
 "Skip Index metrics from information schema missing in this version";
@@ -2734,7 +3108,7 @@ FROM INFORMATION_SCHEMA.STATISTICS s
   ON s.TABLE_SCHEMA = t.TABLE_SCHEMA
   AND s.TABLE_NAME = t.TABLE_NAME
  INNER JOIN (
-  SELECT
+  SELECT 
      TABLE_SCHEMA
    , TABLE_NAME
    , INDEX_NAME
@@ -2783,16 +3157,16 @@ ENDSQL
         and $myvar{'performance_schema'} eq 'ON' );
 
     $selIdxReq = <<'ENDSQL';
-SELECT CONCAT(CONCAT(object_schema,'.'),object_name) AS 'table', index_name
+SELECT CONCAT(CONCAT(object_schema,'.'),object_name) AS 'table', index_name 
 FROM performance_schema.table_io_waits_summary_by_index_usage
 WHERE index_name IS NOT NULL
-AND count_star =0
-AND index_name <> 'PRIMARY'
-AND object_schema != 'mysql'
+AND count_star =0  
+AND index_name <> 'PRIMARY' 
+AND object_schema != 'mysql' 
 ORDER BY count_star, object_schema, object_name;
 ENDSQL
     @idxinfo = select_array($selIdxReq);
-    infoprint "Unused indexes:";
+    infoprint "Unsused indexes:";
     push( @generalrec, "Remove unused indexes." ) if ( scalar(@idxinfo) > 0 );
     foreach (@idxinfo) {
         debugprint "$_";
@@ -2841,7 +3215,7 @@ sub string2file {
   my $filename=shift;
   my $content=shift;
   open my $fh, q(>), $filename
-  or die "Unable to open $filename in write mode. Please check permissions for this file or directory";
+  or die "Unable to open $filename in write mode. please check permissions for this file or directory";
   print $fh $content if defined($content);
   close $fh;
   debugprint $content if ($opt{'debug'});
@@ -2871,7 +3245,7 @@ if ($opt{'template'} ne 0 ) {
 <!DOCTYPE html>
 <html>
 <head>
-  <title>MySQLTuner Report</title>
+  <title>Report</title>
   <meta charset="UTF-8">
 </head>
 <body>
@@ -2887,39 +3261,23 @@ END_TEMPLATE
 }
 sub dump_result {
     if ($opt{'debug'}) {
+      use Data::Dumper qw/Dumper/;
+      $Data::Dumper::Pair = " : ";
       debugprint Dumper( \%result );
     }
 
     debugprint "HTML REPORT: $opt{'reportfile'}";
-
     if ($opt{'reportfile'} ne 0 ) {
-      eval "{ use Text::Template }";
-      if ($@) {
-          badprint "Text::Template Module is needed.";
-          exit 1;
-      }
-
+      use Data::Dumper qw/Dumper/;
+      $Data::Dumper::Pair = " : ";
       my $vars= {'data' => Dumper( \%result ) };
 
-      my $template;
-      {
-        no warnings 'once';
-        $template = Text::Template->new(TYPE => 'STRING', PREPEND => q{;}, SOURCE => $templateModel)
-        or die "Couldn't construct template: $Text::Template::ERROR";
-      }
+      my $template = Text::Template->new(TYPE => 'STRING', PREPEND => q{;}, SOURCE => $templateModel)
+      or die "Couldn't construct template: $Text::Template::ERROR";
       open my $fh, q(>), $opt{'reportfile'}
       or die "Unable to open $opt{'reportfile'} in write mode. please check permissions for this file or directory";
       $template->fill_in(HASH =>$vars, OUTPUT=>$fh );
       close $fh;
-    }
-    if ($opt{'json'} ne 0 ) {
-      eval "{ use JSON }";
-      if ($@) {
-          badprint "JSON Module is needed.";
-          exit 1;
-      }
-      my $json = JSON->new->allow_nonref;
-      print JSON->new->utf8(1)->pretty(1)->encode(%result);
     }
 }
 
@@ -2938,15 +3296,11 @@ check_storage_engines;       # Show enabled storage engines
 mysql_databases;             # Show informations about databases
 mysql_indexes;               # Show informations about indexes
 security_recommendations;    # Display some security recommendations
-cve_recommendations;         # Display related CVE
 calculations;                # Calculate everything we need
 mysql_stats;                 # Print the server stats
 mysql_myisam;                # Print MyISAM stats
 mysql_innodb;                # Print InnoDB stats
-mariadb_threadpool;          # Print MaraiDB ThreadPool stats
-mariadb_ariadb;              # Print MaraiDB AriaDB stats
-mariadb_tokudb;              # Print MaraiDB TokuDB stats
-mariadb_galera;              # Print MaraiDB Galera Cluster stats
+mysql_ariadb;                # Print AriaDB stats
 get_replication_status;      # Print replication info
 make_recommendations;        # Make recommendations based on stats
 dump_result;                 # Dump result if debug is on
@@ -2965,7 +3319,7 @@ __END__
 
 =head1 NAME
 
- MySQLTuner 1.6.4 - MySQL High Performance Tuning Script
+ MySQLTuner 1.6.0 - MySQL High Performance Tuning Script
 
 =head1 IMPORTANT USAGE GUIDELINES
 
@@ -2993,9 +3347,8 @@ You must provide the remote server's total memory when connecting to other serve
  --forcemem <size>    Amount of RAM installed in megabytes
  --forceswap <size>   Amount of swap memory configured in megabytes
  --passwordfile <path>Path to a password file list(one password by line)
-
+ 
 =head1 OUTPUT OPTIONS
-
  --silent             Don't output anything on screen
  --nogood             Remove OK responses
  --nobad              Remove negative/suggestion responses
@@ -3003,9 +3356,7 @@ You must provide the remote server's total memory when connecting to other serve
  --debug              Print debug information
  --dbstat             Print database information
  --idxstat            Print index information
- --cvefile            CVE File for vulnerability checks
  --nocolor            Don't print output in color
- --json               Print result as JSON string
  --buffers            Print global and per-thread buffer values
  --outputfile <path>  Path to a output txt file
  --reportfile <path>  Path to a report txt file
@@ -3017,7 +3368,7 @@ You can find documentation for this module with the perldoc command.
 
   perldoc mysqltuner
 
-=head2 INTERNALS
+=head2 INTENALS
 
 L<https://github.com/major/MySQLTuner-perl/blob/master/INTERNALS.md>
 
@@ -3158,10 +3509,6 @@ Joe Ashcraft
 =item *
 
 Jean-Marie Renouard
-
-=item *
-
-Stephan GroBberndt
 
 =back
 
