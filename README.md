@@ -1,5 +1,8 @@
 # Docker-MySQLTuner
 
+[![ImageLayers Size](https://img.shields.io/imagelayers/image-size/_/ubuntu/latest.svg)]()
+[![Docker Pulls](https://img.shields.io/docker/pulls/mashape/kong.svg)]()
+
 ## Description
 
 Provides a docker container for the MySQLtuner script. The container is based
