@@ -1,7 +1,7 @@
 # Docker-MySQLTuner
 
-[![ImageLayers Size](https://img.shields.io/imagelayers/image-size/thekevjames/mysqltuner/latest.svg)]()
-[![Docker Pulls](https://img.shields.io/docker/pulls/thekevjames/mysqltuner.svg)]()
+[![ImageLayers Size](https://img.shields.io/imagelayers/image-size/thekevjames/mysqltuner/latest.svg)](https://hub.docker.com/r/thekevjames/mysqltuner/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/thekevjames/mysqltuner.svg)](https://hub.docker.com/r/thekevjames/mysqltuner/)
 
 ## Description
 
