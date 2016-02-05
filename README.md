@@ -12,7 +12,7 @@ based on alpine, so it should be obnoxiously small.
 
 Treat this image as if it were the tuning-primer binary. So
 
-    export MY_MYSQL_CONTAINER = mysql-container
+    export MY_MYSQL_CONTAINER=mysql-container
     docker pull thekevjames/tuning-primer
     docker run --rm --link $MY_MYSQL_CONTAINER:mysql thekevjames/tuning-primer all
 
