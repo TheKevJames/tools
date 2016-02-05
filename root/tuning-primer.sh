@@ -3,16 +3,15 @@
 #########################################################################
 #									#
 #	MySQL performance tuning primer script				#
-#	Writen by: Matthew Montgomery <mmontgomery@mysql.com>		#
+#	Writen by: Matthew Montgomery					#
+#	Report bugs to: https://bugs.launchpad.net/mysql-tuning-primer	#
 #	Inspired by: MySQLARd (http://gert.sos.be/demo/mysqlar/)	#
-#	Version: 1.5-r5		Released: 2009-11-22			#
+#	Version: 1.6-r0		Released: 2011-05-14			#
 #	Licenced under GPLv2                                            #
 #									#
 #########################################################################
 
 #########################################################################
-#									#
-# Little known feature: 1st argument is execution mode			#
 #									#
 #	Usage: ./tuning-primer.sh [ mode ] 				#
 #									#
@@ -36,7 +35,6 @@
 #									#
 #########################################################################
 socket=
-
 
 export black='\033[0m'
 export boldblack='\033[1;0m'
@@ -81,6 +79,10 @@ case $color in
 		 printf "$red" ;;
 	boldred)
 		 printf "$boldred" ;;
+	green)
+		 printf "$green" ;;
+	boldgreen)
+		 printf "$boldgreen" ;;
 	yellow)
 		 printf "$yellow" ;;
 	boldyellow)
@@ -136,6 +138,10 @@ case $color in
 		 printf "$red" ;;
 	boldred)
 		 printf "$boldred" ;;
+	green)
+		 printf "$green" ;;
+	boldgreen)
+		 printf "$boldgreen" ;;
 	yellow)
 		 printf "$yellow" ;;
 	boldyellow)
@@ -510,7 +516,7 @@ check_mysql_version () {
 	mysql_variable \'version\' mysql_version
 	mysql_variable \'version_compile_machine\' mysql_version_compile_machine
 	
-if [ "$major_version" = '3.23' ] || [ "$major_version" = '4.0' ] ; then
+if [ "$mysql_version_num" -lt 050000 ]; then
 	cecho "MySQL Version $mysql_version $mysql_version_compile_machine is EOL please upgrade to MySQL 4.1 or later" boldred
 else
 	cecho "MySQL Version $mysql_version $mysql_version_compile_machine"
@@ -554,8 +560,8 @@ post_uptime_warning () {
 	cecho "runtime variables effects performance visit:" red
 	if [ "$major_version" = '3.23' ] || [ "$major_version" = '4.0' ] || [ "$major_version" = '4.1' ] ; then
 	cecho "http://dev.mysql.com/doc/refman/4.1/en/server-system-variables.html" boldblue
-	elif [ "$major_version" = '5.0' ] || [ "$major_version" = '5.1' ] ; then
-	cecho "http://dev.mysql.com/doc/refman/$major_version/en/server-system-variables.html" boldblue
+	elif [ "$major_version" = '5.0' ] || [ "$mysql_version_num" -gt '050100' ]; then
+	cecho "http://dev.mysql.com/doc/refman/$major_version/en/server-system-variables.html" boldblue	
 	else
 	cecho "UNSUPPORTED MYSQL VERSION" boldred
 	exit 1
@@ -767,13 +773,13 @@ check_key_buffer_size () {
 	cecho "Key cache miss rate is 1 : $key_cache_miss_rate"
 	cecho "Key buffer free ratio = $key_buffer_freeRND %" 
 
-	if [ "$major_version" = '5.1' ] && [ $mysql_version_num -lt '5123' ] ; then
+	if [ "$major_version" = '5.1' ] && [ $mysql_version_num -lt 050123 ] ; then
 		if [ $key_buffer_size -ge 4294967296 ] && ( echo "x86_64 ppc64 ia64 sparc64 i686" | grep -q $mysql_version_compile_machine ) ; then
 			cecho "Using key_buffer_size > 4GB will cause instability in versions prior to 5.1.23 " boldred
 			cecho "See Bug#5731, Bug#29419, Bug#29446" boldred
 		fi
 	fi
-	if [ "$major_version" = '5.0' ] && [ $mysql_version_num -lt '5052' ] ; then
+	if [ "$major_version" = '5.0' ] && [ $mysql_version_num -lt 050052 ] ; then
 		if [ $key_buffer_size -ge 4294967296 ] && ( echo "x86_64 ppc64 ia64 sparc64 i686" | grep -q $mysql_version_compile_machine ) ; then
 			cecho "Using key_buffer_size > 4GB will cause instability in versions prior to 5.0.52 " boldred
 			cecho "See Bug#5731, Bug#29419, Bug#29446" boldred
@@ -969,7 +975,7 @@ check_join_operations () {
 	if [ $print_error ] ; then 
 		if [ "$major_version" = '3.23' ] || [ "$major_version" = '4.0' ] ; then
 			cecho "You should enable \"log-long-format\" "
-		elif [ "$major_version" = '4.1' ] || [ "$major_version" = '5.0' ] || [ "$major_version" = '5.1' ] ; then
+		elif [ "$mysql_version_num" -gt 040100 ]; then
 			cecho "You should enable \"log-queries-not-using-indexes\""
 		fi
 		cecho "Then look for non indexed joins in the slow query log."
@@ -982,7 +988,7 @@ check_join_operations () {
 		fi
 	fi
 
-	# XXX Add better tests for join_buffer_size XXX #
+	# XXX Add better tests for join_buffer_size pending mysql bug #15088  XXX #
 }
 
 check_tmp_tables () {
@@ -1172,7 +1178,7 @@ check_table_locking () {
 		cecho "If you have long running SELECT's against MyISAM tables and perform"
 		cecho "frequent updates consider setting 'low_priority_updates=1'"
 		fi
-		if [ $concurrent_insert -le 1 ] && [ "$major_version" = '5.0' -o "$major_version" = '5.1' ] ; then
+		if [ $concurrent_insert -le 1 ] && [ "$mysql_version_num" -gt 050000 ] ; then
 		cecho "If you have a high concurrency of inserts on Dynamic row-length tables"
 		cecho "consider setting 'concurrent_insert=2'."
 		fi
@@ -1373,7 +1379,7 @@ total_memory_used () {
 	cecho "Physical Memory : $physical_memoryHR $unit" $txt_color
 	if [ $error -eq 1 ] ; then
 		printf "\n"
-		cecho "nMax memory limit exceeds 90% of physical memory" $txt_color
+		cecho "Max memory limit exceeds 90% of physical memory" $txt_color
 	else
 		cecho "Max memory limit seem to be within acceptable norms" green
 	fi
@@ -1387,12 +1393,17 @@ login_validation () {
 	check_for_plesk_passwords	# determine the login method -- 2nd login
 	check_mysql_login		# determine if mysql is accepting login -- 3rd login
 	export major_version=$($mysql -Bse "SELECT SUBSTRING_INDEX(VERSION(), '.', +2)")
-	export mysql_version_num=$($mysql -Bse "SELECT LEFT(REPLACE(SUBSTRING_INDEX(VERSION(), '-', +1), '.', ''),4)" )
+#	export mysql_version_num=$($mysql -Bse "SELECT LEFT(REPLACE(SUBSTRING_INDEX(VERSION(), '-', +1), '.', ''),4)" )
+	export mysql_version_num=$($mysql -Bse "SELECT VERSION()" | 
+		awk -F \. '{ printf "%02d", $1; printf "%02d", $2; printf "%02d", $3 }')
+
 }
 
 shared_info () {
 	export major_version=$($mysql -Bse "SELECT SUBSTRING_INDEX(VERSION(), '.', +2)")
-	export mysql_version_num=$($mysql -Bse "SELECT LEFT(REPLACE(SUBSTRING_INDEX(VERSION(), '-', +1), '.', ''),4)" )
+	# export mysql_version_num=$($mysql -Bse "SELECT LEFT(REPLACE(SUBSTRING_INDEX(VERSION(), '-', +1), '.', ''),4)" )
+	export mysql_version_num=$($mysql -Bse "SELECT VERSION()" | 
+		awk -F \. '{ printf "%02d", $1; printf "%02d", $2; printf "%02d", $3 }')
 	mysql_status \'Questions\' questions
 #	socket_owner=$(find -L $socket -printf '%u\n')
 	socket_owner=$(ls -nH $socket | awk '{ print $3 }')
@@ -1423,9 +1434,13 @@ get_system_info () {
 	export physical_memory=$(awk '/^MemTotal/ { printf("%.0f", $2*1024 ) }' < /proc/meminfo)
 	export duflags='-b'
     elif [ "$OS" = 'SunOS' ] ; then
-	ps_socket=$(netstat -a | awk '/mysql(d)?.sock/ { print $5 }' | head -1)
-	found_socks=$(netstat -a | awk '/mysql(d)?.sock/ { print $5 }') 
+	ps_socket=$(netstat -an | awk '/mysql(d)?.sock/ { print $5 }' | head -1)
+	found_socks=$(netstat -an | awk '/mysql(d)?.sock/ { print $5 }') 
 	export physical_memory=$(prtconf | awk '/^Memory\ size:/ { print $3*1048576 }')
+    fi
+    if [ -z $(which bc) ] ; then
+	echo "Error: Command line calculator 'bc' not found!"
+	exit
     fi
 }
 
