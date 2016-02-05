@@ -5,7 +5,7 @@
 #	MySQL performance tuning primer script				#
 #	Writen by: Matthew Montgomery <mmontgomery@mysql.com>		#
 #	Inspired by: MySQLARd (http://gert.sos.be/demo/mysqlar/)	#
-#	Version: 1.5-r1		Released: 2009-04-14			#
+#	Version: 1.5-r4		Released: 2009-11-04			#
 #	Licenced under GPLv2                                            #
 #									#
 #########################################################################
@@ -511,11 +511,7 @@ check_slow_queries () {
 	cecho "$questions \c" $boldred
 	cecho "that take longer than $long_query_time sec. to complete"
 	
-	if [ "$major_version" = '5.1' ]; then
-		float2int long_query_time long_query_timeInt
-	else
-		long_query_timeInt=$(($long_query_time))
-	fi
+	float2int long_query_time long_query_timeInt
 
 	if [ $long_query_timeInt -gt $prefered_query_time ] ; then
                 cecho "Your long_query_time may be too high, I typically set this under $prefered_query_time sec." $red
@@ -534,6 +530,7 @@ check_binary_log () {
 	mysql_variable \'log_bin\' log_bin
 	mysql_variable \'max_binlog_size\' max_binlog_size
 	mysql_variable \'expire_logs_days\' expire_logs_days
+	mysql_variable \'sync_binlog\' sync_binlog
 	#  mysql_variable \'max_binlog_cache_size\' max_binlog_cache_size
 
 	if [ "$log_bin" = 'ON' ] ; then
@@ -547,6 +544,9 @@ check_binary_log () {
 			cecho "RESET MASTER or PURGE MASTER LOGS commands are run manually" $red
 			cecho "Setting expire_logs_days will allow you to remove old binary logs automatically"  $yellow
 			cecho "See http://dev.mysql.com/doc/refman/$major_version/en/purge-master-logs.html" $yellow
+		fi
+		if [ "$sync_binlog" = 0 ] ; then
+			cecho "Binlog sync is not enabled, you could loose binlog records during a server crash" $red
 		fi
 	else
 		cecho "The binary update log is \c"
@@ -661,8 +661,7 @@ check_key_buffer_size () {
         else
                 key_cache_miss_rate=$(($key_read_requests/$key_reads))
                 if [ ! -z $key_blocks_unused ] ; then
-			cecho "$key_blocks_unused * $key_cache_block_size / $key_buffer_size * 100" 
-			key_buffer_free=$(echo "scale=0; $key_blocks_unused * $key_cache_block_size / $key_buffer_size * 100" | bc -l )
+			key_buffer_free=$(echo "$key_blocks_unused * $key_cache_block_size / $key_buffer_size * 100" | bc -l )
                 	key_buffer_freeRND=$(echo "scale=0; $key_buffer_free / 1" | bc -l)
                 else
                         key_buffer_free='Unknown'
@@ -746,8 +745,12 @@ check_query_cache () {
 		human_readable $query_cache_limit query_cache_limitHR
 		cecho "Current query_cache_limit = $query_cache_limitHR $unit"
 		cecho "Current Query cache Memory fill ratio = $qcache_mem_fill_ratio %"
-		human_readable $query_cache_min_res_unit query_cache_min_res_unitHR 
-		cecho "Current query_cache_min_res_unit = $query_cache_min_res_unitHR $unit"
+		if [ -z $query_cache_min_res_unit ] ; then
+			cecho "No query_cache_min_res_unit is defined.  Using MySQL < 4.1 cache fragmentation can be inpredictable" %yellow
+		else
+			human_readable $query_cache_min_res_unit query_cache_min_res_unitHR 
+			cecho "Current query_cache_min_res_unit = $query_cache_min_res_unitHR $unit"
+		fi
 		if [ $qcache_free_blocks -gt 2 ] && [ $qcache_total_blocks -gt 0 ] ; then
 			qcache_percent_fragmented=$(echo "scale=2; $qcache_free_blocks * 100 / $qcache_total_blocks" | bc -l)
 			qcache_percent_fragmentedHR=$(echo "scale=0; $qcache_percent_fragmented / 1" | bc -l)
@@ -1483,7 +1486,7 @@ case $mode in
 	prompt
 	;;
 	*)
-	cecho "usage: $0 [ all | banner | file | innodb | memory | misc | promp ]" $boldred
+	cecho "usage: $0 [ all | banner | file | innodb | memory | misc | prompt ]" $boldred
 	exit 1  
 	;;
 esac
