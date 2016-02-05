@@ -5,8 +5,7 @@
 
 ## Description
 
-Provides a docker container for the Tuning-Primer script. The container is
-based on alpine, so it should be obnoxiously small.
+Provides a docker container for the Tuning-Primer script. The container is based on alpine, so it should be obnoxiously small.
 
 ## Usage
 
@@ -16,5 +15,4 @@ Treat this image as if it were the tuning-primer binary. So
     docker pull thekevjames/tuning-primer
     docker run --rm --link $MY_MYSQL_CONTAINER:mysql thekevjames/tuning-primer all
 
-For full usage information, see the
-[https://launchpad.net/mysql-tuning-primer](Tuning-Primer homepage).
+For full usage information, see the [Tuning-Primer Homepage](https://launchpad.net/mysql-tuning-primer).
