@@ -5,7 +5,7 @@
 #	MySQL performance tuning primer script				#
 #	Writen by: Matthew Montgomery <mmontgomery@mysql.com>		#
 #	Inspired by: MySQLARd (http://gert.sos.be/demo/mysqlar/)	#
-#	Version: 1.5-r0		Released: 2009-03-31			#
+#	Version: 1.5-r1		Released: 2009-04-14			#
 #	Licenced under GPLv2                                            #
 #									#
 #########################################################################
@@ -89,8 +89,16 @@ cecho "\t     - By: Matthew Montgomery -" $black
 
 check_for_socket () {
 	if [ -z "$socket" ] ; then
-		if [ -S /var/lib/mysql/mysql.sock ] ; then
+		# Use ~/my.cnf version
+		if [ -f ~/.my.cnf ] ; then
+			cnf_socket=$(grep ^socket ~/.my.cnf | awk -F \= '{ print $2 }' | head -1)
+		fi
+		if [ -S "$cnf_socket" ] ; then
+			socket=$cnf_socket
+		elif [ -S /var/lib/mysql/mysql.sock ] ; then
 			socket=/var/lib/mysql/mysql.sock
+		elif [ -S /var/run/mysqld/mysqld.sock ] ; then
+			socket=/var/run/mysqld/mysqld.sock
 		elif [ -S /tmp/mysql.sock ] ; then
 			socket=/tmp/mysql.sock
 		else
@@ -120,8 +128,10 @@ check_for_plesk_passwords () {
 	        mysql="mysql -S $socket -u admin -p$(cat /etc/psa/.psa.shadow)"
 	        mysqladmin="mysqladmin -S $socket -u admin -p$(cat /etc/psa/.psa.shadow)"
 	else
-	        mysql="mysql -S $socket"
-	        mysqladmin="mysqladmin -S $socket"
+	        mysql="mysql"
+	        mysqladmin="mysqladmin"
+	        # mysql="mysql -S $socket"
+	        # mysqladmin="mysqladmin -S $socket"
 	fi
 }
 
@@ -132,9 +142,10 @@ check_mysql_login () {
 	is_up=$($mysqladmin ping 2>&1)
 	if [ "$is_up" = "mysqld is alive" ] ; then
 		echo UP > /dev/null
-		echo $is_up
+	 	# echo $is_up
 	elif [ "$is_up" != "mysqld is alive" ] ; then
 		cecho "\n\c"
+		cecho "Using login values from ~/.my.cnf\n" 
 		cecho "- INITIAL LOGIN ATTEMPT FAILED -\n" $boldred
 		if [ -z $prompted ] ; then
 		find_webmin_passwords
@@ -163,8 +174,15 @@ second_login_failed () {
 
 ## -- create a ~/.my.cnf and exit when all else fails -- ##
 
-	cecho "- RETRY LOGIN ATTEMPT FAILED -\n" $boldred
 	cecho "Could not auto detect login info!\n"
+	cecho "Found Sockets: \n$found_socks\n"
+	cecho "Using: $socket" $red
+	read -p "Would you like to provide a different socket?: [y/N] " REPLY
+		case $REPLY in 
+			yes | y | Y | YES)
+			read -p "Socket: " socket
+			;;
+		esac
 	read -p "Do you have your login handy ? [y/N] : " REPLY
 	case $REPLY in 
 		yes | y | Y | YES)
@@ -172,11 +190,11 @@ second_login_failed () {
 		read -p "User: " user
 		read -rp "Password: " pass
 		if [ -z $pass ] ; then
-		export mysql="$mysql -u$user"
-		export mysqladmin="$mysqladmin -u$user"
+		export mysql="$mysql -S$socket -u$user"
+		export mysqladmin="$mysqladmin -S$socket -u$user"
 		else
-		export mysql="$mysql -u$user -p$pass"
-		export mysqladmin="$mysqladmin -u$user -p$pass"
+		export mysql="$mysql -S$socket -u$user -p$pass"
+		export mysqladmin="$mysqladmin -S$socket -u$user -p$pass"
 		fi
 		;;
 		*)
@@ -191,7 +209,7 @@ second_login_failed () {
 		answer2='yes'
 		if [ ! -f ~/.my.cnf ] ; then
 			umask 077
-			echo -e "[client]\nuser=$user\npassword=$pass" > ~/.my.cnf
+			echo -e "[client]\nuser=$user\npassword=$pass\nsocket=$socket" > ~/.my.cnf
 			if [ "$answer1" != 'yes' ] ; then
 				exit 1
 			else
@@ -201,8 +219,8 @@ second_login_failed () {
 		else
 			cecho "\n~/.my.cnf already exists!\n" $boldred
 			read -p "Replace ? [y/N] : " REPLY
-			if [ "$REPLY" = 'y' ] || [ "$REPLY = 'Y' " ] ; then 
-			echo -e "[client]\nuser=$user\npassword=$pass" > ~/.my.cnf
+			if [ "$REPLY" = 'y' ] || [ "$REPLY" = 'Y' ] ; then 
+			echo -e "[client]\nuser=$user\npassword=$pass\socket=$socket" > ~/.my.cnf
 				if [ "$answer1" != 'yes' ] ; then
 					exit 1
 				else
@@ -210,7 +228,7 @@ second_login_failed () {
 					return 0
 				fi
 			else
-				cecho "Please set the 'user=' and 'password=' values in ~/.my.cnf"
+				cecho "Please set the 'user=' and 'password=' and 'socket=' values in ~/.my.cnf"
 				exit 1
 			fi
 		fi
@@ -230,7 +248,7 @@ find_webmin_passwords () {
 
 ## -- populate the .my.cnf file using values harvested from Webmin -- ##
 
-	cecho "Testing Stored for passwords:\c"
+	cecho "Testing for stored webmin passwords:\c"
 	if [ -f /etc/webmin/mysql/config ] ; then
 		user=$(grep ^login= /etc/webmin/mysql/config | cut -d "=" -f 2)
 		pass=$(grep ^pass= /etc/webmin/mysql/config | cut -d "=" -f 2)
@@ -402,7 +420,7 @@ check_mysql_version () {
 	mysql_variable \'version\' mysql_version
 	mysql_variable \'version_compile_machine\' mysql_version_compile_machine
 	
-if [ "$major_version" == '3.23' ] || [ "$major_version" == '4.0' ] ; then
+if [ "$major_version" = '3.23' ] || [ "$major_version" = '4.0' ] ; then
 	cecho "MySQL Version $mysql_version $mysql_version_compile_machine is EOL please upgrade to MySQL 4.1 or later" $boldred
 else
 	cecho "MySQL Version $mysql_version $mysql_version_compile_machine"
@@ -444,9 +462,9 @@ post_uptime_warning () {
 	echo ""
 	cecho "To find out more information on how each of these" $red
 	cecho "runtime variables effects performance visit:" $red
-	if [ "$major_version" == '3.23' ] || [ "$major_version" == '4.0' ] || [ "$major_version" == '4.1' ]; then
+	if [ "$major_version" = '3.23' ] || [ "$major_version" = '4.0' ] || [ "$major_version" = '4.1' ] ; then
 	cecho "http://dev.mysql.com/doc/refman/4.1/en/server-system-variables.html" $boldblue
-	elif [ "$major_version" == '5.0' ] || [ "$major_version" == '5.1' ] ; then
+	elif [ "$major_version" = '5.0' ] || [ "$major_version" = '5.1' ] ; then
 	cecho "http://dev.mysql.com/doc/refman/$major_version/en/server-system-variables.html" $boldblue
 	else
 	cecho "UNSUPPORTED MYSQL VERSION" $boldred
@@ -473,9 +491,9 @@ check_slow_queries () {
 		fi
 	fi
 
-	if [ "$log_slow_queries" == 'ON' ] ; then
+	if [ "$log_slow_queries" = 'ON' ] ; then
 		cecho "The slow query log is enabled."
-	elif [ "$log_slow_queries" == 'OFF' ] ; then
+	elif [ "$log_slow_queries" = 'OFF' ] ; then
 		cecho "The slow query log is \c"
 		cecho "NOT \c" $boldred
 		cecho "enabled."
@@ -493,7 +511,7 @@ check_slow_queries () {
 	cecho "$questions \c" $boldred
 	cecho "that take longer than $long_query_time sec. to complete"
 	
-	if [ "$major_version" == '5.1' ]; then
+	if [ "$major_version" = '5.1' ]; then
 		float2int long_query_time long_query_timeInt
 	else
 		long_query_timeInt=$(($long_query_time))
@@ -518,7 +536,7 @@ check_binary_log () {
 	mysql_variable \'expire_logs_days\' expire_logs_days
 	#  mysql_variable \'max_binlog_cache_size\' max_binlog_cache_size
 
-	if [ "$log_bin" == 'ON' ] ; then
+	if [ "$log_bin" = 'ON' ] ; then
 		cecho "The binary update log is enabled"
 		if [ -z "$max_binlog_size" ] ; then
 			cecho "The max_binlog_size is not set. The binary log will rotate when it reaches 1GB." $red
@@ -660,19 +678,19 @@ check_key_buffer_size () {
 	cecho "Key cache miss rate is 1 : $key_cache_miss_rate"
 	cecho "Key buffer free ratio = $key_buffer_freeRND %" 
 
-	if [ "$major_version" == '5.1' ] && [ $mysql_version_num -lt '5123' ] ; then
+	if [ "$major_version" = '5.1' ] && [ $mysql_version_num -lt '5123' ] ; then
 		if [ $key_buffer_size -ge 4294967296 ] && ( echo "x86_64 ppc64 ia64 sparc64 i686" | grep -q $mysql_version_compile_machine ) ; then
 			cecho "Using key_buffer_size > 4GB will cause instability in versions prior to 5.1.23 " $boldred
 			cecho "See Bug#5731, Bug#29419, Bug#29446" $boldred
 		fi
 	fi
-	if [ "$major_version" == '5.0' ] && [ $mysql_version_num -lt '5052' ] ; then
+	if [ "$major_version" = '5.0' ] && [ $mysql_version_num -lt '5052' ] ; then
 		if [ $key_buffer_size -ge 4294967296 ] && ( echo "x86_64 ppc64 ia64 sparc64 i686" | grep -q $mysql_version_compile_machine ) ; then
 			cecho "Using key_buffer_size > 4GB will cause instability in versions prior to 5.0.52 " $boldred
 			cecho "See Bug#5731, Bug#29419, Bug#29446" $boldred
 		fi
 	fi
-	if [ "$major_version" == '4.1' -o "$major_version" == '4.0' ] && [ $key_buffer_size -ge 4294967296 ] && ( echo "x86_64 ppc64 ia64 sparc64 i686" | grep -q $mysql_version_compile_machine ) ; then
+	if [ "$major_version" = '4.1' -o "$major_version" = '4.0' ] && [ $key_buffer_size -ge 4294967296 ] && ( echo "x86_64 ppc64 ia64 sparc64 i686" | grep -q $mysql_version_compile_machine ) ; then
 		cecho "Using key_buffer_size > 4GB will cause instability in versions prior to 5.0.52 " $boldred
 		cecho "Reduce key_buffer_size to a safe value" $boldred
 		cecho "See Bug#5731, Bug#29419, Bug#29446" $boldred
@@ -781,7 +799,7 @@ check_sort_operations () {
 
 	human_readable $read_rnd_buffer_size read_rnd_buffer_sizeHR
 	cecho "Current \c" 
-	if [ "$major_version" == '3.23' ] ; then
+	if [ "$major_version" = '3.23' ] ; then
 		cecho "record_rnd_buffer \c"
 	else
 		cecho "read_rnd_buffer_size \c"
@@ -804,7 +822,7 @@ check_sort_operations () {
 		cecho "sort merge passes are made per sort operation"
 		cecho "You should raise your sort_buffer_size"
 		cecho "You should also raise your \c"
-		if [ "$major_version" == '3.23' ] ; then 
+		if [ "$major_version" = '3.23' ] ; then 
 			cecho "record_rnd_buffer_size"
 		else
 			cecho "read_rnd_buffer_size"
@@ -856,9 +874,9 @@ check_join_operations () {
 	fi
 
 	if [ $print_error ] ; then 
-		if [ "$major_version" == '3.23' ] || [ "$major_version" == '4.0' ] ; then
+		if [ "$major_version" = '3.23' ] || [ "$major_version" = '4.0' ] ; then
 			cecho "You should enable \"log-long-format\" "
-		elif [ "$major_version" == '4.1' ] || [ "$major_version" == '5.0' ] || [ "$major_version" == '5.1' ] ; then
+		elif [ "$major_version" = '4.1' ] || [ "$major_version" = '5.0' ] || [ "$major_version" = '5.1' ] ; then
 			cecho "You should enable \"log-queries-not-using-indexes\""
 		fi
 		cecho "Then look for non indexed joins in the slow query log."
@@ -1056,11 +1074,11 @@ check_table_locking () {
 	fi
 	if [ $immediate_locks_miss_rate -lt 5000 ] ; then
 		cecho "You may benefit from selective use of InnoDB."
-		if [ "$low_priority_updates" == 'OFF' ] ; then
+		if [ "$low_priority_updates" = 'OFF' ] ; then
 		cecho "If you have long running SELECT's against MyISAM tables and perform"
 		cecho "frequent updates consider setting 'low_priority_updates=1'"
 		fi
-		if [ $concurrent_insert -le 1 ] && [ "$major_version" == '5.0' -o "$major_version" == '5.1' ] ; then
+		if [ $concurrent_insert -le 1 ] && [ "$major_version" = '5.0' -o "$major_version" = '5.1' ] ; then
 		cecho "If you have a high concurrency of inserts on Dynamic row-length tables"
 		cecho "consider setting 'concurrent_insert=2'."
 		fi
@@ -1092,7 +1110,7 @@ check_table_scans () {
 		if [ $full_table_scans -ge 4000 ] && [ $read_buffer_size -le 2097152 ] ; then
 			cecho "You have a high ratio of sequential access requests to SELECTs" $red
 			cecho "You may benefit from raising \c" $red
-			if [ "$major_version" == '3.23' ] ; then 
+			if [ "$major_version" = '3.23' ] ; then 
 				cecho "record_buffer \c" $red
 			else
 				cecho "read_buffer_size \c" $red
@@ -1117,7 +1135,7 @@ check_innodb_status () {
 
 	mysql_variable \'have_innodb\' have_innodb
 
-	if [ "$have_innodb" == "YES" ] ; then
+	if [ "$have_innodb" = "YES" ] ; then
 		mysql_variable \'innodb_buffer_pool_size\' innodb_buffer_pool_size
 		mysql_variable \'innodb_additional_mem_pool_size\' innodb_additional_mem_pool_size
 		mysql_variable \'innodb_fast_shutdown\' innodb_fast_shutdown
@@ -1183,13 +1201,13 @@ total_memory_used () {
 	mysql_variable \'log_bin\' log_bin
 	mysql_status \'Max_used_connections\' max_used_connections
 
-	if [ "$major_version" == "3.23" ] ; then
+	if [ "$major_version" = "3.23" ] ; then
 		mysql_variable \'record_buffer\' read_buffer_size
 		mysql_variable \'record_rnd_buffer\' read_rnd_buffer_size
 		mysql_variable \'sort_buffer\' sort_buffer_size
 	fi
 
-	if [ "$log_bin" == "ON" ] ; then
+	if [ "$log_bin" = "ON" ] ; then
 		mysql_variable \'binlog_cache_size\' binlog_cache_size
 	else
 		binlog_cache_size=0
@@ -1301,21 +1319,25 @@ get_system_info () {
     # Get information for various UNIXes
     if [ "$OS" = 'Darwin' ]; then
 	ps_socket=$(netstat -ln | awk '/mysql(d)?\.sock/ { print $9 }' | head -1)
+	found_socks=$(netstat -ln | awk '/mysql(d)?\.sock/ { print $9 }')
         export physical_memory=$(sysctl -n hw.memsize)
 	export duflags=''
-    elif [ "$OS" = 'FreeBSD' ] || [ "$OS" == 'OpenBSD' ]; then
+    elif [ "$OS" = 'FreeBSD' ] || [ "$OS" = 'OpenBSD' ]; then
 	## On FreeBSD must be root to locate sockets.
 	ps_socket=$(netstat -ln | awk '/mysql(d)?\.sock/ { print $9 }' | head -1)
+	found_socks=$(netstat -ln | awk '/mysql(d)?\.sock/ { print $9 }')
         export physical_memory=$(sysctl -n hw.realmem)
 	export duflags=''
     elif [ "$OS" = 'Linux' ] ; then
 	## Includes SWAP
         ## export physical_memory=$(free -b | grep -v buffers |  awk '{ s += $2 } END { printf("%.0f\n", s ) }')
 	ps_socket=$(netstat -ln | awk '/mysql(d)?\.sock/ { print $9 }' | head -1)
+	found_socks=$(netstat -ln | awk '/mysql(d)?\.sock/ { print $9 }')
 	export physical_memory=$(awk '/^MemTotal/ { printf("%.0f", $2*1024 ) }' < /proc/meminfo)
 	export duflags='-b'
     elif [ "$OS" = 'SunOS' ] ; then
 	ps_socket=$(netstat -a | awk '/mysql(d)?.sock/ { print $5 }' | head -1)
+	found_socks=$(netstat -a | awk '/mysql(d)?.sock/ { print $5 }') 
 	export physical_memory=$(prtconf | awk '/^Memory\ size:/ { print $3*1048576 }')
     fi
 }
