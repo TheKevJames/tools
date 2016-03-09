@@ -1,0 +1,12 @@
+machine:
+  services:
+    - docker
+
+dependencies:
+  override:
+    - docker info
+    - make
+
+test:
+  override:
+    - docker inspect thekevjames/ubuntu32:latest
