@@ -1,7 +1,5 @@
 FROM alpine:latest
 
-MAINTAINER Kevin James <kevinjames@thekev.in>
-
 RUN apk --update add mysql-client perl && \
     rm -rf /var/cache/apk/*
 
