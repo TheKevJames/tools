@@ -6,4 +6,7 @@ their own repo. Many of these originally started as an `experiment`_ or, before
 I started trying to organize my GitHub presence, as a couple-line repo I'd
 completely forgotten about.
 
+- `Dockerized MySQLTuner`_
+
 .. _experiment: https://github.com/TheKevJames/experiments
+.. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
