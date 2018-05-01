@@ -7,6 +7,8 @@ I started trying to organize my GitHub presence, as a couple-line repo I'd
 completely forgotten about.
 
 - `Dockerized MySQLTuner`_
+- `Dockerized Tuning-Primer`_
 
 .. _experiment: https://github.com/TheKevJames/experiments
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
+.. _Dockerized Tuning-Primer: https://github.com/TheKevJames/tools/tree/master/docker-tuning-primer

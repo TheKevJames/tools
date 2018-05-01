@@ -1,7 +1,5 @@
 FROM alpine:latest
 
-MAINTAINER Kevin James <kevinjames@thekev.in>
-
 RUN apk add --update bc mysql mysql-client ncurses socat && \
     rm -rf /var/cache/apk/*
 
