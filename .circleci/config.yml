@@ -1,0 +1,16 @@
+version: 2
+
+jobs:
+  lint:
+    docker:
+      - image: python:3.6.4
+    steps:
+      - checkout
+      - run: pip install pre-commit
+      - run: pre-commit run --all-files
+
+workflows:
+  version: 2
+  run-jobs:
+    jobs:
+      - lint

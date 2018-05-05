@@ -3948,7 +3948,7 @@ SELECT
  , s2.max_columns AS 'maxcol'
  , s.CARDINALITY  AS 'card'
  , t.TABLE_ROWS   AS 'est_rows'
- , INDEX_TYPE as type 
+ , INDEX_TYPE as type
  , ROUND(((s.CARDINALITY / IFNULL(t.TABLE_ROWS, 0.01)) * 100), 2) AS 'sel'
 FROM INFORMATION_SCHEMA.STATISTICS s
  INNER JOIN INFORMATION_SCHEMA.TABLES t
@@ -4466,4 +4466,3 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # cperl-indent-level: 8
 # perl-indent-level: 8
 # End:
-

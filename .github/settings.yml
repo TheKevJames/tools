@@ -1,0 +1,34 @@
+repository:
+  name: tools
+  description: collection of tools too small to deserve their own repo
+  private: false
+
+  has_issues: true
+  has_projects: false
+  has_wiki: false
+  has_downloads: false
+
+  allow_merge_commit: false
+  allow_rebase_merge: true
+  allow_squash_merge: true
+
+labels:
+  - name: bug
+    color: fc2929
+  - name: feature
+    color: 84b6eb
+    oldname: enhancement
+  - name: help wanted
+    color: 159818
+  - name: low-priority
+    color: fbca04
+  - name: task
+    color: d93f0b
+  - name: question
+    color: cc317c
+  - name: backlog
+    color: ededed
+  - name: in-progress
+    color: 0052cc
+  - name: in-review
+    color: 5319e7
