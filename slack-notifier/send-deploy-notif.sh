@@ -36,16 +36,16 @@ PAYLOAD=$(cat <<EOF
                 {"title": "New Version", "value": "${VERSION}", "short": true}
 EOF
 )
-[[ ! -z "${DIFF_URL}" ]] && PAYLOAD+=$(cat <<EOF
-                ,{"title": "Diff", "value": "<${DIFF_URL}|GitHub Diff URL>", "short": true}
+[[ ! -z "${DIFF_URL}" ]] && PAYLOAD=$(cat <<EOF
+                ${PAYLOAD},{"title": "Diff", "value": "<${DIFF_URL}|GitHub Diff URL>", "short": true}
 EOF
 )
-[[ ! -z "${USER}" ]] && PAYLOAD+=$(cat <<EOF
-                ,{"title": "User", "value": "${USER}", "short": true}
+[[ ! -z "${USER}" ]] && PAYLOAD=$(cat <<EOF
+                ${PAYLOAD},{"title": "User", "value": "${USER}", "short": true}
 EOF
 )
-PAYLOAD+=$(cat <<EOF
-            ]
+PAYLOAD=$(cat <<EOF
+            ${PAYLOAD}]
         }
     ]
 }
