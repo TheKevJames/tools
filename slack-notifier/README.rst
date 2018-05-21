@@ -24,6 +24,7 @@ pass the following values explicitly:
 .. code-block:: console
 
     $ sh send-deploy-notif.sh -d "${DIFF_URL}"
+    # sh send-deploy-notif.sh -e "${ENVIRONMENT}"
     $ sh send-deploy-notif.sh -n "${PROJECT_NAME}"
     $ sh send-deploy-notif.sh -p "${PREVIOUS_VERSION}"
     $ sh send-deploy-notif.sh -u "${USER}"

@@ -3,15 +3,17 @@ set -euo pipefail
 
 # grab from CI
 DIFF_URL="${CIRCLE_COMPARE_URL:-}"
+ENVIRONMENT="${CIRCLE_TAG:-}"
 NAME="${CIRCLE_PROJECT_REPONAME:-}"
 PREVIOUS="unknown"
 USER="${CIRCLE_USERNAME:-}"
 VERSION="${CIRCLE_SHA1:-}"
 
 # grab from CLI
-while getopts 'd:n:p:u:v:' flag; do
+while getopts 'd:e:n:p:u:v:' flag; do
   case "${flag}" in
     d) DIFF_URL="${OPTARG}"              ;;
+    e) ENVIRONMENT="${OPTARG}"           ;;
     n) NAME="${OPTARG}"                  ;;
     p) PREVIOUS="${OPTARG}"              ;;
     u) USER="${OPTARG}"                  ;;
@@ -32,12 +34,15 @@ PAYLOAD=$(cat <<EOF
     "attachments": [
         {
             "fields": [
-                {"title": "Old Version", "value": "${PREVIOUS}", "short": true},
-                {"title": "New Version", "value": "${VERSION}", "short": true}
+                {"title": "Version", "value": "${PREVIOUS} -> ${VERSION}", "short": true}
 EOF
 )
 [[ ! -z "${DIFF_URL}" ]] && PAYLOAD=$(cat <<EOF
                 ${PAYLOAD},{"title": "Diff", "value": "<${DIFF_URL}|GitHub Diff URL>", "short": true}
+EOF
+)
+[[ ! -z "${ENVIRONMENT}" ]] && PAYLOAD=$(cat <<EOF
+                ${PAYLOAD},{"title": "Environment", "value": "${ENVIRONMENT}", "short": true}
 EOF
 )
 [[ ! -z "${USER}" ]] && PAYLOAD=$(cat <<EOF
