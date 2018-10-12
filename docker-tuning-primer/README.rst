@@ -1,7 +1,7 @@
 Docker-MySQLTuner
 =================
 
-|imagelayers| |dockerpulls|
+|dockerpulls|
 
 Description
 -----------
@@ -23,7 +23,4 @@ For full usage information, see the `Tuning-Primer Homepage`_.
 .. _Tuning-Primer Homepage: https://launchpad.net/mysql-tuning-primer
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/tuning-primer.svg?style=flat-square
     :alt: Docker Pulls
-    :target: https://hub.docker.com/r/thekevjames/tuning-primer/
-.. |imagelayers| image:: https://img.shields.io/imagelayers/image-size/thekevjames/tuning-primer/latest.svg?style=flat-square
-    :alt: ImageLayers Size
     :target: https://hub.docker.com/r/thekevjames/tuning-primer/

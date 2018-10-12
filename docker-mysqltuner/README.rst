@@ -1,7 +1,7 @@
 Docker-MySQLTuner
 =================
 
-|imagelayers| |dockerpulls|
+|dockerpulls|
 
 Description
 -----------
@@ -24,7 +24,4 @@ For full usage information, see the `MySQLTuner Homepage`_.
 
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/mysqltuner.svg?style=flat-square
     :alt: Docker Pulls
-    :target: https://hub.docker.com/r/thekevjames/mysqltuner/
-.. |imagelayers| image:: https://img.shields.io/imagelayers/image-size/thekevjames/mysqltuner/latest.svg?style=flat-square
-    :alt: ImageLayers Size
     :target: https://hub.docker.com/r/thekevjames/mysqltuner/

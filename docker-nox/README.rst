@@ -1,7 +1,7 @@
 Docker-Nox
 ==========
 
-|imagelayers| |dockerpulls|
+|dockerpulls|
 
 Description
 -----------
@@ -48,9 +48,7 @@ For full usage information, see the `nox`_ documentation.
 .. _currently supported versions of Python: https://devguide.python.org/#status-of-python-branches
 .. _nox-automation: https://pypi.org/project/nox-automation
 .. _nox: http://nox.thea.codes/en/stable/
+
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/nox.svg?style=flat-square
     :alt: Docker Pulls
-    :target: https://hub.docker.com/r/thekevjames/nox/
-.. |imagelayers| image:: https://img.shields.io/imagelayers/image-size/thekevjames/nox/latest.svg?style=flat-square
-    :alt: ImageLayers Size
     :target: https://hub.docker.com/r/thekevjames/nox/
