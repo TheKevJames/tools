@@ -15,5 +15,5 @@ RUN apt-get update && \
         python3.7 \
         python3-pip && \
     python3 -m pip install --upgrade pip && \
-    python3 -m pip install 'nox-automation==2018.7.31.dev1' && \
+    python3 -m pip install 'nox==2018.8.23' && \
     rm -rf /var/cache/apt/lists
