@@ -1,6 +1,6 @@
 repos:
--   repo: git://github.com/pre-commit/pre-commit-hooks
-    sha: v1.2.3
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.0.0
     hooks:
     -   id: check-case-conflict
     -   id: check-executables-have-shebangs
@@ -14,7 +14,11 @@ repos:
     -   id: detect-private-key
     -   id: end-of-file-fixer
     -   id: file-contents-sorter
-        files: .gitignore
+        files: .dockerignore .gitignore
     -   id: mixed-line-ending
         args: [--fix=lf]
     -   id: trailing-whitespace
+-   repo: https://github.com/Lucas-C/pre-commit-hooks-markup
+    rev: v1.0.0
+    hooks:
+    -   id: rst-linter
