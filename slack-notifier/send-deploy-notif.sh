@@ -37,7 +37,7 @@ PAYLOAD=$(cat <<EOF
 EOF
 )
 [[ ! -z "${ENVIRONMENT}" ]] && PAYLOAD=$(cat <<EOF
-    ${PAYLOAD} (env: \`${ENVIRONMENT}\`)
+    ${PAYLOAD} (env: ${ENVIRONMENT})
 EOF
 )
 PAYLOAD=$(cat <<EOF
