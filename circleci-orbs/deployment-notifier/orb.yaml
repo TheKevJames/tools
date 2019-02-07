@@ -1,2 +1,63 @@
 version: 2.1
-description: "a sample orb"
+description: "Tools for notifying external services about new deployments"
+
+executors:
+  alpine-stable:
+    docker:
+    - image: alpine:3.9
+    resource_class: small
+
+jobs:
+  slack:
+    description: |
+      Uses thekevjames/slack-notifier to send a deployment notification to your workspace.
+    # TODO: create send-deploy-notif executor
+    executor: alpine-stable
+    parameters:
+      changes:
+        default: ''
+        description: |
+          The (optional) changelog for this release.
+        type: string
+      diff_url:
+        default: ${CIRCLE_COMPARE_URL}
+        description: |
+          A link to the changeset for this release. Defaults to '${CIRCLE_COMPARE_URL}' (evaluates to the diff provided by CircleCI for this job).
+        type: string
+      environment:
+        default: ${CIRCLE_TAG}
+        description: |
+          The environment being deployed. Defaults to '${CIRCLE_TAG}' (evaluates to the job's tag, if set).
+        type: string
+      name:
+        default: ${CIRCLE_PROJECT_REPONAME}
+        description: |
+          The name of the project. Defaults to '${CIRCLE_PROJECT_REPONAME}' (evaluates to the name of the repository).
+        type: string
+      prev_version:
+        default: unknown
+        description: |
+          Previously-released version. Defaults to "unknown".
+        type: string
+      user:
+        default: ${CIRCLE_USERNAME}
+        description: |
+          User responsible for this release. Defaults to '${CIRCLE_USERNAME}' (evaluates to the CircleCI user who triggered this job).
+        type: string
+      version:
+        default: ${CIRCLE_SHA1:0:10}
+        description: |
+          Newly-released version. Defaults to '${CIRCLE_SHA1:0:10}' (evaluates to the first 10 characters of the job's commit hash).
+        type: string
+    steps:
+      - run: apk add -U curl
+      - run: curl https://raw.githubusercontent.com/TheKevJames/tools/master/slack-notifier/send-deploy-notif.sh > /send-deploy-notif.sh
+      - run: |
+          sh /send-deploy-notif.sh \
+            -c <<parameters.changes>> \
+            -d <<parameters.diff_url>> \
+            -e <<parameters.environment>> \
+            -n <<parameters.name>> \
+            -p <<parameters.prev_version>> \
+            -u <<parameters.user>> \
+            -v <<parameters.version>>
