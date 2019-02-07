@@ -5,7 +5,7 @@ description: "Tools for running lint commands"
 commands:
   pre-commit:
     description: |
-      Runs pre-commit hooks against the current repo. Must be run in an executor with python and pip.
+      Runs pre-commit hooks against the current repo. Must be run in an executor with git, python, pip.
     steps:
       - run: python -m pip install pre-commit
       - checkout
