@@ -28,9 +28,9 @@ workflows:
       - lint
 
       - orb-tools/lint:
-          lint-dir: circleci-orbs/circleci-deployment-notifier
+          lint-dir: circleci-orbs/deployment-notifier
       # - orb-tools/pack:
-      #     source-dir: circleci-orbs/circleci-deployment-notifier
+      #     source-dir: circleci-orbs/deployment-notifier
       #     requires:
       #       - orb-tools/lint
       # - orb-tools/publish-dev:
