@@ -30,7 +30,7 @@ workflows:
       - orb-tools/lint:
           lint-dir: circleci-orbs/circleci-deployment-notifier
       - orb-tools/pack:
-          source: circleci-orbs/circleci-deployment-notifier
+          source-dir: circleci-orbs/circleci-deployment-notifier
           requires:
             - orb-tools/lint
       - orb-tools/publish-dev:
