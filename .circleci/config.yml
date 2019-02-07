@@ -1,4 +1,7 @@
-version: 2
+version: 2.1
+
+orbs:
+  orb-tools: circleci/orb-tools@7.3.0
 
 jobs:
   lint:
@@ -23,3 +26,20 @@ workflows:
   run-jobs:
     jobs:
       - lint
+
+      - orb-tools/lint:
+          lint-dir: circleci-orbs/circleci-deployment-notifier
+      - orb-tools/pack:
+          source: circleci-orbs/circleci-deployment-notifier
+          requires:
+            - orb-tools/lint
+      - orb-tools/publish-dev:
+          context: org-global
+          orb-name: thekevjames/deployment-notifier
+          requires:
+            - orb-tools/pack
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          orb-name: thekevjames/deployment-notifier
+          # TODO: allow major and minor semver updates
+          release: patch
