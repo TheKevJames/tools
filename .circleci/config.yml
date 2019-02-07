@@ -1,7 +1,7 @@
 version: 2.1
 
-# orbs:
-#   orb-tools: circleci/orb-tools@7.3.0
+orbs:
+  orb-tools: circleci/orb-tools@7.3.0
 
 jobs:
   lint:
@@ -27,8 +27,8 @@ workflows:
     jobs:
       - lint
 
-      # - orb-tools/lint:
-      #     lint-dir: circleci-orbs/circleci-deployment-notifier
+      - orb-tools/lint:
+          lint-dir: circleci-orbs/circleci-deployment-notifier
       # - orb-tools/pack:
       #     source-dir: circleci-orbs/circleci-deployment-notifier
       #     requires:
