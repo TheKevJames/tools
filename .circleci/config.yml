@@ -2,25 +2,15 @@ version: 2.1
 
 orbs:
   orb-tools: circleci/orb-tools@7.3.0
+  linter: thekevjames/linter@volatile
 
 jobs:
-  # TODO: dogfood
   lint:
     docker:
-      - image: python:3.7.1-alpine3.8
+      - image: python:3.7.2-alpine3.8
     steps:
-      - run: apk add -U git
-      - checkout
-      - run: pip install pre-commit
-      - restore_cache:
-          keys:
-            - cache-pre-commit-{{ checksum ".pre-commit-config.yaml" }}
-      - run: pre-commit install-hooks
-      - save_cache:
-          key: cache-pre-commit-{{ checksum ".pre-commit-config.yaml" }}
-          paths:
-            - ~/.cache/pre-commit
-      - run: pre-commit run --all-files
+      # - run: pk add -U git
+      - linter/pre-commit
 
 workflows:
   version: 2
