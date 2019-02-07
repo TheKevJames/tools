@@ -38,7 +38,7 @@ jobs:
       - run: apk add -U curl
       - run: |
           curl -XPOST \
-            -H "Authorization: Bearer <<parameters.token>>" \
+            -H "Authorization: Bearer ${<<parameters.token>>}" \
             -H "Content-Type: application/json" \
             -d '{"environment": "<<parameters.environment>>"}' \
             "https://sentry.io/api/0/organizations/<<parameters.organization>>/releases/<<parameters.version>>/deploys/"
@@ -87,7 +87,7 @@ jobs:
       - run: apk add -U curl
       - run: |
           curl -XPOST \
-            -H "Authorization: Bearer <<parameters.token>>" \
+            -H "Authorization: Bearer ${<<parameters.token>>}" \
             -H "Content-Type: application/json" \
             -d '{
                   "version": "<<parameters.version>>",
