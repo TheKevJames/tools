@@ -40,7 +40,7 @@ jobs:
           curl -XPOST \
             -H "Authorization: Bearer ${<<parameters.token>>}" \
             -H "Content-Type: application/json" \
-            -d '{"environment": "<<parameters.environment>>"}' \
+            -d '{"environment": "'"<<parameters.environment>>"'"}' \
             "https://sentry.io/api/0/organizations/<<parameters.organization>>/releases/<<parameters.version>>/deploys/"
 
   sentry-release:
@@ -90,14 +90,14 @@ jobs:
             -H "Authorization: Bearer ${<<parameters.token>>}" \
             -H "Content-Type: application/json" \
             -d '{
-                  "version": "<<parameters.version>>",
-                  "ref": "<<parameters.commit>>",
+                  "version": "'"<<parameters.version>>"'",
+                  "ref": "'"<<parameters.commit>>"'",
                   "refs": [{
-                    "repository": "<<parameters.repository>>",
-                    "commit":"<<parameters.commit>>",
-                    "previousCommit":"<<parameters.prev_commit>>"
+                    "repository": "'"<<parameters.repository>>"'",
+                    "commit":"'"<<parameters.commit>>"'",
+                    "previousCommit":"'"<<parameters.prev_commit>>"'"
                   }],
-                  "projects": ["<<parameters.project>>"]
+                  "projects": ["'"<<parameters.project>>"'"]
                 }' \
             "https://sentry.io/api/0/organizations/<<parameters.organization>>/releases/"
 
