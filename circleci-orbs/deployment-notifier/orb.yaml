@@ -9,6 +9,64 @@ executors:
 
 # TODO: document pre-steps and post-steps
 jobs:
+  sentry-release:
+    description: |
+      Creates a new release in Sentry.
+    executor: alpine-stable
+    parameters:
+      commit:
+        default: ${CIRCLE_SHA1}
+        description: |
+          The git commit SHA for the new release.
+        type: string
+      prev_commit:
+        default: ''
+        description: |
+          The git commit SHA for the previous release.
+        type: string
+      organization:
+        default: ${CIRCLE_PROJECT_USERNAME}
+        description: |
+          The name of the project's organization (on Sentry).
+        type: string
+      project:
+        default: ${CIRCLE_PROJECT_REPONAME}
+        description: |
+          The name of the project (on Sentry).
+        type: string
+      repository:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: |
+          The repository containing the referenced commits.
+        type: string
+      token:
+        default: SENTRY_TOKEN
+        description: |
+          Name of the environment variable containing your Sentry API token.
+        type: env_var_name
+      version:
+        default: ${CIRCLE_SHA1:0:10}
+        description: |
+          Newly-released version.
+        type: string
+    steps:
+      - run: apk add -U curl
+      - run: |
+          curl -XPOST \
+            -H "Authorization: Bearer <<parameters.token>>" \
+            -H "Content-Type: application/json" \
+            -d '{
+                  "version": "<<parameters.version>>",
+                  "ref": "<<parameters.commit>>",
+                  "refs": [{
+                    "repository": "<<parameters.repository>>",
+                    "commit":"<<parameters.commit>>",
+                    "previousCommit":"<<parameters.prev_commit>>"
+                  }],
+                  "projects": ["<<parameters.project>>"]
+                }' \
+            "https://sentry.io/api/0/organizations/<<parameters.organization>>/releases/"
+
   slack:
     description: |
       Uses thekevjames/slack-notifier to send a deployment notification to your workspace.
