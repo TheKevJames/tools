@@ -29,18 +29,18 @@ workflows:
 
       - orb-tools/lint:
           lint-dir: circleci-orbs/deployment-notifier
-      # - orb-tools/pack:
-      #     source-dir: circleci-orbs/deployment-notifier
-      #     requires:
-      #       - orb-tools/lint
-      # - orb-tools/publish-dev:
-      #     context: org-global
-      #     orb-name: thekevjames/deployment-notifier
-      #     requires:
-      #       - lint
-      #       - orb-tools/pack
-      # - orb-tools/dev-promote-prod:
-      #     context: org-global
-      #     orb-name: thekevjames/deployment-notifier
-      #     # TODO: allow major and minor semver updates
-      #     release: patch
+      - orb-tools/pack:
+          source-dir: circleci-orbs/deployment-notifier
+          requires:
+            - orb-tools/lint
+      - orb-tools/publish-dev:
+          context: org-global
+          orb-name: thekevjames/deployment-notifier
+          requires:
+            - lint
+            - orb-tools/pack
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          orb-name: thekevjames/deployment-notifier
+          # TODO: allow major and minor semver updates
+          release: patch
