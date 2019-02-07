@@ -9,6 +9,40 @@ executors:
 
 # TODO: document pre-steps and post-steps
 jobs:
+  sentry-deployment:
+    description: |
+      Creates a new release deployment in Sentry. Should be run after the release has been created.
+    executor: alpine-stable
+    parameters:
+      environment:
+        default: ${CIRCLE_TAG}
+        description: |
+          The environment for which the release applies.
+        type: string
+      organization:
+        default: ${CIRCLE_PROJECT_USERNAME}
+        description: |
+          The name of the project's organization (on Sentry).
+        type: string
+      token:
+        default: SENTRY_TOKEN
+        description: |
+          Name of the environment variable containing your Sentry API token.
+        type: env_var_name
+      version:
+        default: ${CIRCLE_SHA1:0:10}
+        description: |
+          Newly-released version.
+        type: string
+    steps:
+      - run: apk add -U curl
+      - run: |
+          curl -XPOST \
+            -H "Authorization: Bearer <<parameters.token>>" \
+            -H "Content-Type: application/json" \
+            -d '{"environment": "<<parameters.environment>>"}' \
+            "https://sentry.io/api/0/organizations/<<parameters.organization>>/releases/<<parameters.version>>/deploys/"
+
   sentry-release:
     description: |
       Creates a new release in Sentry.
