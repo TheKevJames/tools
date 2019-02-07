@@ -4,7 +4,6 @@ orbs:
   orb-tools: circleci/orb-tools@7.3.0
 
 jobs:
-  # TODO: dogfood
   lint:
     docker:
       - image: python:3.7.1-alpine3.8
@@ -29,49 +28,21 @@ workflows:
       - lint
 
       - orb-tools/lint:
-          name: lint-orbs-linter
-          lint-dir: circleci-orbs/linter
-      - orb-tools/pack:
-          name: pack-orbs-linter
-          source-dir: circleci-orbs/linter
-          requires:
-            - lint-orbs-linter
-      - orb-tools/publish-dev:
-          context: org-global
-          name: publish-dev-orbs-linter
-          orb-name: thekevjames/linter
-          requires:
-            - lint
-            - pack-orbs-linter
-      - orb-tools/dev-promote-prod:
-          context: org-global
-          name: dev-promote-prod-orbs-linter
-          orb-name: thekevjames/linter
-          # TODO: allow major and minor semver updates
-          release: patch
-          requires:
-            - publish-dev-orbs-linter
-
-      - orb-tools/lint:
-          name: lint-orbs-deployment-notifier
           lint-dir: circleci-orbs/deployment-notifier
       - orb-tools/pack:
-          name: pack-orbs-deployment-notifier
           source-dir: circleci-orbs/deployment-notifier
           requires:
-            - lint-orbs-deployment-notifier
+            - orb-tools/lint
       - orb-tools/publish-dev:
           context: org-global
-          name: publish-dev-orbs-deployment-notifier
           orb-name: thekevjames/deployment-notifier
           requires:
             - lint
-            - pack-orbs-deployment-notifier
+            - orb-tools/pack
       - orb-tools/dev-promote-prod:
           context: org-global
-          name: dev-promote-prod-orbs-deployment-notifier
           orb-name: thekevjames/deployment-notifier
           # TODO: allow major and minor semver updates
           release: patch
           requires:
-            - publish-dev-orbs-deployment-notifier
+            - orb-tools/publish-dev
