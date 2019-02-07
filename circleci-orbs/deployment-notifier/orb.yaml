@@ -147,10 +147,10 @@ jobs:
       - run: curl https://raw.githubusercontent.com/TheKevJames/tools/master/slack-notifier/send-deploy-notif.sh > /send-deploy-notif.sh
       - run: |
           sh /send-deploy-notif.sh \
-            -c <<parameters.changes>> \
-            -d <<parameters.diff_url>> \
-            -e <<parameters.environment>> \
-            -n <<parameters.project>> \
-            -p <<parameters.prev_version>> \
-            -u <<parameters.user>> \
-            -v <<parameters.version>>
+            -c "<<parameters.changes>>" \
+            -d "<<parameters.diff_url>>" \
+            -e "<<parameters.environment>>" \
+            -n "<<parameters.project>>" \
+            -p "<<parameters.prev_version>>" \
+            -u "<<parameters.user>>" \
+            -v "<<parameters.version>>"
