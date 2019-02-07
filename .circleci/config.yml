@@ -44,3 +44,5 @@ workflows:
           orb-name: thekevjames/deployment-notifier
           # TODO: allow major and minor semver updates
           release: patch
+          requires:
+            - orb-tools/publish-dev
