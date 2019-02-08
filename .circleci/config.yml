@@ -59,3 +59,27 @@ workflows:
           release: patch
           requires:
             - publish-dev-orbs-deployment-notifier
+
+      - orb-tools/lint:
+          name: lint-orbs-pytest
+          lint-dir: circleci-orbs/pytest
+      - orb-tools/pack:
+          name: pack-orbs-pytest
+          source-dir: circleci-orbs/pytest
+          requires:
+            - lint-orbs-pytest
+      - orb-tools/publish-dev:
+          context: org-global
+          name: publish-dev-orbs-pytest
+          orb-name: thekevjames/pytest
+          requires:
+            - linter/pre-commit
+            - pack-orbs-pytest
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-pytest
+          orb-name: thekevjames/pytest
+          # TODO: allow major and minor semver updates
+          release: patch
+          requires:
+            - publish-dev-orbs-pytest
