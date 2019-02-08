@@ -23,7 +23,7 @@ workflows:
           name: publish-dev-orbs-linter
           orb-name: thekevjames/linter
           requires:
-            - lint
+            - linter/pre-commit
             - pack-orbs-linter
       - orb-tools/dev-promote-prod:
           context: org-global
@@ -47,7 +47,7 @@ workflows:
           name: publish-dev-orbs-deployment-notifier
           orb-name: thekevjames/deployment-notifier
           requires:
-            - lint
+            - linter/pre-commit
             - pack-orbs-deployment-notifier
       - orb-tools/dev-promote-prod:
           context: org-global
