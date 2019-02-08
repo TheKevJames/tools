@@ -4,19 +4,11 @@ orbs:
   orb-tools: circleci/orb-tools@7.3.0
   linter: thekevjames/linter@volatile
 
-jobs:
-  lint:
-    docker:
-      - image: python:3.7.2-alpine3.8
-    steps:
-      - run: apk add -U git
-      - linter/pre-commit
-
 workflows:
-  version: 2
   run-jobs:
     jobs:
-      - lint
+      - linter/pre-commit:
+          python_version: 3.7.2
 
       - orb-tools/lint:
           name: lint-orbs-linter
