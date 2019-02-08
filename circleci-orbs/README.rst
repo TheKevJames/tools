@@ -27,7 +27,8 @@ Simply include the ``orb`` or ``orbs`` you're interested in within your
     # ... the rest of your config
 
 .. _CircleCI Orbs: https://circleci.com/orbs/
-.. _Org Registry: https://circleci.com/orbs/registry/?query=thekevjames&filterBy=all
+.. _Orb Registry: https://circleci.com/orbs/registry/?query=thekevjames&filterBy=all
 .. _pre-commit: https://pre-commit.com/
+.. _thekevjames/deployment-notifier: https://circleci.com/orbs/registry/orb/thekevjames/deployment-notifier
 .. _thekevjames/linter: https://circleci.com/orbs/registry/orb/thekevjames/linter
 .. _thekevjames/pytest: https://circleci.com/orbs/registry/orb/thekevjames/pytest
