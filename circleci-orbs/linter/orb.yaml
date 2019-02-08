@@ -1,7 +1,6 @@
 version: 2.1
 description: "Tools for running lint commands"
 
-# TODO: document pre-steps and post-steps, and usage in job
 commands:
   pre-commit:
     description: |
@@ -18,3 +17,18 @@ commands:
           paths:
             - ~/.cache/pre-commit
       - run: pre-commit run --all-files
+
+jobs:
+  pre-commit:
+    description: |
+      Runs pre-commit hooks against the current repo.
+    docker:
+      - image: python:<<parameters.python_version>>
+    parameters:
+      python_version:
+        default: 3.7.2
+        description: |
+          The python version used to run pre-commit.
+        type: string
+    steps:
+      - pre-commit
