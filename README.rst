@@ -7,12 +7,14 @@ I started trying to organize my GitHub presence, as a couple-line repo I'd
 completely forgotten about.
 
 - `32-bit Ubuntu Docker Images`_
+- `CircleCI Orbs`_
 - `Dockerized MySQLTuner`_
 - `Dockerized Nox`_
 - `Dockerized Tuning-Primer`_
 - `Slack Notifier`_
 
 .. _32-bit Ubuntu Docker Images: https://github.com/TheKevJames/tools/tree/master/docker-ubuntu32
+.. _CircleCI Orbs: https://github.com/TheKevJames/tools/tree/master/circleci-orbs
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
 .. _Dockerized Nox: https://github.com/TheKevJames/tools/tree/master/docker-nox
 .. _Dockerized Tuning-Primer: https://github.com/TheKevJames/tools/tree/master/docker-tuning-primer
