@@ -8,7 +8,9 @@ workflows:
   run-jobs:
     jobs:
       - linter/pre-commit:
-          python_version: 3.7.2
+          python_version: 3.7.2-alpine3.8
+          pre-steps:
+            - run: apk add -U git
 
       - orb-tools/lint:
           name: lint-orbs-linter
