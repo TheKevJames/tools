@@ -35,7 +35,7 @@ jobs:
             - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
             - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-
             - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-
-      - run: python -m pip install <<parameters.install_args>>
+      - run: python -m pip install --progress-bar=off <<parameters.install_args>>
       - save_cache:
           key: cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
           paths:

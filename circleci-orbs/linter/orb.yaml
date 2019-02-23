@@ -12,7 +12,7 @@ commands:
           Optional cache prefix to be used on CircleCI. Can be used for cache busting or to ensure multiple jobs use different caches.
         type: string
     steps:
-      - run: python -m pip install pre-commit
+      - run: python -m pip install --progress-bar=off pre-commit
       - checkout
       - restore_cache:
           keys:
