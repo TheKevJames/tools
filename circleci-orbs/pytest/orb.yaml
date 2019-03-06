@@ -18,6 +18,11 @@ jobs:
         description: |
           Optional cache prefix to be used on CircleCI. Can be used for cache busting or to ensure multiple jobs use different caches.
         type: string
+      enable_caching:
+        default: true
+        description: |
+          Whether the CircleCI cache should be used for pip dependencies.
+        type: boolean
       install_args:
         default: pytest
         description: |
@@ -30,14 +35,20 @@ jobs:
         type: string
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
-            - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-
-            - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-
+      - when:
+          condition: <<parameters.enable_caching>>
+          steps:
+            - restore_cache:
+                keys:
+                  - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
+                  - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-
+                  - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-
       - run: python -m pip install --progress-bar=off <<parameters.install_args>>
-      - save_cache:
-          key: cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
-          paths:
-            - ~/.cache/pip
+      - when:
+          condition: <<parameters.enable_caching>>
+          steps:
+            - save_cache:
+                key: cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
+                paths:
+                  - ~/.cache/pip
       - run: python -m pytest <<parameters.args>>
