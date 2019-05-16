@@ -7,8 +7,38 @@ executors:
     - image: alpine:3.9
     resource_class: small
 
-# TODO: document pre-steps and post-steps
 jobs:
+  datadog:
+    description: |
+      Creates a datadog event.
+    executor: alpine-stable
+    parameters:
+      api_key:
+        default: DATADOG_API_KEY
+        description: |
+          Name of the environment variable containing your Datadog API key.
+        type: env_var_name
+      tag:
+        default: ""
+        description: |
+          Tag of event.
+        type: string
+      text:
+        description: |
+          Body text of the event.
+        type: string
+      title:
+        description: |
+          Title (eg. key) of the event.
+        type: string
+    steps:
+      - run: apk add -U curl
+      - run: |
+          curl -XPOST \
+            -H "Content-Type: application/json" \
+            -d '{"title": "'"<<parameters.title>>"'", "text": "'"<<parameters.text>>"'", "tags": ["'"<<parameters.tag>>"'"], "alert_type": "success"}' \
+            "https://api.datadoghq.com/api/v1/events?api_key=${<<parameters.api_key>>}"
+
   sentry-deployment:
     description: |
       Creates a new release deployment in Sentry. Should be run after the release has been created.

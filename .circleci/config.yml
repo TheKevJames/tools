@@ -56,7 +56,7 @@ workflows:
           name: dev-promote-prod-orbs-deployment-notifier
           orb-name: thekevjames/deployment-notifier
           # TODO: allow major and minor semver updates
-          release: patch
+          release: minor
           requires:
             - publish-dev-orbs-deployment-notifier
 

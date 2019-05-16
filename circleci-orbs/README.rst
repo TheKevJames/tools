@@ -8,7 +8,8 @@ and usage. More specifically, you can find:
 
 * `thekevjames/linter`_, including support for `pre-commit`_.
 * `thekevjames/pytest`_, including support for PyTest.
-* `thekevjames/deployment-notifier`_, including support for Slack and Sentry.
+* `thekevjames/deployment-notifier`_, including support for Datadog, Slack, and
+  Sentry.
 
 Usage
 -----
