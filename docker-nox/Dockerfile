@@ -19,5 +19,5 @@ RUN apt-get update && \
         python3.7-dev \
         python3-pip && \
     python3 -m pip install --upgrade pip && \
-    python3 -m pip install 'nox==2019.4.11' && \
+    python3 -m pip install 'nox==2019.5.30' && \
     rm -rf /var/cache/apt/lists
