@@ -71,7 +71,7 @@ EOF
 )
 
 # send to slack
-curl -XPOST \
+curl -f -XPOST \
      -H 'Content-Type: application/json' \
      -d "${PAYLOAD}" \
      "${SLACK_DEPLOYBOT_WEBHOOK}"
