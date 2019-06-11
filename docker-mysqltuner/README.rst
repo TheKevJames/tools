@@ -20,6 +20,16 @@ Treat this image as if it were the mysqltuner binary. So
 
 For full usage information, see the `MySQLTuner Homepage`_.
 
+Releasing
+---------
+
+.. code-block:: console
+
+    local version="1.7.15"
+    for file in vulnerabilities.csv basic_passwords.txt mysqltuner.pl; do
+        wget "https://raw.githubusercontent.com/major/MySQLTuner-perl/${version}/${file}" -O "./root/${file}"
+    done
+
 .. _MySQLTuner Homepage: http://mysqltuner.com/
 
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/mysqltuner.svg?style=flat-square
