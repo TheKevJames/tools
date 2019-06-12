@@ -4,6 +4,39 @@ orbs:
   orb-tools: circleci/orb-tools@7.3.0
   linter: thekevjames/linter@volatile
 
+  tools:
+    jobs:
+      build-docker-readme:
+        docker:
+          - image: pandoc/core:2.7.2
+        parameters:
+          module:
+            type: string
+        steps:
+          - run: apk add --update ca-certificates openssl
+          - run: mkdir /meta
+          - checkout
+          - run: pandoc -o/meta/README.md docker-<<parameters.module>>/README.rst
+          - persist_to_workspace:
+              root: /meta
+              paths:
+                - README.md
+
+      # TODO: this should be doable with curl or python...
+      push-docker-readme:
+        docker:
+          - image: node:12.4.0-alpine
+        parameters:
+          module:
+            type: string
+        steps:
+          - run: apk add --update ca-certificates openssl
+          - checkout
+          - run: npm install docker-hub-api
+          - attach_workspace:
+              at: /meta
+          - run: node ./docker-update-readme.js thekevjames <<parameters.module>> /meta/README.md
+
 workflows:
   run-jobs:
     jobs:
@@ -11,30 +44,6 @@ workflows:
           python_version: 3.7.2-alpine3.8
           pre-steps:
             - run: apk add -U git
-
-      - orb-tools/lint:
-          name: lint-orbs-linter
-          lint-dir: circleci-orbs/linter
-      - orb-tools/pack:
-          name: pack-orbs-linter
-          source-dir: circleci-orbs/linter
-          requires:
-            - lint-orbs-linter
-      - orb-tools/publish-dev:
-          context: org-global
-          name: publish-dev-orbs-linter
-          orb-name: thekevjames/linter
-          requires:
-            - linter/pre-commit
-            - pack-orbs-linter
-      - orb-tools/dev-promote-prod:
-          context: org-global
-          name: dev-promote-prod-orbs-linter
-          orb-name: thekevjames/linter
-          # TODO: allow major and minor semver updates
-          release: patch
-          requires:
-            - publish-dev-orbs-linter
 
       - orb-tools/lint:
           name: lint-orbs-deployment-notifier
@@ -61,6 +70,30 @@ workflows:
             - publish-dev-orbs-deployment-notifier
 
       - orb-tools/lint:
+          name: lint-orbs-linter
+          lint-dir: circleci-orbs/linter
+      - orb-tools/pack:
+          name: pack-orbs-linter
+          source-dir: circleci-orbs/linter
+          requires:
+            - lint-orbs-linter
+      - orb-tools/publish-dev:
+          context: org-global
+          name: publish-dev-orbs-linter
+          orb-name: thekevjames/linter
+          requires:
+            - linter/pre-commit
+            - pack-orbs-linter
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-linter
+          orb-name: thekevjames/linter
+          # TODO: allow major and minor semver updates
+          release: patch
+          requires:
+            - publish-dev-orbs-linter
+
+      - orb-tools/lint:
           name: lint-orbs-pytest
           lint-dir: circleci-orbs/pytest
       - orb-tools/pack:
@@ -83,3 +116,60 @@ workflows:
           release: patch
           requires:
             - publish-dev-orbs-pytest
+
+      - tools/build-docker-readme:
+          name: build-docker-readme-mysqltuner
+          module: mysqltuner
+          filters:
+            tags:
+              only: /docker-mysqltuner-*/
+            branches:
+              ignore: /.*/
+      - tools/push-docker-readme:
+          name: push-docker-readme-mysqltuner
+          module: mysqltuner
+          filters:
+            tags:
+              only: /docker-mysqltuner-*/
+            branches:
+              ignore: /.*/
+          requires:
+            - build-docker-readme-mysqltuner
+
+      - tools/build-docker-readme:
+          name: build-docker-readme-nox
+          module: nox
+          filters:
+            tags:
+              only: /nox-*/
+            branches:
+              ignore: /.*/
+      - tools/push-docker-readme:
+          name: push-docker-readme-nox
+          module: nox
+          filters:
+            tags:
+              only: /nox-*/
+            branches:
+              ignore: /.*/
+          requires:
+            - build-docker-readme-nox
+
+      - tools/build-docker-readme:
+          name: build-docker-readme-tuning-primer
+          module: tuning-primer
+          filters:
+            tags:
+              only: /docker-tuning-primer-*/
+            branches:
+              ignore: /.*/
+      - tools/push-docker-readme:
+          name: push-docker-readme-tuning-primer
+          module: tuning-primer
+          filters:
+            tags:
+              only: /docker-tuning-primer-*/
+            branches:
+              ignore: /.*/
+          requires:
+            - build-docker-readme-tuning-primer

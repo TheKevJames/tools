@@ -23,12 +23,15 @@ For full usage information, see the `MySQLTuner Homepage`_.
 Releasing
 ---------
 
+Whenever a new release of MySQLTuner is pushed, this library is updated
+accordingly:
+
 .. code-block:: console
 
-    local version="1.7.15"
-    for file in vulnerabilities.csv basic_passwords.txt mysqltuner.pl; do
-        wget "https://raw.githubusercontent.com/major/MySQLTuner-perl/${version}/${file}" -O "./root/${file}"
-    done
+    $ local version="1.7.15"
+    $ for file in vulnerabilities.csv basic_passwords.txt mysqltuner.pl; do
+        $ wget "https://raw.githubusercontent.com/major/MySQLTuner-perl/${version}/${file}" -O "./root/${file}"
+    $ done
 
 .. _MySQLTuner Homepage: http://mysqltuner.com/
 
