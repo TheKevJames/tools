@@ -89,7 +89,7 @@ workflows:
           name: dev-promote-prod-orbs-linter
           orb-name: thekevjames/linter
           # TODO: allow major and minor semver updates
-          release: patch
+          release: minor
           requires:
             - publish-dev-orbs-linter
 
