@@ -11,18 +11,23 @@ commands:
         description: |
           Optional cache prefix to be used on CircleCI. Can be used for cache busting or to ensure multiple jobs use different caches.
         type: string
+      config_file:
+        default: '.pre-commit-config.yaml'
+        description: |
+          Optional alternate config file.
+        type: string
     steps:
       - run: python -m pip install --progress-bar=off pre-commit
       - checkout
       - restore_cache:
           keys:
-            - cache-pre-commit-<<parameters.cache_prefix>>-{{ checksum ".pre-commit-config.yaml" }}
-      - run: pre-commit install-hooks
+            - cache-pre-commit-<<parameters.cache_prefix>>-{{ checksum "<<parameters.config_file>>" }}
+      - run: pre-commit install-hooks -c <<parameters.config_file>>
       - save_cache:
-          key: cache-pre-commit-<<parameters.cache_prefix>>-{{ checksum ".pre-commit-config.yaml" }}
+          key: cache-pre-commit-<<parameters.cache_prefix>>-{{ checksum "<<parameters.config_file>>" }}
           paths:
             - ~/.cache/pre-commit
-      - run: pre-commit run --all-files
+      - run: pre-commit run --all-files -c <<parameters.config_file>>
 
 jobs:
   pre-commit:
@@ -31,6 +36,11 @@ jobs:
     docker:
       - image: python:<<parameters.python_version>>
     parameters:
+      config_file:
+        default: '.pre-commit-config.yaml'
+        description: |
+          Optional alternate config file.
+        type: string
       python_version:
         default: 3.7.2
         description: |
@@ -39,3 +49,4 @@ jobs:
     steps:
       - pre-commit:
           cache_prefix: <<parameters.python_version>>
+          config_file: <<parameters.config_file>>
