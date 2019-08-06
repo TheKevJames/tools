@@ -2,11 +2,7 @@
   "automerge": false,
   "branchPrefix": "renovate/",
   "ignoreUnstable": true,
-  "labels": ["task"],
   "packageRules": [{
-    "depTypeList": ["devDependencies"],
-    "commitBody": ["[skip ci]"]
-  }, {
     "datasources": ["docker"],
     "packageNames": ["python"],
     "versionScheme": "pep440"
