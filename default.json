@@ -1,6 +1,10 @@
 {
   "automerge": false,
   "branchPrefix": "renovate/",
+  "extends": [
+    "group:monorepos",
+    "group:recommended"
+  ],
   "ignoreUnstable": true,
   "packageRules": [{
     "datasources": ["docker"],
@@ -23,5 +27,7 @@
   "semanticCommitType": "chore",
   "separateMajorMinor": true,
   "separateMinorPatch": true,
+  "separateMultipleMajor": true,
+  "unpublishSafe": true,
   "updateNotScheduled": true
 }
