@@ -9,7 +9,7 @@
   "packageRules": [{
     "datasources": ["docker"],
     "packageNames": ["python"],
-    "versionScheme": "pep440"
+    "versionScheme": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<architecture>.*))?$"
   }, {
     "datasources": ["orb"],
     "rangeStrategy": "replace",
