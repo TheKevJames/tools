@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:18.10
 
 # https://devguide.python.org/#status-of-python-branches
 RUN apt-get update && \
