@@ -16,6 +16,10 @@
     "patch": {
       "enabled": false
     }
+  }, {
+    "packagePatterns": ["^com.google.auto.value"],
+    "managers": ["maven"],
+    "groupName": "com.google.auto.value packages"
   }],
   "prConcurrentLimit": 0,
   "prCreation": "immediate",
