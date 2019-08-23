@@ -26,14 +26,6 @@ Kevin has done anywhere" config with:
         "extends": ["github>thekevjames/tools"]
     }
 
-Or, for a library rather than an app:
-
-.. code-block:: json
-
-    {
-        "extends": ["github>thekevjames/tools:lib"]
-    }
-
 .. _32-bit Ubuntu Docker Images: https://github.com/TheKevJames/tools/tree/master/docker-ubuntu32
 .. _CircleCI Orbs: https://github.com/TheKevJames/tools/tree/master/circleci-orbs
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
