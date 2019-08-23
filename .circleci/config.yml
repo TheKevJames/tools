@@ -41,6 +41,9 @@ workflows:
     jobs:
       - linter/pre-commit:
           python_version: 3.7.4
+          pre-steps:
+            - run: apt-get update
+            - run: apt-get install -qy shellcheck
 
       - orb-tools/lint:
           name: lint-orbs-deployment-notifier
