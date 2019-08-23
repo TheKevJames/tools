@@ -71,7 +71,12 @@ EOF
 )
 
 # send to slack
-curl -v -f -XPOST \
-     -H 'Content-Type: application/json' \
-     -d "${PAYLOAD}" \
-     "${SLACK_DEPLOYBOT_WEBHOOK}"
+n=0
+until [ $n -gt 3 ]; do
+    curl -v -f -XPOST \
+         -H 'Content-Type: application/json' \
+         -d "${PAYLOAD}" \
+         "${SLACK_DEPLOYBOT_WEBHOOK}" && break
+    n=$((n+1))
+    sleep 1
+done
