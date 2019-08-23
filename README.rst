@@ -13,23 +13,25 @@ completely forgotten about.
 - `Dockerized Tuning-Primer`_
 - `Slack Notifier`_
 
+Renovate
+--------
+
 This repository also contains my `Renovate`_ configurations, which are shared
-across all my projects. You can get the full configuration (which is a bit
-catered to my personal workflow) with:
-
-.. code-block:: json
-
-    {
-        "extends": ["github>thekevjames/tools:personal"]
-    }
-
-Or use only the common "make it work for anything Kevin has done anywhere"
-config with:
+across all my projects. You can grab the common "make it work for anything
+Kevin has done anywhere" config with:
 
 .. code-block:: json
 
     {
         "extends": ["github>thekevjames/tools"]
+    }
+
+Or, for a library rather than an app:
+
+.. code-block:: json
+
+    {
+        "extends": ["github>thekevjames/tools:lib"]
     }
 
 .. _32-bit Ubuntu Docker Images: https://github.com/TheKevJames/tools/tree/master/docker-ubuntu32
