@@ -1,12 +1,14 @@
+exclude: ^docker-tuning-primer/root/.*.sh$
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.1.0
+    rev: v2.3.0
     hooks:
     -   id: check-case-conflict
     -   id: check-executables-have-shebangs
     -   id: check-json
     -   id: check-merge-conflict
     -   id: check-symlinks
+    -   id: check-toml
     -   id: check-vcs-permalinks
     -   id: check-xml
     -   id: check-yaml
@@ -14,15 +16,119 @@ repos:
     -   id: detect-private-key
     -   id: end-of-file-fixer
     -   id: file-contents-sorter
-        files: .dockerignore .gitignore
+        files: .(docker|git)ignore
     -   id: mixed-line-ending
         args: [--fix=lf]
     -   id: trailing-whitespace
--   repo: https://github.com/pre-commit/pygrep-hooks
-    rev: v1.2.0
+
+# python
+    -   id: check-ast
+    -   id: check-builtin-literals
+    -   id: check-docstring-first
+    -   id: debug-statements
+    -   id: double-quote-string-fixer
+    -   id: name-tests-test
+    -   id: requirements-txt-fixer
+-   repo: https://github.com/pre-commit/mirrors-pylint
+    rev: v2.3.1
     hooks:
+    -   id: pylint
+        args:
+        - --max-line-length=79
+        - --ignore-imports=yes
+        - -d fixme
+        - -d import-error
+        - -d invalid-name
+        - -d locally-disabled
+        - -d missing-docstring
+        - -d too-few-public-methods
+-   repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.1.6
+    hooks:
+    -   id: remove-crlf
+    -   id: remove-tabs
+-   repo: https://github.com/asottile/reorder_python_imports
+    rev: v1.6.1
+    hooks:
+    -   id: reorder-python-imports
+        args: [--py37-plus]
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v1.22.1
+    hooks:
+    -   id: pyupgrade
+        args: [--py36-plus]
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.720
+    hooks:
+    -   id: mypy
+        require_serial: True
+        args:
+        - --ignore-missing-imports
+        - --follow-imports=silent
+        - --strict
+        - --strict-equality
+        - --warn-unreachable
+        exclude: tests/.*
+-   repo: https://github.com/asottile/yesqa
+    rev: v0.0.11
+    hooks:
+    -   id: yesqa
+-   repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v1.4.4
+    hooks:
+    -   id: autopep8
+-   repo: https://github.com/PyCQA/pydocstyle
+    rev: 4.0.1
+    hooks:
+    -   id: pydocstyle
+        args:
+        - --ignore=D1,D203,D205,D212,D400,D401,D404
+-   repo: https://gitlab.com/pycqa/flake8
+    rev: 3.7.8
+    hooks:
+    -   id: flake8
+        args:
+        - --ignore=E501,W503,F401,F811
+-   repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.4.1
+    hooks:
+    -   id: python-no-eval
+    -   id: python-no-log-warn
+    -   id: python-use-type-annotations
+
+# rst
     -   id: rst-backticks
 -   repo: https://github.com/Lucas-C/pre-commit-hooks-markup
     rev: v1.0.0
     hooks:
     -   id: rst-linter
+
+# java
+-   repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v1.2.3
+    hooks:
+    -   id: pretty-format-java
+        args: [--autofix]
+
+# javascript
+-   repo: https://github.com/pre-commit/mirrors-fixmyjs
+    rev: v2.0.0
+    hooks:
+    -   id: fixmyjs
+
+# terraform
+-   repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.17.0
+    hooks:
+    -   id: terraform_fmt
+    -   id: terraform_validate
+
+# shell
+-   repo: https://github.com/lovesegfault/beautysh
+    rev: "4.1"
+    hooks:
+    -   id: beautysh
+-   repo: https://github.com/detailyang/pre-commit-shell
+    rev: v1.0.6
+    hooks:
+    -   id: shell-lint
