@@ -4,7 +4,7 @@ description: "Tools for notifying external services about new deployments"
 executors:
   alpine-stable:
     docker:
-    - image: alpine:3.9
+    - image: alpine:3.10
     resource_class: small
 
 jobs:
