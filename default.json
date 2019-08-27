@@ -6,6 +6,9 @@
     "group:recommended"
   ],
   "ignoreUnstable": true,
+  "lockFileMaintenance": {
+    "enabled": true
+  },
   "packageRules": [{
     "datasources": ["docker"],
     "packageNames": ["python"],
