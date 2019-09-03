@@ -1,0 +1,125 @@
+version: 2.1
+description: "Tools for running gcloud commands."
+
+commands:
+  auth:
+    description: |
+      Authenticate the Google Cloud SDK with GCP.
+    parameters:
+      creds:
+        default: GCLOUD_SERVICE_KEY
+        description: >
+          Name of environment variable storing the base64-encoded service key
+          for the GCP project.
+        type: env_var_name
+      project:
+        description: The Google project ID to connect with via the gcloud CLI.
+        type: string
+      zone:
+        default: ""
+        type: string
+    steps:
+      - run: echo "${<<parameters.creds>>}" | base64 -d > /key.json
+      - run: gcloud auth activate-service-account --key-file=/key.json
+      - run: gcloud --quiet config set project "<<parameters.project>>"
+      - when:
+          condition: <<parameters.zone>>
+          steps:
+            - run: gcloud --quiet config set zone "<<parameters.zone>>"
+
+  configure-docker:
+    description: >
+      Configure a local docker client with authentication to GCR. Requires you
+      to have already run gcloud/auth.
+    steps:
+      - setup_remote_docker
+      - run: gcloud auth configure-docker --quiet
+
+  configure-gke:
+    description: >
+      Configure kubectl pointing to a given cluster in a given zone/region.
+      Requires you to have already run gcloud/auth.
+    parameters:
+      cluster:
+        type: string
+      zone:
+        type: string
+    steps:
+      - run: echo y | gcloud components install kubectl
+      - run: gcloud config set container/cluster <<parameters.cluster>>
+      - run: gcloud container clusters get-credentials <<parameters.cluster>> --zone=<<parameters.zone>>
+
+  install:
+    description: |
+      Install the Google Cloud SDK on a supported executor.
+
+      Currently supported package managers: apk, apt-get.
+    steps:
+      - run:
+          name: install dependencies
+          command: |
+            if which apk >/dev/null; then
+              apk add --no-cache --no-progress bash curl curl-dev python
+            elif which apt-get >/dev/null; then
+              apt-get update -qy
+              apt-get install -qy bash curl python
+            else
+              echo >&2 "ERROR: could not find supported package manager"
+              exit 1
+            fi
+      - run: curl -sSL https://sdk.cloud.google.com | bash -s -- --disable-prompts
+      - run: ln -s /root/google-cloud-sdk/bin/gcloud /usr/bin/gcloud
+      - run: ln -s /root/google-cloud-sdk/bin/gsutil /usr/bin/gsutil
+      - run: ln -s /root/google-cloud-sdk/bin/docker-credential-gcloud /usr/bin/docker-credential-gcloud
+
+jobs:
+  pytest:
+    description: |
+      Runs pytest against the current repo.
+    docker:
+      - image: python:<<parameters.python_version>>
+    parameters:
+      args:
+        default: ''
+        description: |
+          Arguments to pass to pytest.
+        type: string
+      cache_prefix:
+        default: ''
+        description: |
+          Optional cache prefix to be used on CircleCI. Can be used for cache busting or to ensure multiple jobs use different caches.
+        type: string
+      enable_caching:
+        default: true
+        description: |
+          Whether the CircleCI cache should be used for pip dependencies.
+        type: boolean
+      install_args:
+        default: pytest
+        description: |
+          Arguments to `pip install` command.
+        type: string
+      python_version:
+        default: 3.7.2
+        description: |
+          The python version used to run pytest.
+        type: string
+    steps:
+      - checkout
+      - when:
+          condition: <<parameters.enable_caching>>
+          steps:
+            - restore_cache:
+                keys:
+                  - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
+                  - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-
+                  - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-
+      - run: python -m pip install --progress-bar=off <<parameters.install_args>>
+      - when:
+          condition: <<parameters.enable_caching>>
+          steps:
+            - save_cache:
+                key: cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
+                paths:
+                  - ~/.cache/pip
+      - run: python -m pytest <<parameters.args>>

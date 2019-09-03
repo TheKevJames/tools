@@ -48,6 +48,68 @@ workflows:
             tags:
               only: /.*/
 
+      # ORB: gcloud
+      - orb-tools/lint:
+          name: lint-orbs-gcloud
+          lint-dir: circleci-orbs/gcloud
+          filters:
+            tags:
+              only: /.*/
+      - orb-tools/pack:
+          name: pack-orbs-gcloud
+          source-dir: circleci-orbs/gcloud
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - linter/pre-commit
+            - lint-orbs-gcloud
+      - orb-tools/publish-dev:
+          context: org-global
+          name: publish-dev-orbs-gcloud
+          orb-name: thekevjames/gcloud
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - pack-orbs-gcloud
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-gcloud
+          orb-name: thekevjames/gcloud
+          release: patch
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - publish-dev-orbs-gcloud
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-gcloud
+          orb-name: thekevjames/gcloud
+          release: minor
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /orb-gcloud-minor/
+          requires:
+            - publish-dev-orbs-gcloud
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-gcloud
+          orb-name: thekevjames/gcloud
+          release: major
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /orb-gcloud-major/
+          requires:
+            - publish-dev-orbs-gcloud
+
       # ORB: linter
       - orb-tools/lint:
           name: lint-orbs-linter
