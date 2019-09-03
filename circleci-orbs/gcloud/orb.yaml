@@ -3,7 +3,7 @@ description: "Tools for running gcloud commands."
 
 commands:
   auth:
-    description: |
+    description: >
       Authenticate the Google Cloud SDK with GCP.
     parameters:
       creds:
@@ -50,10 +50,9 @@ commands:
       - run: gcloud container clusters get-credentials <<parameters.cluster>> --zone=<<parameters.zone>>
 
   install:
-    description: |
-      Install the Google Cloud SDK on a supported executor.
-
-      Currently supported package managers: apk, apt-get.
+    description: >
+      Install the Google Cloud SDK on a supported executor. Currently supported
+      package managers: apk, apt-get.
     steps:
       - run:
           name: install dependencies
