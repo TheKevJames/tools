@@ -1,7 +1,5 @@
 version: 2.1
-description: |
-  Tools for running pytest.
-  [DEPRECATED] use thekevjames/tester instead!
+description: "Tools for running test commands."
 
 jobs:
   pytest:

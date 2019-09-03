@@ -44,79 +44,301 @@ workflows:
           pre-steps:
             - run: apt-get update
             - run: apt-get install -qy shellcheck
+          filters:
+            tags:
+              only: /.*/
 
+      # ORB: deployment-notifier
       - orb-tools/lint:
           name: lint-orbs-deployment-notifier
           lint-dir: circleci-orbs/deployment-notifier
+          filters:
+            tags:
+              only: /.*/
       - orb-tools/pack:
           name: pack-orbs-deployment-notifier
           source-dir: circleci-orbs/deployment-notifier
+          filters:
+            tags:
+              only: /.*/
           requires:
+            - linter/pre-commit
             - lint-orbs-deployment-notifier
       - orb-tools/publish-dev:
           context: org-global
           name: publish-dev-orbs-deployment-notifier
           orb-name: thekevjames/deployment-notifier
+          filters:
+            tags:
+              only: /.*/
           requires:
-            - linter/pre-commit
             - pack-orbs-deployment-notifier
       - orb-tools/dev-promote-prod:
           context: org-global
           name: dev-promote-prod-orbs-deployment-notifier
           orb-name: thekevjames/deployment-notifier
-          # TODO: allow major and minor semver updates
           release: patch
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - publish-dev-orbs-deployment-notifier
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-deployment-notifier
+          orb-name: thekevjames/deployment-notifier
+          release: minor
+          filters:
+            tags:
+              only: /orb-deployment-notifier-minor/
+          requires:
+            - publish-dev-orbs-deployment-notifier
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-deployment-notifier
+          orb-name: thekevjames/deployment-notifier
+          release: major
+          filters:
+            tags:
+              only: /orb-deployment-notifier-major/
           requires:
             - publish-dev-orbs-deployment-notifier
 
+      # ORB: linter
       - orb-tools/lint:
           name: lint-orbs-linter
           lint-dir: circleci-orbs/linter
+          filters:
+            tags:
+              only: /.*/
       - orb-tools/pack:
           name: pack-orbs-linter
           source-dir: circleci-orbs/linter
+          filters:
+            tags:
+              only: /.*/
           requires:
+            - linter/pre-commit
             - lint-orbs-linter
       - orb-tools/publish-dev:
           context: org-global
           name: publish-dev-orbs-linter
           orb-name: thekevjames/linter
+          filters:
+            tags:
+              only: /.*/
           requires:
-            - linter/pre-commit
             - pack-orbs-linter
       - orb-tools/dev-promote-prod:
           context: org-global
           name: dev-promote-prod-orbs-linter
           orb-name: thekevjames/linter
-          # TODO: allow major and minor semver updates
           release: patch
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - publish-dev-orbs-linter
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-linter
+          orb-name: thekevjames/linter
+          release: minor
+          filters:
+            tags:
+              only: /orb-linter-minor/
+          requires:
+            - publish-dev-orbs-linter
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-linter
+          orb-name: thekevjames/linter
+          release: major
+          filters:
+            tags:
+              only: /orb-linter-major/
           requires:
             - publish-dev-orbs-linter
 
+      # ORB: notifier
+      - orb-tools/lint:
+          name: lint-orbs-notifier
+          lint-dir: circleci-orbs/notifier
+          filters:
+            tags:
+              only: /.*/
+      - orb-tools/pack:
+          name: pack-orbs-notifier
+          source-dir: circleci-orbs/notifier
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - linter/pre-commit
+            - lint-orbs-notifier
+      - orb-tools/publish-dev:
+          context: org-global
+          name: publish-dev-orbs-notifier
+          orb-name: thekevjames/notifier
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - pack-orbs-notifier
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-notifier
+          orb-name: thekevjames/notifier
+          release: patch
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - publish-dev-orbs-notifier
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-notifier
+          orb-name: thekevjames/notifier
+          release: minor
+          filters:
+            tags:
+              only: /orb-notifier-minor/
+          requires:
+            - publish-dev-orbs-notifier
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-notifier
+          orb-name: thekevjames/notifier
+          release: major
+          filters:
+            tags:
+              only: /orb-notifier-major/
+          requires:
+            - publish-dev-orbs-notifier
+
+      # ORB: tester
+      - orb-tools/lint:
+          name: lint-orbs-tester
+          lint-dir: circleci-orbs/tester
+          filters:
+            tags:
+              only: /.*/
+      - orb-tools/pack:
+          name: pack-orbs-tester
+          source-dir: circleci-orbs/tester
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - linter/pre-commit
+            - lint-orbs-tester
+      - orb-tools/publish-dev:
+          context: org-global
+          name: publish-dev-orbs-tester
+          orb-name: thekevjames/tester
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - pack-orbs-tester
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-tester
+          orb-name: thekevjames/tester
+          release: patch
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - publish-dev-orbs-tester
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-tester
+          orb-name: thekevjames/tester
+          release: minor
+          filters:
+            tags:
+              only: /orb-tester-minor/
+          requires:
+            - publish-dev-orbs-tester
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-tester
+          orb-name: thekevjames/tester
+          release: major
+          filters:
+            tags:
+              only: /orb-tester-major/
+          requires:
+            - publish-dev-orbs-tester
+
+      # ORB: pytest
       - orb-tools/lint:
           name: lint-orbs-pytest
           lint-dir: circleci-orbs/pytest
+          filters:
+            tags:
+              only: /.*/
       - orb-tools/pack:
           name: pack-orbs-pytest
           source-dir: circleci-orbs/pytest
+          filters:
+            tags:
+              only: /.*/
           requires:
+            - linter/pre-commit
             - lint-orbs-pytest
       - orb-tools/publish-dev:
           context: org-global
           name: publish-dev-orbs-pytest
           orb-name: thekevjames/pytest
+          filters:
+            tags:
+              only: /.*/
           requires:
-            - linter/pre-commit
             - pack-orbs-pytest
       - orb-tools/dev-promote-prod:
           context: org-global
           name: dev-promote-prod-orbs-pytest
           orb-name: thekevjames/pytest
-          # TODO: allow major and minor semver updates
           release: patch
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - publish-dev-orbs-pytest
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-pytest
+          orb-name: thekevjames/pytest
+          release: minor
+          filters:
+            tags:
+              only: /orb-pytest-minor/
+          requires:
+            - publish-dev-orbs-pytest
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-pytest
+          orb-name: thekevjames/pytest
+          release: major
+          filters:
+            tags:
+              only: /orb-pytest-major/
           requires:
             - publish-dev-orbs-pytest
 
+      # DOCKER: mysqltuner
       - build-docker-readme:
           name: build-docker-readme-mysqltuner
           module: mysqltuner
@@ -125,6 +347,8 @@ workflows:
               only: /docker-mysqltuner-*/
             branches:
               ignore: /.*/
+          requires:
+            - linter/pre-commit
       - push-docker-readme:
           name: push-docker-readme-mysqltuner
           module: mysqltuner
@@ -136,6 +360,7 @@ workflows:
           requires:
             - build-docker-readme-mysqltuner
 
+      # DOCKER: nox
       - build-docker-readme:
           name: build-docker-readme-nox
           module: nox
@@ -144,6 +369,8 @@ workflows:
               only: /nox-*/
             branches:
               ignore: /.*/
+          requires:
+            - linter/pre-commit
       - push-docker-readme:
           name: push-docker-readme-nox
           module: nox
@@ -155,6 +382,7 @@ workflows:
           requires:
             - build-docker-readme-nox
 
+      # DOCKER: tuning-primer
       - build-docker-readme:
           name: build-docker-readme-tuning-primer
           module: tuning-primer
@@ -163,6 +391,8 @@ workflows:
               only: /docker-tuning-primer-*/
             branches:
               ignore: /.*/
+          requires:
+            - linter/pre-commit
       - push-docker-readme:
           name: push-docker-readme-tuning-primer
           module: tuning-primer

@@ -1,7 +1,5 @@
 version: 2.1
-description: |
-  Tools for notifying external services about new deployments.
-  [DEPRECATED] use thekevjames/notifier instead!
+description: "Tools for notifying external services about CI events"
 
 executors:
   alpine-stable:
@@ -136,7 +134,6 @@ jobs:
   slack:
     description: |
       Uses thekevjames/slack-notifier to send a deployment notification to your workspace.
-    # TODO: create send-deploy-notif executor
     executor: alpine-stable
     parameters:
       changes:
