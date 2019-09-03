@@ -91,6 +91,8 @@ workflows:
           orb-name: thekevjames/deployment-notifier
           release: minor
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /orb-deployment-notifier-minor/
           requires:
@@ -101,6 +103,8 @@ workflows:
           orb-name: thekevjames/deployment-notifier
           release: major
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /orb-deployment-notifier-major/
           requires:
@@ -149,6 +153,8 @@ workflows:
           orb-name: thekevjames/linter
           release: minor
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /orb-linter-minor/
           requires:
@@ -159,6 +165,8 @@ workflows:
           orb-name: thekevjames/linter
           release: major
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /orb-linter-major/
           requires:
@@ -207,6 +215,8 @@ workflows:
           orb-name: thekevjames/notifier
           release: minor
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /orb-notifier-minor/
           requires:
@@ -217,6 +227,8 @@ workflows:
           orb-name: thekevjames/notifier
           release: major
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /orb-notifier-major/
           requires:
@@ -265,6 +277,8 @@ workflows:
           orb-name: thekevjames/tester
           release: minor
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /orb-tester-minor/
           requires:
@@ -275,6 +289,8 @@ workflows:
           orb-name: thekevjames/tester
           release: major
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /orb-tester-major/
           requires:
@@ -323,6 +339,8 @@ workflows:
           orb-name: thekevjames/pytest
           release: minor
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /orb-pytest-minor/
           requires:
@@ -333,6 +351,8 @@ workflows:
           orb-name: thekevjames/pytest
           release: major
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /orb-pytest-major/
           requires:
