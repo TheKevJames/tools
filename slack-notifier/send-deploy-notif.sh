@@ -72,11 +72,12 @@ EOF
 
 # send to slack
 n=0
-until [ $n -gt 3 ]; do
-    curl -v -f -XPOST \
+until [ $n -gt 5 ]; do
+    curl -f -XPOST \
         -H 'Content-Type: application/json' \
         -d "${PAYLOAD}" \
         "${SLACK_DEPLOYBOT_WEBHOOK}" && break
+    echo "Failed to send curl request, retrying..."
     n=$((n+1))
     sleep 1
 done
