@@ -48,6 +48,68 @@ workflows:
             tags:
               only: /.*/
 
+      # ORB: docker
+      - orb-tools/lint:
+          name: lint-orbs-docker
+          lint-dir: circleci-orbs/docker
+          filters:
+            tags:
+              only: /.*/
+      - orb-tools/pack:
+          name: pack-orbs-docker
+          source-dir: circleci-orbs/docker
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - linter/pre-commit
+            - lint-orbs-docker
+      - orb-tools/publish-dev:
+          context: org-global
+          name: publish-dev-orbs-docker
+          orb-name: thekevjames/docker
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - pack-orbs-docker
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-docker
+          orb-name: thekevjames/docker
+          release: patch
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - publish-dev-orbs-docker
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-docker
+          orb-name: thekevjames/docker
+          release: minor
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /orb-docker-minor/
+          requires:
+            - publish-dev-orbs-docker
+      - orb-tools/dev-promote-prod:
+          context: org-global
+          name: dev-promote-prod-orbs-docker
+          orb-name: thekevjames/docker
+          release: major
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /orb-docker-major/
+          requires:
+            - publish-dev-orbs-docker
+
       # ORB: gcloud
       - orb-tools/lint:
           name: lint-orbs-gcloud

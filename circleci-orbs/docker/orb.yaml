@@ -1,0 +1,350 @@
+version: 2.1
+description: "Tools for running docker commands."
+
+commands:
+  build:
+    description: >
+      Build a docker image.
+    parameters:
+      build_args:
+        default: ''
+        description: >
+          Extra flags to pass to docker build.
+        type: string
+      dockerfile:
+        default: Dockerfile
+        description: >
+          Name of dockerfile to use.
+        type: string
+      local_image_name:
+        default: ${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1:0:10}
+        description: >
+          Name of image to build. Note that if you will be using any of the tag
+          commands, this is ultimately irrelevant since the image will be
+          re-tagged according to your settings.
+        type: string
+      path:
+        default: .
+        description: >
+          Path to the build context directory containing your Dockerfile.
+        type: string
+      workspace:
+        default: ''
+        description: >
+          If specified, attaches the specified workspace and copies it into the
+          Docker context before building.
+        type: string
+    steps:
+      - when:
+          condition: <<parameters.workspace>>
+          steps:
+            - attach_workspace:
+                at: <<parameters.workspace>>
+            - run: mv <<parameters.workspace>>/* <<parameters.path>>/
+      - run:
+          name: docker build
+          command: |
+            docker build \
+              <<parameters.build_args>> \
+              -f <<parameters.path>>/<<parameters.dockerfile>> \
+              -t <<parameters.local_image_name>> \
+              <<parameters.path>>
+
+  tag:
+    description: >
+      Tag the docker image with all relevant metadata: commit hash, branch (if
+      this is a branch build), tag (if this is a tag build), and "latest".
+    parameters:
+      image:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this includes any namespacing --
+          eg. for pushing to Dockerhub, you likely want to ensure this looks
+          like "thekevjames/nox"; for other repositories, this may be some
+          other namespace such as "my-gcp-project/my-image-name" for GCR.
+      local_image_name:
+        default: ${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1:0:10}
+        description: >
+          Name of image to tag. Note that the exact value of this is ultimately
+          irrelevant since the image will be re-tagged according to the other
+          parameters.
+        type: string
+      registry:
+        default: 'docker.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+    steps:
+      - docker/tag-with-commit:
+          image: <<parameters.image>>
+          local_image_name: <<parameters.local_image_name>>
+          registry: <<parameters.registry>>
+      - docker/tag-with-branch:
+          image: <<parameters.image>>
+          local_image_name: <<parameters.local_image_name>>
+          registry: <<parameters.registry>>
+      - docker/tag-with-tag:
+          image: <<parameters.image>>
+          local_image_name: <<parameters.local_image_name>>
+          registry: <<parameters.registry>>
+      - docker/tag-with-latest:
+          image: <<parameters.image>>
+          local_image_name: <<parameters.local_image_name>>
+          registry: <<parameters.registry>>
+
+  tag-with-commit:
+    description: >
+      Give your built docker image a tag corresponding to the current commit.
+    parameters:
+      image:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this includes any namespacing --
+          eg. for pushing to Dockerhub, you likely want to ensure this looks
+          like "thekevjames/nox"; for other repositories, this may be some
+          other namespace such as "my-gcp-project/my-image-name" for GCR.
+      local_image_name:
+        default: ${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1:0:10}
+        description: >
+          Name of image to tag. Note that the exact value of this is ultimately
+          irrelevant since the image will be re-tagged according to the other
+          parameters.
+        type: string
+      registry:
+        default: 'docker.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+    steps:
+      - run:
+          name: docker tag
+          command: |
+            docker tag \
+              "<<parameters.local_image_name>>" \
+              "<<parameters.registry>>/<<parameters.image>>:${CIRCLE_SHA1:0:10}"
+
+  tag-with-branch:
+    description: >
+      Give your built docker image a tag corresponding to the current branch,
+      if this is a branch build. Otherwise, this is a noop.
+    parameters:
+      image:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this includes any namespacing --
+          eg. for pushing to Dockerhub, you likely want to ensure this looks
+          like "thekevjames/nox"; for other repositories, this may be some
+          other namespace such as "my-gcp-project/my-image-name" for GCR.
+      local_image_name:
+        default: ${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1:0:10}
+        description: >
+          Name of image to tag. Note that the exact value of this is ultimately
+          irrelevant since the image will be re-tagged according to the other
+          parameters.
+        type: string
+      registry:
+        default: 'docker.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+    steps:
+      - run:
+          name: docker tag
+          command: |
+            if [[ -n "${CIRCLE_BRANCH}" ]]; then
+              docker tag \
+                "<<parameters.local_image_name>>" \
+                "<<parameters.registry>>/<<parameters.image>>:${CIRCLE_BRANCH//\//-}"
+            fi
+
+  tag-with-latest:
+    description: >
+      Give your built docker image a tag of "latest".
+    parameters:
+      image:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this includes any namespacing --
+          eg. for pushing to Dockerhub, you likely want to ensure this looks
+          like "thekevjames/nox"; for other repositories, this may be some
+          other namespace such as "my-gcp-project/my-image-name" for GCR.
+      local_image_name:
+        default: ${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1:0:10}
+        description: >
+          Name of image to tag. Note that the exact value of this is ultimately
+          irrelevant since the image will be re-tagged according to the other
+          parameters.
+        type: string
+      registry:
+        default: 'docker.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+    steps:
+      - run:
+          name: docker tag
+          command: |
+            docker tag \
+              "<<parameters.local_image_name>>" \
+              "<<parameters.registry>>/<<parameters.image>>:latest"
+
+  tag-with-tag:
+    description: >
+      Give your built docker image a tag corresponding to the current tag,
+      if this is a tag build. Otherwise, this is a noop.
+    parameters:
+      image:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this includes any namespacing --
+          eg. for pushing to Dockerhub, you likely want to ensure this looks
+          like "thekevjames/nox"; for other repositories, this may be some
+          other namespace such as "my-gcp-project/my-image-name" for GCR.
+      local_image_name:
+        default: ${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1:0:10}
+        description: >
+          Name of image to tag. Note that the exact value of this is ultimately
+          irrelevant since the image will be re-tagged according to the other
+          parameters.
+        type: string
+      registry:
+        default: 'docker.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+    steps:
+      - run:
+          name: docker tag
+          command: |
+            if [[ -n "${CIRCLE_TAG}" ]]; then
+              docker tag \
+                "<<parameters.local_image_name>>" \
+                "<<parameters.registry>>/<<parameters.image>>:${CIRCLE_TAG}"
+            fi
+
+  push:
+    description: >
+      Push all built docker images tagged with relevant metadata: commit hash,
+      branch (if this is a branch build), tag (if this is a tag build), and
+      "latest".
+    parameters:
+      image:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this includes any namespacing --
+          eg. for pushing to Dockerhub, you likely want to ensure this looks
+          like "thekevjames/nox"; for other repositories, this may be some
+          other namespace such as "my-gcp-project/my-image-name" for GCR.
+      registry:
+        default: 'docker.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+    steps:
+      - push-with-commit:
+          image: <<parameters.image>>
+          registry: <<parameters.registry>>
+      - push-with-branch:
+          image: <<parameters.image>>
+          registry: <<parameters.registry>>
+      - push-with-tag:
+          image: <<parameters.image>>
+          registry: <<parameters.registry>>
+      - push-with-latest:
+          image: <<parameters.image>>
+          registry: <<parameters.registry>>
+
+  push-with-commit:
+    description: >
+      Push the built and tagged docker image corresponding to the current
+      commit.
+    parameters:
+      image:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this includes any namespacing --
+          eg. for pushing to Dockerhub, you likely want to ensure this looks
+          like "thekevjames/nox"; for other repositories, this may be some
+          other namespace such as "my-gcp-project/my-image-name" for GCR.
+      registry:
+        default: 'docker.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+    steps:
+      - run:
+          name: docker tag
+          command: |
+            docker push "<<parameters.registry>>/<<parameters.image>>:${CIRCLE_SHA1:0:10}"
+
+  push-with-branch:
+    description: >
+      Push the built and tagged docker image corresponding to the current
+      branch, if this is a branch build. Otherwise, this is a noop.
+    parameters:
+      image:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this includes any namespacing --
+          eg. for pushing to Dockerhub, you likely want to ensure this looks
+          like "thekevjames/nox"; for other repositories, this may be some
+          other namespace such as "my-gcp-project/my-image-name" for GCR.
+      registry:
+        default: 'docker.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+    steps:
+      - run:
+          name: docker tag
+          command: |
+            if [[ -n "${CIRCLE_BRANCH}" ]]; then
+              docker push "<<parameters.registry>>/<<parameters.image>>:${CIRCLE_BRANCH//\//-}"
+            fi
+
+  push-with-latest:
+    description: >
+      Push the built docker image tagged with "latest".
+    parameters:
+      image:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this includes any namespacing --
+          eg. for pushing to Dockerhub, you likely want to ensure this looks
+          like "thekevjames/nox"; for other repositories, this may be some
+          other namespace such as "my-gcp-project/my-image-name" for GCR.
+      registry:
+        default: 'docker.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+    steps:
+      - run:
+          name: docker tag
+          command: |
+            docker push "<<parameters.registry>>/<<parameters.image>>:latest"
+
+  push-with-tag:
+    description: >
+      Push the built and tagged docker image corresponding to the current
+      tag, if this is a tag build. Otherwise, this is a noop.
+    parameters:
+      image:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this includes any namespacing --
+          eg. for pushing to Dockerhub, you likely want to ensure this looks
+          like "thekevjames/nox"; for other repositories, this may be some
+          other namespace such as "my-gcp-project/my-image-name" for GCR.
+      registry:
+        default: 'docker.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+    steps:
+      - run:
+          name: docker tag
+          command: |
+            if [[ -n "${CIRCLE_TAG}" ]]; then
+              docker push "<<parameters.registry>>/<<parameters.image>>:${CIRCLE_TAG}"
+            fi

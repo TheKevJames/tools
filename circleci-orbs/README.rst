@@ -6,6 +6,7 @@ A bunch of `CircleCI orbs`_ for various occasions. Production-ready.
 All of these orbs are available in the `Orb Registry`_ along with documentation
 and usage. More specifically, you can find:
 
+* `thekevjames/docker`_, for a bunch of ``docker`` convenience commands.
 * `thekevjames/gcloud`_, to configure the ``gcloud`` CLI (executor-agnostic).
 * `thekevjames/linter`_, including support for `pre-commit`_.
 * `thekevjames/tester`_, including support for `pytest`_.
@@ -26,6 +27,7 @@ Simply include the ``orb`` or ``orbs`` you're interested in within your
 
     version: 2.1
     orbs:
+      docker: thekevjames/docker@0
       gcloud: thekevjames/gcloud@0
       linter: thekevjames/linter@1
       tester: thekevjames/tester@1
@@ -38,6 +40,7 @@ Simply include the ``orb`` or ``orbs`` you're interested in within your
 .. _pre-commit: https://pre-commit.com/
 .. _pytest: https://docs.pytest.org/en/latest/
 .. _thekevjames/deployment-notifier: https://circleci.com/orbs/registry/orb/thekevjames/deployment-notifier
+.. _thekevjames/docker: https://circleci.com/orbs/registry/orb/thekevjames/docker
 .. _thekevjames/gcloud: https://circleci.com/orbs/registry/orb/thekevjames/gcloud
 .. _thekevjames/linter: https://circleci.com/orbs/registry/orb/thekevjames/linter
 .. _thekevjames/notifier: https://circleci.com/orbs/registry/orb/thekevjames/notifier
