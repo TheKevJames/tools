@@ -12,7 +12,7 @@ jobs:
       module:
         type: string
     steps:
-      - run: apk add --update ca-certificates openssl
+      - run: apk add --no-cache --no-progress ca-certificates openssl
       - run: mkdir /meta
       - checkout
       - run: pandoc -o/meta/README.md docker-<<parameters.module>>/README.rst
@@ -29,7 +29,7 @@ jobs:
       module:
         type: string
     steps:
-      - run: apk add --update ca-certificates openssl
+      - run: apk add --no-cache --no-progress ca-certificates openssl
       - checkout
       - run: npm install docker-hub-api
       - attach_workspace:

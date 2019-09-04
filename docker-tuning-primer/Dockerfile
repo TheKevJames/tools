@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-RUN apk add --update bc mysql mysql-client ncurses socat && \
+RUN apk add --no-cache --no-progress bc mysql mysql-client ncurses socat && \
     rm -rf /var/cache/apk/*
 
 COPY root /
