@@ -70,3 +70,84 @@ commands:
       - run: ln -s /root/google-cloud-sdk/bin/gcloud /usr/bin/gcloud
       - run: ln -s /root/google-cloud-sdk/bin/gsutil /usr/bin/gsutil
       - run: ln -s /root/google-cloud-sdk/bin/docker-credential-gcloud /usr/bin/docker-credential-gcloud
+
+jobs:
+  docker-publish:
+    description: >
+      A variation of the docker/publish job, pre-parametrized for GCR builds.
+      This job will build, tag, and push a docker image. It will be tagged with
+      all relevant metadata, eg. commit hash, branch (if this is a branch
+      build), tag (if this is a tag build), and "latest".
+    docker:
+      - image: <<parameters.executor>>
+    parameters:
+      build_args:
+        default: ''
+        description: >
+          Extra flags to pass to docker build.
+        type: string
+      creds:
+        default: GCLOUD_SERVICE_KEY
+        description: >
+          Name of environment variable storing the base64-encoded service key
+          for the GCP project.
+        type: env_var_name
+      dockerfile:
+        default: Dockerfile
+        description: >
+          Name of dockerfile to use.
+        type: string
+      executor:
+        default: docker:18.06.3-ce-git
+        description: >
+          Name of the docker image to use to execute the job.
+        type: string
+      image:
+        default: ${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this will be prepended by the
+          project name (eg. <<parameters.project>>), so the full path your
+          image will be pushed to will look like:
+          <<parameters.registry>>/<<parameters.project>>/<<parameters.image>>.
+        type: string
+      path:
+        default: .
+        description: >
+          Path to the build context directory containing your Dockerfile.
+        type: string
+      project:
+        description: >
+          Name of GCP project to which we will push.
+        type: string
+      registry:
+        default: 'gcr.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+      workspace:
+        default: ''
+        description: >
+          If specified, attaches the specified workspace and copies it into the
+          Docker context before building.
+        type: string
+    steps:
+      - install
+      - auth:
+          creds: <<parameters.creds>>
+          project: <<parameters.project>>
+      - configure-docker
+      - checkout
+      - build:
+          build_args: <<parameters.build_args>>
+          dockerfile: <<parameters.dockerfile>>
+          path: <<parameters.path>>
+          workspace: <<parameters.workspace>>
+      - tag:
+          image: <<parameters.project>>/<<parameters.image>>
+          registry: <<parameters.registry>>
+      - push:
+          image: <<parameters.project>>/<<parameters.image>>
+          registry: <<parameters.registry>>
+
+orbs:
+  thekevjames/docker@1

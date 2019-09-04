@@ -361,6 +361,10 @@ commands:
 
 jobs:
   publish:
+    description: >
+      Build, tag, and push a docker image. It will be tagged with all relevant
+      metadata, eg. commit hash, branch (if this is a branch build), tag (if
+      this is a tag build), and "latest".
     docker:
       - image: <<parameters.executor>>
     parameters:
