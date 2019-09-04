@@ -62,6 +62,7 @@ commands:
           eg. for pushing to Dockerhub, you likely want to ensure this looks
           like "thekevjames/nox"; for other repositories, this may be some
           other namespace such as "my-gcp-project/my-image-name" for GCR.
+        type: string
       local_image_name:
         default: ${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1:0:10}
         description: >
@@ -75,19 +76,19 @@ commands:
           Container registry to-be-used.
         type: string
     steps:
-      - docker/tag-with-commit:
+      - tag-with-commit:
           image: <<parameters.image>>
           local_image_name: <<parameters.local_image_name>>
           registry: <<parameters.registry>>
-      - docker/tag-with-branch:
+      - tag-with-branch:
           image: <<parameters.image>>
           local_image_name: <<parameters.local_image_name>>
           registry: <<parameters.registry>>
-      - docker/tag-with-tag:
+      - tag-with-tag:
           image: <<parameters.image>>
           local_image_name: <<parameters.local_image_name>>
           registry: <<parameters.registry>>
-      - docker/tag-with-latest:
+      - tag-with-latest:
           image: <<parameters.image>>
           local_image_name: <<parameters.local_image_name>>
           registry: <<parameters.registry>>
@@ -103,6 +104,7 @@ commands:
           eg. for pushing to Dockerhub, you likely want to ensure this looks
           like "thekevjames/nox"; for other repositories, this may be some
           other namespace such as "my-gcp-project/my-image-name" for GCR.
+        type: string
       local_image_name:
         default: ${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1:0:10}
         description: >
@@ -135,6 +137,7 @@ commands:
           eg. for pushing to Dockerhub, you likely want to ensure this looks
           like "thekevjames/nox"; for other repositories, this may be some
           other namespace such as "my-gcp-project/my-image-name" for GCR.
+        type: string
       local_image_name:
         default: ${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1:0:10}
         description: >
@@ -168,6 +171,7 @@ commands:
           eg. for pushing to Dockerhub, you likely want to ensure this looks
           like "thekevjames/nox"; for other repositories, this may be some
           other namespace such as "my-gcp-project/my-image-name" for GCR.
+        type: string
       local_image_name:
         default: ${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1:0:10}
         description: >
@@ -200,6 +204,7 @@ commands:
           eg. for pushing to Dockerhub, you likely want to ensure this looks
           like "thekevjames/nox"; for other repositories, this may be some
           other namespace such as "my-gcp-project/my-image-name" for GCR.
+        type: string
       local_image_name:
         default: ${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1:0:10}
         description: >
@@ -235,6 +240,7 @@ commands:
           eg. for pushing to Dockerhub, you likely want to ensure this looks
           like "thekevjames/nox"; for other repositories, this may be some
           other namespace such as "my-gcp-project/my-image-name" for GCR.
+        type: string
       registry:
         default: 'docker.io'
         description: >
@@ -266,6 +272,7 @@ commands:
           eg. for pushing to Dockerhub, you likely want to ensure this looks
           like "thekevjames/nox"; for other repositories, this may be some
           other namespace such as "my-gcp-project/my-image-name" for GCR.
+        type: string
       registry:
         default: 'docker.io'
         description: >
@@ -289,6 +296,7 @@ commands:
           eg. for pushing to Dockerhub, you likely want to ensure this looks
           like "thekevjames/nox"; for other repositories, this may be some
           other namespace such as "my-gcp-project/my-image-name" for GCR.
+        type: string
       registry:
         default: 'docker.io'
         description: >
@@ -313,6 +321,7 @@ commands:
           eg. for pushing to Dockerhub, you likely want to ensure this looks
           like "thekevjames/nox"; for other repositories, this may be some
           other namespace such as "my-gcp-project/my-image-name" for GCR.
+        type: string
       registry:
         default: 'docker.io'
         description: >
@@ -336,6 +345,7 @@ commands:
           eg. for pushing to Dockerhub, you likely want to ensure this looks
           like "thekevjames/nox"; for other repositories, this may be some
           other namespace such as "my-gcp-project/my-image-name" for GCR.
+        type: string
       registry:
         default: 'docker.io'
         description: >
@@ -348,3 +358,62 @@ commands:
             if [[ -n "${CIRCLE_TAG}" ]]; then
               docker push "<<parameters.registry>>/<<parameters.image>>:${CIRCLE_TAG}"
             fi
+
+
+jobs:
+  publish:
+    docker:
+      - image: <<parameters.executor>>
+    parameters:
+      build_args:
+        default: ''
+        description: >
+          Extra flags to pass to docker build.
+        type: string
+      dockerfile:
+        default: Dockerfile
+        description: >
+          Name of dockerfile to use.
+        type: string
+      executor:
+        default: docker:18.06.3-ce-git
+        description: >
+          Name of the docker image to use to execute the job.
+        type: string
+      image:
+        default: ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
+        description: >
+          Name of the target image. Note that this includes any namespacing --
+          eg. for pushing to Dockerhub, you likely want to ensure this looks
+          like "thekevjames/nox"; for other repositories, this may be some
+          other namespace such as "my-gcp-project/my-image-name" for GCR.
+        type: string
+      path:
+        default: .
+        description: >
+          Path to the build context directory containing your Dockerfile.
+        type: string
+      registry:
+        default: 'docker.io'
+        description: >
+          Container registry to-be-used.
+        type: string
+      workspace:
+        default: ''
+        description: >
+          If specified, attaches the specified workspace and copies it into the
+          Docker context before building.
+        type: string
+    steps:
+      - checkout
+      - build:
+          build_args: <<parameters.build_args>>
+          dockerfile: <<parameters.dockerfile>>
+          path: <<parameters.path>>
+          workspace: <<parameters.workspace>>
+      - tag:
+          image: <<parameters.image>>
+          registry: <<parameters.registry>>
+      - push:
+          image: <<parameters.image>>
+          registry: <<parameters.registry>>
