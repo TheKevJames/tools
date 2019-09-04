@@ -137,15 +137,15 @@ jobs:
           project: <<parameters.project>>
       - configure-docker
       - checkout
-      - build:
+      - docker/build:
           build_args: <<parameters.build_args>>
           dockerfile: <<parameters.dockerfile>>
           path: <<parameters.path>>
           workspace: <<parameters.workspace>>
-      - tag:
+      - docker/tag:
           image: <<parameters.project>>/<<parameters.image>>
           registry: <<parameters.registry>>
-      - push:
+      - docker/push:
           image: <<parameters.project>>/<<parameters.image>>
           registry: <<parameters.registry>>
 
