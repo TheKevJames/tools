@@ -150,4 +150,4 @@ jobs:
           registry: <<parameters.registry>>
 
 orbs:
-  thekevjames/docker@1
+  docker: thekevjames/docker@1

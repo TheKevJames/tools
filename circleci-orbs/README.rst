@@ -27,7 +27,7 @@ Simply include the ``orb`` or ``orbs`` you're interested in within your
 
     version: 2.1
     orbs:
-      docker: thekevjames/docker@0
+      docker: thekevjames/docker@1
       gcloud: thekevjames/gcloud@0
       linter: thekevjames/linter@1
       tester: thekevjames/tester@1
