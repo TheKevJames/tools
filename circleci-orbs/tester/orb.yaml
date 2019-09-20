@@ -15,8 +15,14 @@ jobs:
         type: string
       cache_prefix:
         default: ''
-        description: |
-          Optional cache prefix to be used on CircleCI. Can be used for cache busting or to ensure multiple jobs use different caches.
+        description: >
+          Optional cache prefix to be used on CircleCI. Can be used for cache
+          busting or to ensure multiple jobs use different caches.
+        type: string
+      cwd:
+        default: '.'
+        description: >
+          Working directory used when running pip / pytest commands.
         type: string
       enable_caching:
         default: true
@@ -43,7 +49,11 @@ jobs:
                   - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
                   - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-
                   - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-
-      - run: python -m pip install --progress-bar=off <<parameters.install_args>>
+      - run:
+          name: python -m pip install --progress-bar=off <<parameters.install_args>>
+          command: |
+            cd <<parameters.cwd>>
+            python -m pip install --progress-bar=off <<parameters.install_args>>
       - when:
           condition: <<parameters.enable_caching>>
           steps:
@@ -51,4 +61,8 @@ jobs:
                 key: cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
                 paths:
                   - ~/.cache/pip
-      - run: python -m pytest <<parameters.args>>
+      - run:
+          name: python -m pytest <<parameters.args>>
+          command: |
+            cd <<parameters.cwd>>
+            python -m pytest <<parameters.args>>
