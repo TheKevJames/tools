@@ -81,3 +81,12 @@ until [ $n -gt 5 ]; do
     n=$((n+1))
     sleep 1
 done
+
+if [ $n -gt 5 ]; then
+    echo "Could not send successful curl request, aborting. Request was:"
+    echo curl -f -XPOST \
+        -H 'Content-Type: application/json' \
+        -d "${PAYLOAD}" \
+        "${SLACK_DEPLOYBOT_WEBHOOK}"
+    exit 1
+fi
