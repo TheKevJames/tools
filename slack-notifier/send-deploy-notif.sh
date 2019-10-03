@@ -13,7 +13,7 @@ VERSION="${CIRCLE_SHA1:-}"
 # grab from CLI
 while getopts 'c:d:e:n:p:u:v:' flag; do
     case "${flag}" in
-        c) CHANGES="${OPTARG}"               ;;
+        c) CHANGES="${OPTARG//\"/}"          ;;
         d) DIFF_URL="${OPTARG}"              ;;
         e) ENVIRONMENT="${OPTARG}"           ;;
         n) NAME="${OPTARG}"                  ;;
