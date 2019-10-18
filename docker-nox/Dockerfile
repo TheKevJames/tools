@@ -17,6 +17,8 @@ RUN apt-get update && \
         python3.6-dev \
         python3.7 \
         python3.7-dev \
+        python3.8 \
+        python3.8-dev \
         python3-pip && \
     python2.7 -m pip install --upgrade pip && \
     python3.5 -m pip install --upgrade pip && \
