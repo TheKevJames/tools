@@ -1,5 +1,5 @@
-Docker-MySQLTuner
-=================
+Docker-Tuning-Primer
+====================
 
 |dockerpulls|
 
