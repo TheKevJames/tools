@@ -8,6 +8,7 @@ completely forgotten about.
 
 - `32-bit Ubuntu Docker Images`_
 - `CircleCI Orbs`_
+- `Dockerized Minify`_
 - `Dockerized MySQLTuner`_
 - `Dockerized Nox`_
 - `Dockerized Tuning-Primer`_
@@ -28,6 +29,7 @@ Kevin has done anywhere" config with:
 
 .. _32-bit Ubuntu Docker Images: https://github.com/TheKevJames/tools/tree/master/docker-ubuntu32
 .. _CircleCI Orbs: https://github.com/TheKevJames/tools/tree/master/circleci-orbs
+.. _Dockerized Minify: https://github.com/TheKevJames/tools/tree/master/docker-minify
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
 .. _Dockerized Nox: https://github.com/TheKevJames/tools/tree/master/docker-nox
 .. _Dockerized Tuning-Primer: https://github.com/TheKevJames/tools/tree/master/docker-tuning-primer

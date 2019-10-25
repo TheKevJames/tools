@@ -358,6 +358,28 @@ workflows:
           requires:
             - publish-dev-orbs-tester
 
+      # DOCKER: minify
+      - build-docker-readme:
+          name: build-docker-readme-minify
+          module: minify
+          filters:
+            tags:
+              only: /docker-minify-*/
+            branches:
+              ignore: /.*/
+          requires:
+            - linter/pre-commit
+      - push-docker-readme:
+          name: push-docker-readme-minify
+          module: minify
+          filters:
+            tags:
+              only: /docker-minify-*/
+            branches:
+              ignore: /.*/
+          requires:
+            - build-docker-readme-minify
+
       # DOCKER: mysqltuner
       - build-docker-readme:
           name: build-docker-readme-mysqltuner
