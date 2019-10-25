@@ -363,9 +363,9 @@ workflows:
           name: build-docker-readme-minify
           module: minify
           filters:
-            tags:
-              only: /docker-minify-.*/
             branches:
+              only: /master/
+            tags:
               ignore: /.*/
           requires:
             - linter/pre-commit
@@ -373,9 +373,9 @@ workflows:
           name: push-docker-readme-minify
           module: minify
           filters:
-            tags:
-              only: /docker-minify-.*/
             branches:
+              only: /master/
+            tags:
               ignore: /.*/
           requires:
             - build-docker-readme-minify
@@ -385,9 +385,9 @@ workflows:
           name: build-docker-readme-mysqltuner
           module: mysqltuner
           filters:
-            tags:
-              only: /docker-mysqltuner-.*/
             branches:
+              only: /master/
+            tags:
               ignore: /.*/
           requires:
             - linter/pre-commit
@@ -395,9 +395,9 @@ workflows:
           name: push-docker-readme-mysqltuner
           module: mysqltuner
           filters:
-            tags:
-              only: /docker-mysqltuner-.*/
             branches:
+              only: /master/
+            tags:
               ignore: /.*/
           requires:
             - build-docker-readme-mysqltuner
@@ -407,9 +407,9 @@ workflows:
           name: build-docker-readme-nox
           module: nox
           filters:
-            tags:
-              only: /nox-.*/
             branches:
+              only: /master/
+            tags:
               ignore: /.*/
           requires:
             - linter/pre-commit
@@ -417,9 +417,9 @@ workflows:
           name: push-docker-readme-nox
           module: nox
           filters:
-            tags:
-              only: /nox-.*/
             branches:
+              only: /master/
+            tags:
               ignore: /.*/
           requires:
             - build-docker-readme-nox
@@ -429,9 +429,9 @@ workflows:
           name: build-docker-readme-tuning-primer
           module: tuning-primer
           filters:
-            tags:
-              only: /docker-tuning-primer-.*/
             branches:
+              only: /master/
+            tags:
               ignore: /.*/
           requires:
             - linter/pre-commit
@@ -439,9 +439,9 @@ workflows:
           name: push-docker-readme-tuning-primer
           module: tuning-primer
           filters:
-            tags:
-              only: /docker-tuning-primer-.*/
             branches:
+              only: /master/
+            tags:
               ignore: /.*/
           requires:
             - build-docker-readme-tuning-primer
