@@ -2,6 +2,66 @@ version: 2.1
 description: "Tools for running test commands."
 
 jobs:
+  pipcheck:
+    description: |
+      Runs pip check against the current repo.
+    docker:
+      - image: python:<<parameters.python_version>>
+    parameters:
+      cache_prefix:
+        default: ''
+        description: >
+          Optional cache prefix to be used on CircleCI. Can be used for cache
+          busting or to ensure multiple jobs use different caches.
+        type: string
+      cwd:
+        default: '.'
+        description: >
+          Working directory used when running pip / pytest commands.
+        type: string
+      enable_caching:
+        default: true
+        description: |
+          Whether the CircleCI cache should be used for pip dependencies.
+        type: boolean
+      install_args:
+        default: pytest
+        description: |
+          Arguments to `pip install` command.
+        type: string
+      python_version:
+        default: 3.7.2
+        description: |
+          The python version used to run pytest.
+        type: string
+    steps:
+      - checkout
+      - when:
+          condition: <<parameters.enable_caching>>
+          steps:
+            - restore_cache:
+                keys:
+                  - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
+                  - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-
+                  - cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-
+      - run:
+          name: python -m pip install --progress-bar=off <<parameters.install_args>>
+          command: |
+            cd <<parameters.cwd>>
+            python -m pip install --progress-bar=off <<parameters.install_args>>
+      - when:
+          condition: <<parameters.enable_caching>>
+          steps:
+            - save_cache:
+                key: cache-pip-<<parameters.python_version>>-<<parameters.cache_prefix>>-{{ .Branch }}-{{ .Revision }}
+                paths:
+                  - ~/.cache/pip
+      - run:
+          name: python -m pip check
+          command: |
+            cd <<parameters.cwd>>
+            python -m pip check
+
   pytest:
     description: |
       Runs pytest against the current repo.
