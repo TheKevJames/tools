@@ -12,7 +12,7 @@ and usage. More specifically, you can find:
 * `thekevjames/tester`_, including support for `pytest`_.
 * `thekevjames/notifier`_, including support for Datadog, Sentry, and Slack.
 
-It also includes a few deprecated orbs:
+In the git log, you can find some of my deprecated orbs:
 
 * `thekevjames/deployment-notifier`_, subsumed by `thekevjames/notifier`_.
 * `thekevjames/pytest`_, subsumed by `thekevjames/tester`_.
