@@ -19,7 +19,7 @@ For example, if you use CircleCI, you might have:
 
     minify:
         docker:
-          - image: thekevjames/minify:v2.5.2
+          - image: thekevjames/minify:2.5.2
         steps:
           - checkout
           - run: minify --recursive --output build/ src/
@@ -31,7 +31,7 @@ To use this locally, you could do:
 
     docker run --rm -it \
         -v $(pwd):/app \
-        thekevjames/minify:v2.5.2 \
+        thekevjames/minify:2.5.2 \
         minify --recursive --output /app/build/ /app/src/
 
 For full usage information, see the `minify`_ documentation.
