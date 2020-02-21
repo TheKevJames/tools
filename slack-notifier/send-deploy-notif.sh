@@ -17,7 +17,7 @@ while getopts 'c:d:e:n:p:u:v:' flag; do
         d) DIFF_URL="${OPTARG}"              ;;
         e) ENVIRONMENT="${OPTARG}"           ;;
         n) NAME="${OPTARG}"                  ;;
-        p) PREVIOUS="${OPTARG}"              ;;
+        p) PREVIOUS="${OPTARG:-unknown}"     ;;
         u) USER="${OPTARG}"                  ;;
         v) VERSION="${OPTARG}"               ;;
         *) error "Unexpected option ${flag}" ;;
@@ -26,9 +26,9 @@ done
 
 # verify set
 [[ -z "${NAME}" ]] && { echo "NAME is unset"; exit 1; }
-[[ -z "${PREVIOUS}" ]] && { echo "PREVIOUS is unset"; exit 1; }
 [[ -z "${VERSION}" ]] && { echo "VERSION is unset"; exit 1; }
 [[ -z "${SLACK_DEPLOYBOT_WEBHOOK}" ]] && { echo "SLACK_DEPLOYBOT_WEBHOOK is unset"; exit 1; }
+
 
 # build slack payload
 PAYLOAD=$(cat <<EOF
