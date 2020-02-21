@@ -135,6 +135,8 @@ jobs:
     description: |
       Uses thekevjames/slack-notifier to send a deployment notification to your workspace.
     executor: alpine-stable
+    environment:
+      CIRCLE_COMPARE_URL: <<pipeline.project.git_url>>/compare/<<pipeline.git.base_revision>>..<<pipeline.git.revision>>
     parameters:
       changes:
         default: ''

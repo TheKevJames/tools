@@ -29,3 +29,17 @@ pass the following values explicitly:
     $ sh send-deploy-notif.sh -p "${PREVIOUS_VERSION}"
     $ sh send-deploy-notif.sh -u "${USER}"
     $ sh send-deploy-notif.sh -v "${NEW_VERSION}"
+
+CircleCI
+~~~~~~~~
+
+On CircleCI, we pull in the ``$CIRCLE_COMPARE_URL`` variable to generate diff
+links (assuming you don't provide that optional manually).
+
+Note that value was removed from v2.1 of the CircleCI spec in favor of
+pipeline values; fortunately, you can use the latter to generate the former:
+
+.. code-block:: yaml
+
+    environment:
+      CIRCLE_COMPARE_URL: <<pipeline.project.git_url>>/compare/<<pipeline.git.base_revision>>..<<pipeline.git.revision>>

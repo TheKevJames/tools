@@ -29,7 +29,6 @@ done
 [[ -z "${VERSION}" ]] && { echo "VERSION is unset"; exit 1; }
 [[ -z "${SLACK_DEPLOYBOT_WEBHOOK}" ]] && { echo "SLACK_DEPLOYBOT_WEBHOOK is unset"; exit 1; }
 
-
 # build slack payload
 PAYLOAD=$(cat <<EOF
 {
