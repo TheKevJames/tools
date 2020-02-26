@@ -23,6 +23,10 @@
     "packagePatterns": ["^com.google.auto.value"],
     "managers": ["maven"],
     "groupName": "com.google.auto.value packages"
+  }, {
+    "datasources": ["pypi"],
+    "packagePatterns": ["^grpcio"],
+    "groupName": "grpcio"
   }],
   "prConcurrentLimit": 0,
   "prCreation": "immediate",
