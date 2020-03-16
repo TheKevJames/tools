@@ -19,10 +19,13 @@ RUN apt-get update && \
         python3.7-dev \
         python3.8 \
         python3.8-dev \
+        python3.9 \
+        python3.9-dev \
         python3-pip && \
     python2.7 -m pip install --upgrade pip && \
     python3.5 -m pip install --upgrade pip && \
     python3.6 -m pip install --upgrade pip && \
     python3.7 -m pip install --upgrade pip && \
+    python3.8 -m pip install --upgrade pip && \
     python3 -m pip install 'nox==2019.11.9' && \
     rm -rf /var/cache/apt/lists

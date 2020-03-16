@@ -24,7 +24,7 @@ For example, if you use CircleCI, you might have:
 
     test:
         docker:
-            - image: thekevjames/nox:2018.10.9
+            - image: thekevjames/nox:2019.11.9
         steps:
             - checkout
             - run: nox
