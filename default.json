@@ -27,6 +27,11 @@
     "datasources": ["pypi"],
     "packagePatterns": ["^grpcio"],
     "groupName": "grpcio"
+  }, {
+    "datasources": ["pypi"],
+    "packageNames": ["hypothesis"],
+    "updateTypes": ["minor", "patch", "pin", "digest"],
+    "automerge": true
   }],
   "prConcurrentLimit": 0,
   "prCreation": "immediate",
