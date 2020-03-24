@@ -1,4 +1,5 @@
 {
   "extends": ["github>thekevjames/tools"],
-  "labels": ["task"]
+  "labels": ["task"],
+  "automergeType": "branch"
 }
