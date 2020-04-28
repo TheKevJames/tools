@@ -57,6 +57,7 @@ impl<'a> App<'a> {
     }
 
     fn make_request(client: &Client, token: String, repo: &str) -> Option<Status> {
+        //TODO: configurable
         let url = "https://circleci.com/api/v2/insights/gh/".to_owned()
             + repo
             + "/workflows/run-jobs?branch=master";
