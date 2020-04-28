@@ -13,89 +13,49 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .constraints([Constraint::Min(7), Constraint::Length(7)].as_ref())
         .split(f.size());
 
+    //TODO: allow cursor to open build pages
     draw_repos(f, app, chunks[0]);
     draw_recent(f, app, chunks[1]);
 }
 
 fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
-    let style_unk = Style::default().fg(Color::White);
-    let style_ok = Style::default().fg(Color::Green);
-    let style_err = Style::default().fg(Color::Red);
-
-    //TODO: auto-chunk into columns
-    let chunks = Layout::default()
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
-        .direction(Direction::Horizontal)
-        .split(area);
-
-    let repos0 = app
-        .repos
-        .items
-        .iter()
-        .take(app.repos.items.len() / 2)
-        .map(|(repo, level)| {
-            Text::styled(
-                format!("{}", repo),
-                match level.as_ref() {
-                    "success" => style_ok,
-                    "failed" => style_err,
-                    _ => style_unk,
-                },
-            )
-        });
-    let repos0 = List::new(repos0).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title(" Repo Status "),
-    );
-    let repos1 = app
-        .repos
-        .items
-        .iter()
-        .skip(app.repos.items.len() / 2)
-        .map(|(repo, level)| {
-            Text::styled(
-                //TODO: tabular
-                //TODO: alphabetize
-                format!("{}", repo),
-                match level.as_ref() {
-                    "success" => style_ok,
-                    "failed" => style_err,
-                    _ => style_unk,
-                },
-            )
-        });
-    let repos1 = List::new(repos1).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title(" Repo Status "),
-    );
-
-    f.render_stateful_widget(repos0, chunks[0], &mut app.recent.state);
-    f.render_stateful_widget(repos1, chunks[1], &mut app.recent.state);
-}
-
-fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
-    // Draw logs
-    let info_style = Style::default().fg(Color::White);
-    let warning_style = Style::default().fg(Color::Yellow);
-    let error_style = Style::default().fg(Color::Magenta);
-    let critical_style = Style::default().fg(Color::Red);
-    let logs = app.recent.items.iter().map(|(evt, level)| {
+    let style_error = Style::default().fg(Color::Magenta);
+    let style_failure = Style::default().fg(Color::Red);
+    let style_success = Style::default().fg(Color::Green);
+    let style_unknown = Style::default().fg(Color::White);
+    let mut repos = app.repos.items.iter().map(|(repo, level)| {
         Text::styled(
-            format!("{}: {}", level, evt),
+            format!("{}", repo),
             match level.as_ref() {
-                "ERROR" => error_style,
-                "CRITICAL" => critical_style,
-                "WARNING" => warning_style,
-                _ => info_style,
+                "cancelled" => style_error,
+                "error" => style_error,
+                "failed" => style_failure,
+                "success" => style_success,
+                "unauthorized" => style_error,
+                _ => style_unknown,
             },
         )
     });
-    let logs = List::new(logs).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title(" Recent Workflows "),
-    );
-    f.render_stateful_widget(logs, area, &mut app.recent.state);
+
+    let columns = ((app.repos.items.len() as u16) + area.height - 1) / area.height; //TODO: large values
+    let constraints = vec![Constraint::Percentage(100 / columns); columns as usize];
+    let chunks = Layout::default()
+        .constraints(constraints)
+        .direction(Direction::Horizontal)
+        .split(area);
+
+    for chunk in chunks {
+        let rows = repos.by_ref().take(area.height as usize);
+        let rows = List::new(rows).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Repo Status "),
+        );
+
+        f.render_stateful_widget(rows, chunk, &mut app.recent.state);
+    }
+}
+
+fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
+    //TODO
 }

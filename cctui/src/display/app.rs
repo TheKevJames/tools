@@ -26,7 +26,7 @@ struct StatusItem {
 pub struct App<'a> {
     pub title: &'a str,
     pub recent: StatefulList<(String, &'a str)>, //TODO: populate
-    pub repos: StatefulHash<String, String>, //TODO: store poll_delay in here?
+    pub repos: StatefulHash<String, String>,     //TODO: store poll_delay in here?
 
     poll_delay: HashMap<String, u8>,
 
@@ -44,7 +44,11 @@ impl<'a> App<'a> {
             title,
             recent: StatefulList::with_items(vec![]),
             repos: StatefulHash::with_items(
-                settings.repos.iter().map(|r| (r.clone(), "unknown".to_string())).collect(),
+                settings
+                    .repos
+                    .iter()
+                    .map(|r| (r.clone(), "unknown".to_string()))
+                    .collect(),
             ),
             poll_delay: poll_delay,
             client: Client::new(),
@@ -53,8 +57,9 @@ impl<'a> App<'a> {
     }
 
     fn make_request(client: &Client, token: String, repo: &str) -> Option<Status> {
-        let url =
-            "https://circleci.com/api/v2/insights/gh/".to_owned() + repo + "/workflows/run-jobs?branch=master";
+        let url = "https://circleci.com/api/v2/insights/gh/".to_owned()
+            + repo
+            + "/workflows/run-jobs?branch=master";
         let request = client
             .get(&url)
             .header("Application", "application/json")
@@ -94,7 +99,9 @@ impl<'a> App<'a> {
                         match status.items {
                             Some(items) if items.len() > 0 => {
                                 //TODO: is this supposed to be a &'static str instead of a String?
-                                self.repos.items.insert(repo.clone(), items[0].status.clone());
+                                self.repos
+                                    .items
+                                    .insert(repo.clone(), items[0].status.clone());
                             }
                             _ => {
                                 self.repos.items.insert(repo.clone(), "unknown".to_string());

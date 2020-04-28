@@ -1,5 +1,6 @@
+use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
-use config::{Config,File};
+use xdg::BaseDirectories;
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
@@ -8,17 +9,13 @@ pub struct Settings {
 }
 
 impl Settings {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self, ConfigError> {
         let mut s = Config::new();
 
-        //TODO: xdg
-        s.merge(File::with_name("/Users/kevin/.config/cctui/config.yml"));
-        //TODO: create with defaults if not exists
-        //TODO: secrets
-        //TODO: env vars
+        let dirs = BaseDirectories::with_prefix("cctui").unwrap();
+        s.merge(File::from(dirs.get_config_home().join("config.yml")))?;
+        s.merge(Environment::with_prefix("cctui"))?;
 
-        //TODO: better way to do this?
-        //docs recommend -> Result<Self, ConfigError>
-        s.try_into().unwrap()
+        s.try_into()
     }
 }

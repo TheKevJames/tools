@@ -33,7 +33,10 @@ fn panic_hook(info: &std::panic::PanicInfo<'_>) {
 fn main() -> Result<(), Box<dyn Error>> {
     panic::set_hook(Box::new(panic_hook));
 
-    let settings = Settings::new();
+    let settings = match Settings::new() {
+        Ok(s) => s,
+        Err(e) => panic!("could not load settings: {:?}", e),
+    };
 
     let events = Events::new();
 
