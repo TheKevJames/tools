@@ -61,7 +61,7 @@ impl Events {
             thread::spawn(move || {
                 let tx = tx.clone();
                 loop {
-                    // TODO: need some way of ensuring we don't overwhelm the system
+                    //TODO: need some way of ensuring we don't overwhelm the system
                     tx.send(Event::Tick).unwrap();
                     thread::sleep(config.tick_rate);
                 }

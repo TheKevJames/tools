@@ -57,5 +57,29 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
 }
 
 fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
-    //TODO
+    let style_error = Style::default().fg(Color::Magenta);
+    let style_failure = Style::default().fg(Color::Red);
+    let style_success = Style::default().fg(Color::Green);
+    let style_unknown = Style::default().fg(Color::White);
+    let repos = app.recent.items.iter().rev().map(|(_, (repo, level))| {
+        Text::styled(
+            format!("{}", repo),
+            match level.as_ref() {
+                "cancelled" => style_error,
+                "error" => style_error,
+                "failed" => style_failure,
+                "success" => style_success,
+                "unauthorized" => style_error,
+                _ => style_unknown,
+            },
+        )
+    });
+
+    let rows = List::new(repos).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(" Recent Workflows "),
+    );
+
+    f.render_stateful_widget(rows, area, &mut app.recent.state);
 }

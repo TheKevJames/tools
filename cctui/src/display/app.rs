@@ -1,9 +1,9 @@
 use crate::settings::Settings;
-use crate::util::{StatefulHash, StatefulList};
+use crate::util::StatefulHash;
 
 use reqwest::blocking::Client;
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 const INTERVAL: u8 = 30;
 
@@ -25,8 +25,8 @@ struct StatusItem {
 
 pub struct App<'a> {
     pub title: &'a str,
-    pub recent: StatefulList<(String, &'a str)>, //TODO: populate
-    pub repos: StatefulHash<String, String>,     //TODO: store poll_delay in here?
+    pub recent: StatefulHash<String, (String, String)>,
+    pub repos: StatefulHash<String, String>,
 
     poll_delay: HashMap<String, u8>,
 
@@ -42,7 +42,7 @@ impl<'a> App<'a> {
         }
         App {
             title,
-            recent: StatefulList::with_items(vec![]),
+            recent: StatefulHash::with_items(BTreeMap::new()),
             repos: StatefulHash::with_items(
                 settings
                     .repos
@@ -98,10 +98,24 @@ impl<'a> App<'a> {
                     Some(status) => {
                         match status.items {
                             Some(items) if items.len() > 0 => {
-                                //TODO: is this supposed to be a &'static str instead of a String?
                                 self.repos
                                     .items
                                     .insert(repo.clone(), items[0].status.clone());
+                                for job in items {
+                                    //TODO: get branch info
+                                    self.recent
+                                        .items
+                                        .insert(job.stopped_at, (repo.clone(), job.status));
+                                    if self.recent.items.len() > 5 {
+                                        let entry = match self.recent.items.iter().next() {
+                                            Some((k, _)) => Some(k.clone()),
+                                            _ => None,
+                                        };
+                                        if entry.is_some() {
+                                            self.recent.items.remove(&entry.unwrap());
+                                        }
+                                    }
+                                }
                             }
                             _ => {
                                 self.repos.items.insert(repo.clone(), "unknown".to_string());

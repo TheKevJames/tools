@@ -12,6 +12,7 @@ use std::{error::Error, io};
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{backend::TermionBackend, Terminal};
 
+//TODO: error logging to a file
 fn panic_hook(info: &std::panic::PanicInfo<'_>) {
     let location = info.location().unwrap(); // The current implementation always returns Some
 
