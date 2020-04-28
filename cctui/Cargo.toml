@@ -7,6 +7,3 @@ edition = "2018"
 [dependencies]
 termion = "1.5"
 tui = "0.9.1"
-
-argh = "0.1"
-rand = "0.7"
