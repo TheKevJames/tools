@@ -1,3 +1,4 @@
+#TODO: populate
 [package]
 name = "cctui"
 version = "0.1.0"
@@ -5,5 +6,9 @@ authors = ["Kevin James <KevinJames@thekev.in>"]
 edition = "2018"
 
 [dependencies]
+config = { version = "0.10", features = ["yaml"] }
+reqwest = { version = "0.10", features = ["blocking", "json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 termion = "1.5"
 tui = "0.9.1"
