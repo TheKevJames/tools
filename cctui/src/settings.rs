@@ -20,7 +20,7 @@ impl Settings {
             .place_data_file("cctui.log")
             .expect("cannot create data directory");
         s.set_default("logfile", logfile.to_str())?;
-        s.set_default("loglevel", "DEBUG")?; //TODO: change to INFO
+        s.set_default("loglevel", "INFO")?;
 
         let configfile = dirs
             .place_config_file("config.yml")
