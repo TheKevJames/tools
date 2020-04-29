@@ -89,6 +89,8 @@ impl<'a> App<'a> {
     pub fn on_key(&mut self, c: char) {
         debug!("keypress: {}", c);
         match c {
+            'G' => self.repos.last(),
+            'g' => self.repos.first(),
             'j' => self.repos.next(),
             'k' => self.repos.prev(),
             _ => (),

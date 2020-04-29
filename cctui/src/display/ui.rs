@@ -2,7 +2,7 @@ use crate::display::App;
 
 use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Style};
+use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, List, Text};
 use tui::Frame;
 
@@ -48,15 +48,28 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         .direction(Direction::Horizontal)
         .split(area);
 
-    for chunk in chunks {
+    for (i, &chunk) in chunks.iter().enumerate() {
         let rows = repos.by_ref().take(height as usize);
-        let rows = List::new(rows).block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(" Repo Status "),
-        );
+        let rows = List::new(rows)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Repo Status "),
+            )
+            .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD));
+            // TODO: this screws with alignment...
+            // .highlight_symbol("> ");
 
-        f.render_stateful_widget(rows, chunk, &mut app.recent.state);
+        // share our state selector across columns
+        let mut local_state = app.repos.state.clone();
+        let selected = match app.repos.state.selected() {
+            Some(x) if x < (height as usize) * i => None,
+            Some(x) if x >= (height as usize) * (i + 1) => None,
+            Some(x) => Some(x - (height as usize * i)),
+            None => None,
+        };
+        local_state.select(selected);
+        f.render_stateful_widget(rows, chunk, &mut local_state);
     }
 }
 
