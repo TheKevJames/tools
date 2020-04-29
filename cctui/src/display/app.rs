@@ -1,7 +1,7 @@
 use crate::settings::Settings;
 use crate::util::StatefulHash;
 
-use log::error;
+use log::{debug, error};
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::{BTreeMap, HashMap};
@@ -83,6 +83,15 @@ impl<'a> App<'a> {
                 error!("error making CI request: {:?}", e);
                 None
             }
+        }
+    }
+
+    pub fn on_key(&mut self, c: char) {
+        debug!("keypress: {}", c);
+        match c {
+            'j' => self.repos.next(),
+            'k' => self.repos.prev(),
+            _ => (),
         }
     }
 

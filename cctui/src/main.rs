@@ -55,13 +55,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         match events.next()? {
             Event::Input(key) => match key {
-                Key::Char(c) => match c {
-                    'q' => {
-                        debug!("caught exit key, quitting");
-                        break;
+                Key::Char(c) => {
+                    app.on_key(c);
+                    match c {
+                        'q' => {
+                            debug!("'q' to quit");
+                            break;
+                        }
+                        _ => {}
                     }
-                    _ => {}
-                },
+                }
                 _ => {}
             },
             Event::Tick => {
