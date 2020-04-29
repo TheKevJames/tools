@@ -1,6 +1,7 @@
 use crate::settings::Settings;
 use crate::util::StatefulHash;
 
+use log::error;
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::{BTreeMap, HashMap};
@@ -69,8 +70,7 @@ impl<'a> App<'a> {
             Ok(resp) => match resp.json() {
                 Ok(body) => Some(body),
                 Err(e) => {
-                    //TODO: error logging
-                    println!("error doing json decode: {:?}", e);
+                    error!("error decoding CI response json: {:?}", e);
                     None
                 }
             },
@@ -80,7 +80,7 @@ impl<'a> App<'a> {
             //    None
             //},
             Err(e) => {
-                println!("error making request: {:?}", e);
+                error!("error making CI request: {:?}", e);
                 None
             }
         }
@@ -119,6 +119,8 @@ impl<'a> App<'a> {
                                 }
                             }
                             _ => {
+                                // TODO: figure out how to grab most recent run from >90 days ago
+                                // warn!("got unknown CI status for {}", repo.clone());
                                 self.repos.items.insert(repo.clone(), "unknown".to_string());
                                 ()
                             }

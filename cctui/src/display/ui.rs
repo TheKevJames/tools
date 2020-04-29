@@ -1,12 +1,11 @@
-use tui::{
-    backend::Backend,
-    layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style},
-    widgets::{Block, Borders, List, Text},
-    Frame,
-};
-
 use crate::display::App;
+
+use log::warn;
+use tui::backend::Backend;
+use tui::layout::{Constraint, Direction, Layout, Rect};
+use tui::style::{Color, Style};
+use tui::widgets::{Block, Borders, List, Text};
+use tui::Frame;
 
 pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let chunks = Layout::default()
@@ -19,6 +18,7 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 }
 
 fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
+    //TODO: config to hide green
     let style_error = Style::default().fg(Color::Magenta);
     let style_failure = Style::default().fg(Color::Red);
     let style_success = Style::default().fg(Color::Green);
@@ -70,7 +70,11 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                 "failed" => style_failure,
                 "success" => style_success,
                 "unauthorized" => style_error,
-                _ => style_unknown,
+                _ => {
+                    //TODO: enum, move this error out of ui layer
+                    warn!("got unknown repo status: {} -> {}", repo, level);
+                    style_unknown
+                }
             },
         )
     });

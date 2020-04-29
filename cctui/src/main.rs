@@ -6,42 +6,42 @@ use crate::{
     display::{ui, App},
     util::event::{Event, Events},
 };
+use log::debug;
 use settings::Settings;
-use std::panic;
-use std::{error::Error, io};
+use std::error::Error;
+use std::io::stdout;
+use std::process::exit;
+use std::str::FromStr;
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
 use tui::{backend::TermionBackend, Terminal};
 
-//TODO: error logging to a file
-fn panic_hook(info: &std::panic::PanicInfo<'_>) {
-    let location = info.location().unwrap(); // The current implementation always returns Some
-
-    let msg = match info.payload().downcast_ref::<&'static str>() {
-        Some(s) => *s,
-        None => match info.payload().downcast_ref::<String>() {
-            Some(s) => &s[..],
-            None => "Box<Any>",
-        },
-    };
-    println!(
-        "{}thread '<unnamed>' panicked at '{}', {}\r",
-        termion::screen::ToMainScreen,
-        msg,
-        location
-    );
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
-    panic::set_hook(Box::new(panic_hook));
-
     let settings = match Settings::new() {
         Ok(s) => s,
-        Err(e) => panic!("could not load settings: {:?}", e),
+        Err(e) => {
+            eprintln!("could not load settings: {:?}", e);
+            exit(1);
+        }
     };
+
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "[{}] [{}] [{}] {}",
+                chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
+                record.level(),
+                record.target(),
+                message
+            ))
+        })
+        .level(log::LevelFilter::Warn)
+        .level_for("cctui", log::LevelFilter::from_str(&settings.loglevel)?)
+        .chain(fern::log_file(settings.logfile.clone())?)
+        .apply()?;
 
     let events = Events::new();
 
-    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = stdout().into_raw_mode()?;
     let stdout = MouseTerminal::from(stdout);
     let stdout = AlternateScreen::from(stdout);
     let backend = TermionBackend::new(stdout);
@@ -49,6 +49,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     terminal.hide_cursor()?;
 
     let mut app = App::new("CCTui", settings);
+    debug!("starting app");
     loop {
         terminal.draw(|mut f| ui::draw(&mut f, &mut app))?;
 
@@ -56,6 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             Event::Input(key) => match key {
                 Key::Char(c) => match c {
                     'q' => {
+                        debug!("caught exit key, quitting");
                         break;
                     }
                     _ => {}
