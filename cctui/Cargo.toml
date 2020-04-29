@@ -1,9 +1,19 @@
-#TODO: populate
+# TODO: populate, then publish on crates
 [package]
 name = "cctui"
 version = "0.1.0"
 authors = ["Kevin James <KevinJames@thekev.in>"]
 edition = "2018"
+
+# description = ""
+# readme = ""
+# repository = ""
+license = "MIT"
+# keywords = []  # <=5
+
+[badges]
+# circle-ci = { repository = "...", branch = "master" }
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 chrono = "0.4"
