@@ -99,21 +99,28 @@ impl<'a> App<'a> {
                             Some(repo) => {
                                 let chunks = repo.split("/").collect::<Vec<_>>();
                                 //TODO: hook into config
-                                let url = format!("https://circleci.com/gh/{}/workflows/{}/tree/master", chunks[0], chunks[1]);
+                                let url = format!(
+                                    "https://circleci.com/gh/{}/workflows/{}/tree/master",
+                                    chunks[0], chunks[1]
+                                );
                                 info!("opening browser to: {}", url);
                                 match Command::new("open").arg(url).output() {
                                     Ok(_) => (),
                                     Err(e) => error!("failed to open browser: {:?}", e),
                                 }
                             }
-                            None => error!("attempted to browse to repo {} of {}", i, self.repos.items.len() - 1),
+                            None => error!(
+                                "attempted to browse to repo {} of {}",
+                                i,
+                                self.repos.items.len() - 1
+                            ),
                         }
                     }
                     None => {
                         warn!("attempted to browse to unselected repo");
                     }
                 }
-            },
+            }
             'g' => self.repos.first(),
             'j' => self.repos.next(),
             'k' => self.repos.prev(),

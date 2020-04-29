@@ -15,6 +15,7 @@ pub struct Events {
     rx: mpsc::Receiver<Event<Key>>,
 }
 
+// TODO: merge with other settings
 #[derive(Debug, Clone, Copy)]
 pub struct Config {
     pub exit_key: Key,
@@ -36,7 +37,9 @@ impl Events {
     }
 
     pub fn with_config(config: Config) -> Events {
-        let (tx, rx) = mpsc::channel();
+        // sync_channel to ensure the ticks don't back up if processing is slow
+        let (tx, rx) = mpsc::sync_channel(0);
+
         let _handle_input = {
             let tx = tx.clone();
             thread::spawn(move || {
@@ -61,12 +64,12 @@ impl Events {
             thread::spawn(move || {
                 let tx = tx.clone();
                 loop {
-                    //TODO: need some way of ensuring we don't overwhelm the system
                     tx.send(Event::Tick).unwrap();
                     thread::sleep(config.tick_rate);
                 }
             })
         };
+
         Events { rx }
     }
 
