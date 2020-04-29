@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     app.on_key(c);
                     match c {
                         'q' => {
-                            debug!("'q' to quit");
+                            debug!("quitting for user request");
                             break;
                         }
                         _ => {}

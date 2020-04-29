@@ -1,6 +1,5 @@
 use crate::display::App;
 
-use log::warn;
 use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Style};
@@ -32,12 +31,17 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                 "failed" => style_failure,
                 "success" => style_success,
                 "unauthorized" => style_error,
-                _ => style_unknown,
+                _ => {
+                    //TODO: enum, move this error out of ui layer
+                    //warn!("got unknown repo status: {} -> {}", repo, level);
+                    style_unknown
+                }
             },
         )
     });
 
-    let columns = ((app.repos.items.len() as u16) + area.height - 1) / area.height; //TODO: large values
+    let height = area.height - 2; // header/footer
+    let columns = ((app.repos.items.len() as u16) + height - 1) / height; //TODO: large values
     let constraints = vec![Constraint::Percentage(100 / columns); columns as usize];
     let chunks = Layout::default()
         .constraints(constraints)
@@ -45,7 +49,7 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         .split(area);
 
     for chunk in chunks {
-        let rows = repos.by_ref().take(area.height as usize);
+        let rows = repos.by_ref().take(height as usize);
         let rows = List::new(rows).block(
             Block::default()
                 .borders(Borders::ALL)
@@ -72,7 +76,7 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                 "unauthorized" => style_error,
                 _ => {
                     //TODO: enum, move this error out of ui layer
-                    warn!("got unknown repo status: {} -> {}", repo, level);
+                    //warn!("got unknown recent status: {} -> {}", repo, level);
                     style_unknown
                 }
             },
