@@ -41,6 +41,7 @@ impl<'a> App<'a> {
         for repo in settings.repos.iter() {
             poll_delay.insert(repo.clone(), 0);
         }
+
         App {
             title,
             recent: StatefulHash::with_items(BTreeMap::new()),
@@ -93,6 +94,11 @@ impl<'a> App<'a> {
             'g' => self.repos.first(),
             'j' => self.repos.next(),
             'k' => self.repos.prev(),
+            'r' => {
+                for (_, val) in self.poll_delay.iter_mut() {
+                    *val = 0;
+                }
+            }
             _ => (),
         }
     }

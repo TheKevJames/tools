@@ -57,8 +57,8 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                     .title(" Repo Status "),
             )
             .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD));
-            // TODO: this screws with alignment...
-            // .highlight_symbol("> ");
+        // TODO: this screws with alignment...
+        // .highlight_symbol("> ");
 
         // share our state selector across columns
         let mut local_state = app.repos.state.clone();
