@@ -1,10 +1,11 @@
 use crate::settings::Settings;
 use crate::util::StatefulHash;
 
-use log::{debug, error};
+use log::{debug, error, info, warn};
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::{BTreeMap, HashMap};
+use std::process::Command;
 
 const INTERVAL: u8 = 30;
 
@@ -88,9 +89,31 @@ impl<'a> App<'a> {
     }
 
     pub fn on_key(&mut self, c: char) {
-        debug!("keypress: {}", c);
+        debug!("keypress: {:?}", c);
         match c {
             'G' => self.repos.last(),
+            '\n' => {
+                match self.repos.state.selected() {
+                    Some(i) => {
+                        match self.repos.items.keys().skip(i).next() {
+                            Some(repo) => {
+                                let chunks = repo.split("/").collect::<Vec<_>>();
+                                //TODO: hook into config
+                                let url = format!("https://circleci.com/gh/{}/workflows/{}/tree/master", chunks[0], chunks[1]);
+                                info!("opening browser to: {}", url);
+                                match Command::new("open").arg(url).output() {
+                                    Ok(_) => (),
+                                    Err(e) => error!("failed to open browser: {:?}", e),
+                                }
+                            }
+                            None => error!("attempted to browse to repo {} of {}", i, self.repos.items.len() - 1),
+                        }
+                    }
+                    None => {
+                        warn!("attempted to browse to unselected repo");
+                    }
+                }
+            },
             'g' => self.repos.first(),
             'j' => self.repos.next(),
             'k' => self.repos.prev(),

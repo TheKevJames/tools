@@ -2,10 +2,9 @@ mod display;
 mod settings;
 mod util;
 
-use crate::{
-    display::{ui, App},
-    util::event::{Event, Events},
-};
+use crate::display::{ui, App};
+use crate::util::event::{Event, Events};
+
 use log::debug;
 use settings::Settings;
 use std::error::Error;
