@@ -134,7 +134,7 @@ impl<'a> App<'a> {
                     continue;
                 }
 
-                //TODO: async
+                // TODO: async then consider multiple updates per tick?
                 match Self::make_request(&self.client, self.token.clone(), &repo) {
                     Some(status) => {
                         match status.items {
@@ -167,7 +167,7 @@ impl<'a> App<'a> {
                         allow_update = false; // be kind to our event loop
                         *val = repo.refresh * 10; // 10 ticks per second
                     }
-                    //TODO: backoff with retry
+                    // TODO: should we add a backoff handler?
                     None => (),
                 }
                 continue;

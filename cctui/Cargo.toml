@@ -1,18 +1,18 @@
-# TODO: populate, then publish on crates
+# TODO: publish on crates?
 [package]
 name = "cctui"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Kevin James <KevinJames@thekev.in>"]
 edition = "2018"
 
-# description = ""
-# readme = ""
-# repository = ""
+description = "CCTray TUI, a build monitoring dashboard for your terminal"
+readme = "README.rst"
+repository = "https://github.com/TheKevJames/tools/tree/master/cctui"
 license = "MIT"
-# keywords = []  # <=5
+keywords = ["ci", "tui"]
 
 [badges]
-# circle-ci = { repository = "...", branch = "master" }
+circle-ci = { repository = "TheKevJames/tools", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
