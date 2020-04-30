@@ -34,8 +34,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             ))
         })
         .level(log::LevelFilter::Warn)
-        .level_for("cctui", log::LevelFilter::from_str(&settings.loglevel)?)
-        .chain(fern::log_file(settings.logfile.clone())?)
+        .level_for(
+            "cctui",
+            log::LevelFilter::from_str(&settings.logging.level)?,
+        )
+        .chain(fern::log_file(settings.logging.file.clone())?)
         .apply()?;
 
     let events = Events::new();
@@ -56,12 +59,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             Event::Input(key) => match key {
                 Key::Char(c) => {
                     app.on_key(c);
-                    match c {
-                        'q' => {
-                            debug!("quitting for user request");
-                            break;
-                        }
-                        _ => {}
+                    if c == 'q' {
+                        debug!("quitting for user request");
+                        break;
                     }
                 }
                 _ => {}

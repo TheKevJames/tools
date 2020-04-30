@@ -18,14 +18,12 @@ pub struct Events {
 // TODO: merge with other settings
 #[derive(Debug, Clone, Copy)]
 pub struct Config {
-    pub exit_key: Key,
     pub tick_rate: Duration,
 }
 
 impl Default for Config {
     fn default() -> Config {
         Config {
-            exit_key: Key::Char('q'),
             tick_rate: Duration::from_millis(1000),
         }
     }
@@ -48,9 +46,6 @@ impl Events {
                     match evt {
                         Ok(key) => {
                             if let Err(_) = tx.send(Event::Input(key)) {
-                                return;
-                            }
-                            if key == config.exit_key {
                                 return;
                             }
                         }
