@@ -1,17 +1,57 @@
 use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
+use std::cmp::Ordering;
+use std::fmt;
 use xdg::BaseDirectories;
 
 #[derive(Debug, Deserialize)]
 pub struct Logging {
     pub file: String,
-    pub level: String,
+    pub level: String, // TODO: validation
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Branch(String);
+impl Default for Branch {
+    fn default() -> Self {
+        Branch("master".to_string())
+    }
+}
+impl fmt::Display for Branch {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash)]
+pub struct Repo {
+    pub name: String,
+    #[serde(default)]
+    pub branch: Branch,
+}
+impl Ord for Repo {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.name.cmp(&other.name) {
+            Ordering::Equal => self.branch.cmp(&other.branch),
+            x => x,
+        }
+    }
+}
+impl PartialOrd for Repo {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl PartialEq for Repo {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
 }
 
 #[derive(Debug, Deserialize)]
 pub struct Settings {
     pub logging: Logging,
-    pub repos: Vec<String>,
+    pub repos: Vec<Repo>,
     pub token: String,
 }
 

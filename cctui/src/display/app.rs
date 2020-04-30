@@ -1,4 +1,4 @@
-use crate::settings::Settings;
+use crate::settings::{Repo, Settings};
 use crate::util::StatefulHash;
 
 use log::{debug, error, info, warn};
@@ -28,10 +28,10 @@ struct StatusItem {
 
 pub struct App<'a> {
     pub title: &'a str,
-    pub recent: StatefulHash<String, (String, String)>,
-    pub repos: StatefulHash<String, String>,
+    pub recent: StatefulHash<String, (Repo, String)>,
+    pub repos: StatefulHash<Repo, String>,
 
-    poll_delay: HashMap<String, u16>,
+    poll_delay: HashMap<Repo, u16>,
 
     client: Client,
     token: String,
@@ -60,11 +60,12 @@ impl<'a> App<'a> {
         }
     }
 
-    fn make_request(client: &Client, token: String, repo: &str) -> Option<Status> {
+    fn make_request(client: &Client, token: String, repo: &Repo) -> Option<Status> {
         //TODO: configurable
-        let url = "https://circleci.com/api/v2/insights/gh/".to_owned()
-            + repo
-            + "/workflows/run-jobs?branch=master";
+        let url = format!(
+            "https://circleci.com/api/v2/insights/gh/{}/workflows/run-jobs?branch={}",
+            repo.name, repo.branch
+        );
         let request = client
             .get(&url)
             .header("Application", "application/json")
@@ -89,39 +90,41 @@ impl<'a> App<'a> {
         }
     }
 
+    fn browse(&mut self) {
+        match self.repos.state.selected() {
+            Some(i) => {
+                match self.repos.items.keys().skip(i).next() {
+                    Some(repo) => {
+                        let chunks = repo.name.split("/").collect::<Vec<_>>();
+                        //TODO: hook into config
+                        let url = format!(
+                            "https://circleci.com/gh/{}/workflows/{}/tree/{}",
+                            chunks[0], chunks[1], repo.branch
+                        );
+                        info!("opening browser to: {}", url);
+                        match Command::new("open").arg(url).output() {
+                            Ok(_) => (),
+                            Err(e) => error!("failed to open browser: {:?}", e),
+                        }
+                    }
+                    None => error!(
+                        "attempted to browse to repo {} of {}",
+                        i,
+                        self.repos.items.len() - 1
+                    ),
+                }
+            }
+            None => {
+                warn!("attempted to browse to unselected repo");
+            }
+        }
+    }
+
     pub fn on_key(&mut self, c: char) {
         debug!("keypress: {:?}", c);
         match c {
+            '\n' => self.browse(),
             'G' => self.repos.last(),
-            '\n' => {
-                match self.repos.state.selected() {
-                    Some(i) => {
-                        match self.repos.items.keys().skip(i).next() {
-                            Some(repo) => {
-                                let chunks = repo.split("/").collect::<Vec<_>>();
-                                //TODO: hook into config
-                                let url = format!(
-                                    "https://circleci.com/gh/{}/workflows/{}/tree/master",
-                                    chunks[0], chunks[1]
-                                );
-                                info!("opening browser to: {}", url);
-                                match Command::new("open").arg(url).output() {
-                                    Ok(_) => (),
-                                    Err(e) => error!("failed to open browser: {:?}", e),
-                                }
-                            }
-                            None => error!(
-                                "attempted to browse to repo {} of {}",
-                                i,
-                                self.repos.items.len() - 1
-                            ),
-                        }
-                    }
-                    None => {
-                        warn!("attempted to browse to unselected repo");
-                    }
-                }
-            }
             'g' => self.repos.first(),
             'j' => self.repos.next(),
             'k' => self.repos.prev(),
@@ -168,7 +171,7 @@ impl<'a> App<'a> {
                             }
                             _ => {
                                 // TODO: figure out how to grab most recent run from >90 days ago
-                                // warn!("got unknown CI status for {}", repo.clone());
+                                // warn!("got unknown CI status for {}", repo.name);
                                 self.repos.items.insert(repo.clone(), "unknown".to_string());
                                 ()
                             }

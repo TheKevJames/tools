@@ -11,6 +11,7 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .constraints([Constraint::Min(7), Constraint::Length(7)].as_ref())
         .split(f.size());
 
+    // TODO: draw branch name if config contains multiple branches of the same repo?
     draw_repos(f, app, chunks[0]);
     draw_recent(f, app, chunks[1]);
 }
@@ -23,7 +24,7 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style_unknown = Style::default().fg(Color::White);
     let mut repos = app.repos.items.iter().map(|(repo, level)| {
         Text::styled(
-            format!("{}", repo),
+            format!("{}", repo.name),
             match level.as_ref() {
                 "cancelled" => style_error,
                 "error" => style_error,
@@ -79,7 +80,7 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style_unknown = Style::default().fg(Color::White);
     let repos = app.recent.items.iter().rev().map(|(_, (repo, level))| {
         Text::styled(
-            format!("{}", repo),
+            format!("{}", repo.name),
             match level.as_ref() {
                 "cancelled" => style_error,
                 "error" => style_error,
