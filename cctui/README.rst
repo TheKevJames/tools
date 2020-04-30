@@ -4,6 +4,10 @@ cctui
 CCTUI is a CCTray implementation for your terminal -- a live-updating dashboard
 of any of your repos.
 
+.. image:: sample.jpg
+   :alt: CCTUI sample
+   :align: center
+
 Is It Really?
 -------------
 
