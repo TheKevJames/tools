@@ -49,25 +49,30 @@ need to edit ``~/.config/cctui/config.yml``:
 
 .. code-block:: yaml
 
-    token: qwer1234asdf5678zxcv
     repos:
     - name: TheKevJames/tools
-      branch: master
-      workflow: run-jobs
+      circleci:
+        branch: cctui-dev
+        token: qwer1234asdf5678zxcv
+        workflow: run-jobs
     - name: TheKevJames/gnome-shell-extension-transmission-daemon
-      workflow: run-jobs
+      circleci:
+        token: 1234qwer5678asdf9101
+        workflow: integration-tests
       refresh: 120
 
 Basically, ``repos`` accepts a list of items with the following schema:
 
-+--------------+--------------------------------------+----------------+
-| field        | decription                           | default value? |
-+==============+======================================+================+
-| ``name``     | ``<username>/<repo>`` (Github only)  |                |
-+--------------+--------------------------------------+----------------+
-| ``branch``   | name of branch to be tracked         | ``master``     |
-+--------------+--------------------------------------+----------------+
-| ``workflow`` | name of CircleCI workflow to monitor |                |
-+--------------+--------------------------------------+----------------+
-| ``refresh``  | refresh interval between updates     | ``30``         |
-+--------------+--------------------------------------+----------------+
++-----------------------+--------------------------------------+------------+
+| field                 | decription                           | default?   |
++=======================+======================================+============+
+| ``name``              | ``<username>/<repo>`` (Github only)  |            |
++-----------------------+--------------------------------------+------------+
+| ``circleci.branch``   | name of branch to be tracked         | ``master`` |
++-----------------------+--------------------------------------+------------+
+| ``circleci.token``    | personal access token                |            |
++-----------------------+--------------------------------------+------------+
+| ``circleci.workflow`` | name of CircleCI workflow to monitor |            |
++-----------------------+--------------------------------------+------------+
+| ``refresh``           | refresh interval between updates     | ``30``     |
++-----------------------+--------------------------------------+------------+

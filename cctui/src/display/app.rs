@@ -32,7 +32,6 @@ pub struct App<'a> {
     poll_delay: HashMap<Repo, u16>,
 
     client: Client,
-    token: String,
 }
 
 impl<'a> App<'a> {
@@ -54,19 +53,18 @@ impl<'a> App<'a> {
             ),
             poll_delay: poll_delay,
             client: Client::new(),
-            token: settings.token.clone(),
         }
     }
 
-    fn make_request(client: &Client, token: String, repo: &Repo) -> Option<Status> {
+    fn make_request(client: &Client, repo: &Repo) -> Option<Status> {
         let url = format!(
             "https://circleci.com/api/v2/insights/gh/{}/workflows/{}?branch={}",
-            repo.name, repo.workflow, repo.branch
+            repo.name, repo.circleci.workflow, repo.circleci.branch
         );
         let request = client
             .get(&url)
             .header("Application", "application/json")
-            .header("Circle-Token", token);
+            .header("Circle-Token", &repo.circleci.token);
         match request.send() {
             Ok(resp) => match resp.json() {
                 Ok(body) => Some(body),
@@ -89,7 +87,7 @@ impl<'a> App<'a> {
                     let chunks = repo.name.split("/").collect::<Vec<_>>();
                     let url = format!(
                         "https://circleci.com/gh/{}/workflows/{}/tree/{}",
-                        chunks[0], chunks[1], repo.branch
+                        chunks[0], chunks[1], repo.circleci.branch
                     );
                     info!("opening browser to: {}", url);
                     match Command::new("open").arg(url).output() {
@@ -135,7 +133,7 @@ impl<'a> App<'a> {
                 }
 
                 // TODO: async then consider multiple updates per tick?
-                match Self::make_request(&self.client, self.token.clone(), &repo) {
+                match Self::make_request(&self.client, &repo) {
                     Some(status) => {
                         match status.items {
                             Some(items) if items.len() > 0 => {

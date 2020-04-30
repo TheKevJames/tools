@@ -38,6 +38,22 @@ impl fmt::Display for Branch {
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd)]
+pub struct CircleCI {
+    #[serde(default)]
+    pub branch: Branch,
+    pub token: String,
+    pub workflow: String,
+}
+impl Ord for CircleCI {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.branch.cmp(&other.branch) {
+            Ordering::Equal => self.workflow.cmp(&other.workflow),
+            x => x,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Refresh(u16);
 impl Default for Refresh {
@@ -56,21 +72,16 @@ impl Mul<u16> for Refresh {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd)]
 pub struct Repo {
-    #[serde(default)]
-    pub branch: Branch,
     // TODO: display: Enum { always, failing, ... }
     pub name: String,
+    pub circleci: CircleCI,
     #[serde(default)]
     pub refresh: Refresh,
-    pub workflow: String,
 }
 impl Ord for Repo {
     fn cmp(&self, other: &Self) -> Ordering {
         match self.name.cmp(&other.name) {
-            Ordering::Equal => match self.branch.cmp(&other.branch) {
-                Ordering::Equal => self.workflow.cmp(&other.workflow),
-                x => x,
-            },
+            Ordering::Equal => self.circleci.cmp(&other.circleci),
             x => x,
         }
     }
@@ -80,7 +91,6 @@ impl Ord for Repo {
 pub struct Settings {
     pub logging: Logging,
     pub repos: Vec<Repo>,
-    pub token: String,
 }
 
 impl Settings {
