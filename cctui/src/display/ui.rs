@@ -1,4 +1,5 @@
 use crate::display::App;
+use crate::settings::Branch;
 
 use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
@@ -11,7 +12,6 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         .constraints([Constraint::Min(7), Constraint::Length(7)].as_ref())
         .split(f.size());
 
-    // TODO: draw branch name if config contains multiple branches of the same repo?
     draw_repos(f, app, chunks[0]);
     draw_recent(f, app, chunks[1]);
 }
@@ -24,7 +24,22 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style_unknown = Style::default().fg(Color::White);
     let mut repos = app.repos.items.iter().map(|(repo, level)| {
         Text::styled(
-            format!("{}", repo.name),
+            match app
+                .repos
+                .items
+                .keys()
+                .filter(|&r| r.name == repo.name)
+                .count()
+            {
+                1 => format!("{}", repo.name),
+                _ => {
+                    if repo.branch == Branch::default() {
+                        format!("{} ({})", repo.name, repo.workflow)
+                    } else {
+                        format!("{} ({} on {})", repo.name, repo.workflow, repo.branch)
+                    }
+                }
+            },
             match level.as_ref() {
                 "cancelled" => style_error,
                 "error" => style_error,

@@ -63,8 +63,8 @@ impl<'a> App<'a> {
     fn make_request(client: &Client, token: String, repo: &Repo) -> Option<Status> {
         //TODO: configurable
         let url = format!(
-            "https://circleci.com/api/v2/insights/gh/{}/workflows/run-jobs?branch={}",
-            repo.name, repo.branch
+            "https://circleci.com/api/v2/insights/gh/{}/workflows/{}?branch={}",
+            repo.name, repo.workflow, repo.branch
         );
         let request = client
             .get(&url)

@@ -28,11 +28,15 @@ pub struct Repo {
     pub name: String,
     #[serde(default)]
     pub branch: Branch,
+    pub workflow: String,
 }
 impl Ord for Repo {
     fn cmp(&self, other: &Self) -> Ordering {
         match self.name.cmp(&other.name) {
-            Ordering::Equal => self.branch.cmp(&other.branch),
+            Ordering::Equal => match self.branch.cmp(&other.branch) {
+                Ordering::Equal => self.workflow.cmp(&other.workflow),
+                x => x,
+            },
             x => x,
         }
     }
