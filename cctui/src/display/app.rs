@@ -25,6 +25,7 @@ struct StatusItem {
 
 pub struct App<'a> {
     pub title: &'a str,
+    // TODO: values should be: level = Enum { Cancelled, Failed, .. }
     pub recent: StatefulHash<String, (Repo, String)>,
     pub repos: StatefulHash<Repo, String>,
 
@@ -58,7 +59,6 @@ impl<'a> App<'a> {
     }
 
     fn make_request(client: &Client, token: String, repo: &Repo) -> Option<Status> {
-        //TODO: configurable
         let url = format!(
             "https://circleci.com/api/v2/insights/gh/{}/workflows/{}?branch={}",
             repo.name, repo.workflow, repo.branch
@@ -75,11 +75,6 @@ impl<'a> App<'a> {
                     None
                 }
             },
-            //TODO: better way to debug than uncommenting this?
-            //Ok(resp) => {
-            //    println!("{:?}", resp.text());
-            //    None
-            //},
             Err(e) => {
                 error!("error making CI request: {:?}", e);
                 None
@@ -89,28 +84,25 @@ impl<'a> App<'a> {
 
     fn browse(&mut self) {
         match self.repos.state.selected() {
-            Some(i) => {
-                match self.repos.items.keys().skip(i).next() {
-                    Some(repo) => {
-                        let chunks = repo.name.split("/").collect::<Vec<_>>();
-                        //TODO: hook into config
-                        let url = format!(
-                            "https://circleci.com/gh/{}/workflows/{}/tree/{}",
-                            chunks[0], chunks[1], repo.branch
-                        );
-                        info!("opening browser to: {}", url);
-                        match Command::new("open").arg(url).output() {
-                            Ok(_) => (),
-                            Err(e) => error!("failed to open browser: {:?}", e),
-                        }
+            Some(i) => match self.repos.items.keys().skip(i).next() {
+                Some(repo) => {
+                    let chunks = repo.name.split("/").collect::<Vec<_>>();
+                    let url = format!(
+                        "https://circleci.com/gh/{}/workflows/{}/tree/{}",
+                        chunks[0], chunks[1], repo.branch
+                    );
+                    info!("opening browser to: {}", url);
+                    match Command::new("open").arg(url).output() {
+                        Ok(_) => (),
+                        Err(e) => error!("failed to open browser: {:?}", e),
                     }
-                    None => error!(
-                        "attempted to browse to repo {} of {}",
-                        i,
-                        self.repos.items.len() - 1
-                    ),
                 }
-            }
+                None => error!(
+                    "attempted to browse to repo {} of {}",
+                    i,
+                    self.repos.items.len() - 1
+                ),
+            },
             None => {
                 warn!("attempted to browse to unselected repo");
             }
@@ -135,10 +127,10 @@ impl<'a> App<'a> {
     }
 
     pub fn on_tick(&mut self) {
-        let mut updates_per_tick: u8 = 1; //TODO: tune
+        let mut allow_update = true;
         for (repo, val) in self.poll_delay.iter_mut() {
             if val == &0 {
-                if updates_per_tick == 0 {
+                if !allow_update {
                     continue;
                 }
 
@@ -173,7 +165,7 @@ impl<'a> App<'a> {
                                 ()
                             }
                         }
-                        updates_per_tick -= 1;
+                        allow_update = false; // be kind to our event loop
                         *val = repo.refresh * 10; // 10 ticks per second
                     }
                     //TODO: backoff with retry

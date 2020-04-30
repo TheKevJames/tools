@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .level(log::LevelFilter::Warn)
         .level_for(
             "cctui",
-            log::LevelFilter::from_str(&settings.logging.level)?,
+            log::LevelFilter::from_str(&settings.logging.level.to_string())?,
         )
         .chain(fern::log_file(settings.logging.file.clone())?)
         .apply()?;

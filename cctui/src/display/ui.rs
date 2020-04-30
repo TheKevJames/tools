@@ -17,7 +17,6 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 }
 
 fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
-    //TODO: config to hide green
     let style_error = Style::default().fg(Color::Magenta);
     let style_failure = Style::default().fg(Color::Red);
     let style_success = Style::default().fg(Color::Green);
@@ -46,17 +45,14 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                 "failed" => style_failure,
                 "success" => style_success,
                 "unauthorized" => style_error,
-                _ => {
-                    //TODO: enum, move this error out of ui layer
-                    //warn!("got unknown repo status: {} -> {}", repo, level);
-                    style_unknown
-                }
+                _ => style_unknown,
             },
         )
     });
 
+    // TODO: better handling for too many repos to fit nicely on screen
     let height = area.height - 2; // header/footer
-    let columns = ((app.repos.items.len() as u16) + height - 1) / height; //TODO: large values
+    let columns = ((app.repos.items.len() as u16) + height - 1) / height;
     let constraints = vec![Constraint::Percentage(100 / columns); columns as usize];
     let chunks = Layout::default()
         .constraints(constraints)
@@ -72,8 +68,6 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                     .title(" Repo Status "),
             )
             .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD));
-        // TODO: this screws with alignment...
-        // .highlight_symbol("> ");
 
         // share our state selector across columns
         let mut local_state = app.repos.state.clone();
@@ -102,11 +96,7 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                 "failed" => style_failure,
                 "success" => style_success,
                 "unauthorized" => style_error,
-                _ => {
-                    //TODO: enum, move this error out of ui layer
-                    //warn!("got unknown recent status: {} -> {}", repo, level);
-                    style_unknown
-                }
+                _ => style_unknown,
             },
         )
     });

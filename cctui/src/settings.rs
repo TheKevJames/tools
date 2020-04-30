@@ -6,9 +6,23 @@ use std::ops::Mul;
 use xdg::BaseDirectories;
 
 #[derive(Debug, Deserialize)]
+pub enum Level {
+    ERROR,
+    WARN,
+    INFO,
+    DEBUG,
+    TRACE,
+}
+impl fmt::Display for Level {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
+    }
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Logging {
     pub file: String,
-    pub level: String, // TODO: validation
+    pub level: Level,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -44,6 +58,7 @@ impl Mul<u16> for Refresh {
 pub struct Repo {
     #[serde(default)]
     pub branch: Branch,
+    // TODO: display: Enum { always, failing, ... }
     pub name: String,
     #[serde(default)]
     pub refresh: Refresh,
