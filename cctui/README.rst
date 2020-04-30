@@ -60,11 +60,14 @@ need to edit ``~/.config/cctui/config.yml``:
 
 Basically, ``repos`` accepts a list of items with the following schema:
 
-| ------------ | ------------------------------------ | ------------------- |
-| field        | decription                           | required?           |
-| ------------ | ------------------------------------ | ------------------- |
-| ``name``     | ``<username>/<repo>`` (Github only)  | required            |
-| ``branch``   | name of branch to be tracked         | default: ``master`` |
-| ``workflow`` | name of CircleCI workflow to monitor | required            |
-| ``refresh``  | refresh interval between updates     | default: ``30``     |
-| ------------ | ------------------------------------ | ------------------- |
++--------------+--------------------------------------+----------------+
+| field        | decription                           | default value? |
++==============+======================================+================+
+| ``name``     | ``<username>/<repo>`` (Github only)  |                |
++--------------+--------------------------------------+----------------+
+| ``branch``   | name of branch to be tracked         | ``master``     |
++--------------+--------------------------------------+----------------+
+| ``workflow`` | name of CircleCI workflow to monitor |                |
++--------------+--------------------------------------+----------------+
+| ``refresh``  | refresh interval between updates     | ``30``         |
++--------------+--------------------------------------+----------------+

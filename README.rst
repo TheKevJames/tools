@@ -7,6 +7,7 @@ I started trying to organize my GitHub presence, as a couple-line repo I'd
 completely forgotten about.
 
 - `32-bit Ubuntu Docker Images`_
+- `CCTUI`_
 - `CircleCI Orbs`_
 - `Dockerized Minify`_
 - `Dockerized MySQLTuner`_
@@ -28,6 +29,7 @@ Kevin has done anywhere" config with:
     }
 
 .. _32-bit Ubuntu Docker Images: https://github.com/TheKevJames/tools/tree/master/docker-ubuntu32
+.. _CCTUI: https://github.com/TheKevJames/tools/tree/master/cctui
 .. _CircleCI Orbs: https://github.com/TheKevJames/tools/tree/master/circleci-orbs
 .. _Dockerized Minify: https://github.com/TheKevJames/tools/tree/master/docker-minify
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
