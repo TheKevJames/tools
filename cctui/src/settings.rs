@@ -40,7 +40,7 @@ impl Mul<u16> for Refresh {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd)]
 pub struct Repo {
     #[serde(default)]
     pub branch: Branch,
@@ -58,18 +58,6 @@ impl Ord for Repo {
             },
             x => x,
         }
-    }
-}
-// TODO: derive?
-impl PartialOrd for Repo {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-// TODO: wtf
-impl PartialEq for Repo {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
     }
 }
 
