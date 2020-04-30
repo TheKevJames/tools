@@ -28,7 +28,7 @@ Anything Else?
 Well, I have also been itching for a better solution for managing my Github
 notifications. Adding a notification dashboard here may or may not end up being
 a future feature... I don't like tool bloat, so it may just as well be a
-separate project. ¯\_(ツ)_/¯
+separate project. ¯\\_(ツ)_/¯
 
 Usage
 -----
