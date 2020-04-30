@@ -7,9 +7,6 @@ use serde::Deserialize;
 use std::collections::{BTreeMap, HashMap};
 use std::process::Command;
 
-//TODO: configurable
-const INTERVAL: u16 = 300;
-
 #[derive(Debug, Deserialize)]
 struct Status {
     next_page_token: Option<String>,
@@ -177,7 +174,7 @@ impl<'a> App<'a> {
                             }
                         }
                         updates_per_tick -= 1;
-                        *val = INTERVAL;
+                        *val = repo.refresh * 10; // 10 ticks per second
                     }
                     //TODO: backoff with retry
                     None => (),

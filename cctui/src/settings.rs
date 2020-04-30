@@ -2,6 +2,7 @@ use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
 use std::cmp::Ordering;
 use std::fmt;
+use std::ops::Mul;
 use xdg::BaseDirectories;
 
 #[derive(Debug, Deserialize)]
@@ -23,11 +24,29 @@ impl fmt::Display for Branch {
     }
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Refresh(u16);
+impl Default for Refresh {
+    fn default() -> Self {
+        Refresh(60)
+    }
+}
+// TODO: kludge
+impl Mul<u16> for Refresh {
+    type Output = u16;
+
+    fn mul(self, rhs: u16) -> Self::Output {
+        self.0.saturating_mul(rhs)
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash)]
 pub struct Repo {
-    pub name: String,
     #[serde(default)]
     pub branch: Branch,
+    pub name: String,
+    #[serde(default)]
+    pub refresh: Refresh,
     pub workflow: String,
 }
 impl Ord for Repo {
@@ -41,11 +60,13 @@ impl Ord for Repo {
         }
     }
 }
+// TODO: derive?
 impl PartialOrd for Repo {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
+// TODO: wtf
 impl PartialEq for Repo {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
