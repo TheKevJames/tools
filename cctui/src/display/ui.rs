@@ -89,7 +89,7 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style_unknown = Style::default().fg(Color::White);
     let repos = app.recent.items.iter().rev().map(|(_, (repo, level))| {
         Text::styled(
-            format!("{}", repo.name),
+            format!("{} ({} on {})", repo.name, repo.workflow, repo.branch),
             match level.as_ref() {
                 "cancelled" => style_error,
                 "error" => style_error,

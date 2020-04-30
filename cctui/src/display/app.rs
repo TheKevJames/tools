@@ -143,7 +143,6 @@ impl<'a> App<'a> {
                                     .items
                                     .insert(repo.clone(), items[0].status.clone());
                                 for job in items {
-                                    //TODO: get branch info
                                     self.recent
                                         .items
                                         .insert(job.stopped_at, (repo.clone(), job.status));
