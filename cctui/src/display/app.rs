@@ -7,7 +7,8 @@ use serde::Deserialize;
 use std::collections::{BTreeMap, HashMap};
 use std::process::Command;
 
-const INTERVAL: u8 = 30;
+//TODO: configurable
+const INTERVAL: u16 = 300;
 
 #[derive(Debug, Deserialize)]
 struct Status {
@@ -30,7 +31,7 @@ pub struct App<'a> {
     pub recent: StatefulHash<String, (String, String)>,
     pub repos: StatefulHash<String, String>,
 
-    poll_delay: HashMap<String, u8>,
+    poll_delay: HashMap<String, u16>,
 
     client: Client,
     token: String,
@@ -134,7 +135,7 @@ impl<'a> App<'a> {
     }
 
     pub fn on_tick(&mut self) {
-        let mut updates_per_tick: u8 = 3; //TODO: tune
+        let mut updates_per_tick: u8 = 1; //TODO: tune
         for (repo, val) in self.poll_delay.iter_mut() {
             if val == &0 {
                 if updates_per_tick == 0 {

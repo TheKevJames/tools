@@ -15,26 +15,8 @@ pub struct Events {
     rx: mpsc::Receiver<Event<Key>>,
 }
 
-// TODO: merge with other settings
-#[derive(Debug, Clone, Copy)]
-pub struct Config {
-    pub tick_rate: Duration,
-}
-
-impl Default for Config {
-    fn default() -> Config {
-        Config {
-            tick_rate: Duration::from_millis(1000),
-        }
-    }
-}
-
 impl Events {
     pub fn new() -> Events {
-        Events::with_config(Config::default())
-    }
-
-    pub fn with_config(config: Config) -> Events {
         // sync_channel to ensure the ticks don't back up if processing is slow
         let (tx, rx) = mpsc::sync_channel(0);
 
@@ -60,7 +42,7 @@ impl Events {
                 let tx = tx.clone();
                 loop {
                     tx.send(Event::Tick).unwrap();
-                    thread::sleep(config.tick_rate);
+                    thread::sleep(Duration::from_millis(100));
                 }
             })
         };
