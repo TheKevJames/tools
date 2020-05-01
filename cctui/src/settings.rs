@@ -87,16 +87,8 @@ pub struct Repo {
 impl Ord for Repo {
     fn cmp(&self, other: &Self) -> Ordering {
         match self.name.cmp(&other.name) {
-            Ordering::Equal => {
-                if let Some(_) = self.cctray {
-                    self.cctray.cmp(&other.cctray)
-                } else if let Some(_) = self.circleci {
-                    self.circleci.cmp(&other.circleci)
-                } else {
-                    // invalid
-                    Ordering::Equal
-                }
-            }
+            Ordering::Equal if self.cctray.is_some() => self.cctray.cmp(&other.cctray),
+            Ordering::Equal if self.circleci.is_some() => self.circleci.cmp(&other.circleci),
             x => x,
         }
     }

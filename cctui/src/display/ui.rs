@@ -46,11 +46,9 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                 _ => format!("{}", repo.name), // impossible
             },
             match status.status.as_ref() {
-                "cancelled" => style_error,
                 "error" => style_error,
                 "failed" => style_failure,
                 "success" => style_success,
-                "unauthorized" => style_error,
                 _ => style_unknown,
             },
         )
@@ -106,11 +104,9 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                 format!("{}", repo.name)
             },
             match status.status.as_ref() {
-                "cancelled" => style_error,
                 "error" => style_error,
                 "failed" => style_failure,
                 "success" => style_success,
-                "unauthorized" => style_error,
                 _ => style_unknown,
             },
         )

@@ -62,10 +62,9 @@ struct CCTrayStatusItem {
 impl From<&CCTrayStatusItem> for StatusItem {
     fn from(src: &CCTrayStatusItem) -> Self {
         let status = match src.last_build_status.as_str() {
-            "Success" => "success",
+            "Exception" | "Unknown" => "error",
             "Failure" => "failed",
-            "Exception" => "error",
-            "Unknown" => "unknown",
+            "Success" => "success",
             x => {
                 warn!("got unhandled CCTray status: {}", x);
                 "unknown"
@@ -112,14 +111,11 @@ struct CircleCIStatusItem {
 impl From<&CircleCIStatusItem> for StatusItem {
     fn from(src: &CircleCIStatusItem) -> Self {
         let status = match src.status.as_str() {
+            "canceled" | "cancelled" | "failed" => "failed",
+            "error" | "unauthorized" => "error",
             "success" => "success",
-            "failed" => "failed",
-            "error" => "error",
-            "canceled" => "cancelled",
-            "cancelled" => "cancelled",
-            "unauthorized" => "unauthorized",
             x => {
-                warn!("got unhandled CircleCIStatus status: {}", x);
+                warn!("got unhandled CircleCI status: {}", x);
                 "unknown"
             }
         };
@@ -182,6 +178,7 @@ impl<'a> App<'a> {
     }
 
     fn make_request(client: &Client, repo: &Repo) -> Option<Status> {
+        // TODO: ugly
         if let Some(cctray) = &repo.cctray {
             let request = client.get(&cctray.url);
             match request.send() {
@@ -233,7 +230,7 @@ impl<'a> App<'a> {
                 }
             }
         } else {
-            error!("missing CircleCI config for: {}", repo.name);
+            error!("invalid config for: {}", repo.name);
             None
         }
     }
