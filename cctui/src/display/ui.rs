@@ -21,7 +21,7 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style_failure = Style::default().fg(Color::Red);
     let style_success = Style::default().fg(Color::Green);
     let style_unknown = Style::default().fg(Color::White);
-    let mut repos = app.repos.items.iter().map(|(repo, level)| {
+    let mut repos = app.repos.items.iter().map(|(repo, status)| {
         Text::styled(
             match app
                 .repos
@@ -31,22 +31,21 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                 .count()
             {
                 1 => format!("{}", repo.name),
-                _ => {
-                    if let Some(circleci) = &repo.circleci {
-                        if circleci.branch == Branch::default() {
-                            format!("{} ({})", repo.name, circleci.workflow)
-                        } else {
-                            format!(
-                                "{} ({} on {})",
-                                repo.name, circleci.workflow, circleci.branch
-                            )
-                        }
+                _ if repo.cctray.is_some() => format!("{}", repo.name),
+                _ if repo.circleci.is_some() => {
+                    let circleci = repo.circleci.as_ref().unwrap();
+                    if circleci.branch == Branch::default() {
+                        format!("{} ({})", repo.name, circleci.workflow)
                     } else {
-                        format!("{} [MALFORMED!]", repo.name)
+                        format!(
+                            "{} ({} on {})",
+                            repo.name, circleci.workflow, circleci.branch
+                        )
                     }
                 }
+                _ => format!("{}", repo.name), // impossible
             },
-            match level.as_ref() {
+            match status.status.as_ref() {
                 "cancelled" => style_error,
                 "error" => style_error,
                 "failed" => style_failure,
@@ -94,17 +93,19 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style_failure = Style::default().fg(Color::Red);
     let style_success = Style::default().fg(Color::Green);
     let style_unknown = Style::default().fg(Color::White);
-    let repos = app.recent.items.iter().rev().map(|(_, (repo, level))| {
+    let repos = app.recent.items.iter().rev().map(|(status, repo)| {
         Text::styled(
-            if let Some(circleci) = &repo.circleci {
+            if let Some(_) = &repo.cctray {
+                format!("{}", repo.name)
+            } else if let Some(circleci) = &repo.circleci {
                 format!(
                     "{} ({} on {})",
                     repo.name, circleci.workflow, circleci.branch
                 )
             } else {
-                format!("{} [MALFORMED!]", repo.name)
+                format!("{}", repo.name)
             },
-            match level.as_ref() {
+            match status.status.as_ref() {
                 "cancelled" => style_error,
                 "error" => style_error,
                 "failed" => style_failure,

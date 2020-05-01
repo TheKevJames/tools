@@ -38,6 +38,11 @@ impl fmt::Display for Branch {
     }
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct CCTray {
+    pub url: String,
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd)]
 pub struct CircleCI {
     #[serde(default)]
@@ -74,6 +79,7 @@ impl Mul<u16> for Refresh {
 pub struct Repo {
     // TODO: display: Enum { always, failing, ... }
     pub name: String,
+    pub cctray: Option<CCTray>,
     pub circleci: Option<CircleCI>,
     #[serde(default)]
     pub refresh: Refresh,
@@ -81,7 +87,16 @@ pub struct Repo {
 impl Ord for Repo {
     fn cmp(&self, other: &Self) -> Ordering {
         match self.name.cmp(&other.name) {
-            Ordering::Equal => self.circleci.cmp(&other.circleci),
+            Ordering::Equal => {
+                if let Some(_) = self.cctray {
+                    self.cctray.cmp(&other.cctray)
+                } else if let Some(_) = self.circleci {
+                    self.circleci.cmp(&other.circleci)
+                } else {
+                    // invalid
+                    Ordering::Equal
+                }
+            }
             x => x,
         }
     }

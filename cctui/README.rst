@@ -2,25 +2,25 @@ cctui
 =====
 
 CCTUI is a CCTray implementation for your terminal -- a live-updating dashboard
-of any of your repos.
+of any of your repos. In addition to supporting the standard CCTray protocol,
+it additionally can support CircleCI's new Pipelines feature.
 
 .. image:: sample.jpg
    :alt: CCTUI sample
    :align: center
 
-Is It Really?
--------------
-
-Well, no. CircleCI's workflows/pipelines feature doesn't work nicely with the
-cctray standard and returns the build status of *whichever job happened to run
-last* instead of the entire workflow. This project stemmed out of wishing
-CCMenu had a terminal UI and worked with CircleCI's workflows... I'll probably
-get around to implementing actual cctray support at some point.
-
 You Named It What?
 ------------------
 
 Yeah, I know. Naming things is hard! I'd be happy to accept ideas :)
+
+CircleCI's New Pipelines Feature?
+---------------------------------
+
+Unfortunately, CircleCI's workflows/pipelines feature doesn't work nicely with
+the CCTray standard and returns the build status of *whichever job happened to
+run last* instead of the entire workflow. This project stemmed out of wishing
+CCMenu had a terminal UI and worked with CircleCI's workflows. Done and done!
 
 Anything Else?
 --------------
@@ -57,9 +57,12 @@ need to edit ``~/.config/cctui/config.yml``:
         workflow: run-jobs
     - name: TheKevJames/gnome-shell-extension-transmission-daemon
       circleci:
-        token: 1234qwer5678asdf9101
+        token: 1234asdf5678zxcv9101
         workflow: integration-tests
       refresh: 120
+    - name: coveralls-clients/coveralls-python
+      cctray:
+        url: https://circleci.com/cc.xml?circle-token=asdf5678zxcv9101tyui
 
 Basically, ``repos`` accepts a list of items with the following schema:
 
@@ -68,11 +71,19 @@ Basically, ``repos`` accepts a list of items with the following schema:
 +=======================+======================================+============+
 | ``name``              | ``<username>/<repo>`` (Github only)  |            |
 +-----------------------+--------------------------------------+------------+
+| ``refresh``           | refresh interval between updates     | ``30``     |
++-----------------------+--------------------------------------+------------+
+
+And **one of** the integration configs:
+
++-----------------------+--------------------------------------+------------+
+| field                 | decription                           | default?   |
++=======================+======================================+============+
+| ``cctray.url``        | url of CCTray config (with token)    |            |
++-----------------------+--------------------------------------+------------+
 | ``circleci.branch``   | name of branch to be tracked         | ``master`` |
 +-----------------------+--------------------------------------+------------+
 | ``circleci.token``    | personal access token                |            |
 +-----------------------+--------------------------------------+------------+
 | ``circleci.workflow`` | name of CircleCI workflow to monitor |            |
-+-----------------------+--------------------------------------+------------+
-| ``refresh``           | refresh interval between updates     | ``30``     |
 +-----------------------+--------------------------------------+------------+
