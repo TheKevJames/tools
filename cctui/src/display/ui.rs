@@ -32,10 +32,17 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
             {
                 1 => format!("{}", repo.name),
                 _ => {
-                    if repo.circleci.branch == Branch::default() {
-                        format!("{} ({})", repo.name, repo.circleci.workflow)
+                    if let Some(circleci) = &repo.circleci {
+                        if circleci.branch == Branch::default() {
+                            format!("{} ({})", repo.name, circleci.workflow)
+                        } else {
+                            format!(
+                                "{} ({} on {})",
+                                repo.name, circleci.workflow, circleci.branch
+                            )
+                        }
                     } else {
-                        format!("{} ({} on {})", repo.name, repo.circleci.workflow, repo.circleci.branch)
+                        format!("{} [MALFORMED!]", repo.name)
                     }
                 }
             },
@@ -89,7 +96,14 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style_unknown = Style::default().fg(Color::White);
     let repos = app.recent.items.iter().rev().map(|(_, (repo, level))| {
         Text::styled(
-            format!("{} ({} on {})", repo.name, repo.circleci.workflow, repo.circleci.branch),
+            if let Some(circleci) = &repo.circleci {
+                format!(
+                    "{} ({} on {})",
+                    repo.name, circleci.workflow, circleci.branch
+                )
+            } else {
+                format!("{} [MALFORMED!]", repo.name)
+            },
             match level.as_ref() {
                 "cancelled" => style_error,
                 "error" => style_error,

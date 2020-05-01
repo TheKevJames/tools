@@ -36,8 +36,15 @@ pub struct App<'a> {
 
 impl<'a> App<'a> {
     pub fn new(title: &'a str, settings: Settings) -> App<'a> {
-        let mut poll_delay = HashMap::with_capacity(settings.repos.len());
-        for repo in settings.repos.iter() {
+        // remove invalid configurations
+        let repos: Vec<Repo> = settings
+            .repos
+            .into_iter()
+            .filter(|r| r.circleci.is_some())
+            .collect();
+
+        let mut poll_delay = HashMap::with_capacity(repos.len());
+        for repo in repos.iter() {
             poll_delay.insert(repo.clone(), 0);
         }
 
@@ -45,8 +52,7 @@ impl<'a> App<'a> {
             title,
             recent: StatefulHash::with_items(BTreeMap::new()),
             repos: StatefulHash::with_items(
-                settings
-                    .repos
+                repos
                     .iter()
                     .map(|r| (r.clone(), "unknown".to_string()))
                     .collect(),
@@ -57,26 +63,31 @@ impl<'a> App<'a> {
     }
 
     fn make_request(client: &Client, repo: &Repo) -> Option<Status> {
-        let url = format!(
-            "https://circleci.com/api/v2/insights/gh/{}/workflows/{}?branch={}",
-            repo.name, repo.circleci.workflow, repo.circleci.branch
-        );
-        let request = client
-            .get(&url)
-            .header("Application", "application/json")
-            .header("Circle-Token", &repo.circleci.token);
-        match request.send() {
-            Ok(resp) => match resp.json() {
-                Ok(body) => Some(body),
+        if let Some(circleci) = &repo.circleci {
+            let url = format!(
+                "https://circleci.com/api/v2/insights/gh/{}/workflows/{}?branch={}",
+                repo.name, circleci.workflow, circleci.branch
+            );
+            let request = client
+                .get(&url)
+                .header("Application", "application/json")
+                .header("Circle-Token", &circleci.token);
+            match request.send() {
+                Ok(resp) => match resp.json() {
+                    Ok(body) => Some(body),
+                    Err(e) => {
+                        error!("error decoding CI response json: {:?}", e);
+                        None
+                    }
+                },
                 Err(e) => {
-                    error!("error decoding CI response json: {:?}", e);
+                    error!("error making CI request: {:?}", e);
                     None
                 }
-            },
-            Err(e) => {
-                error!("error making CI request: {:?}", e);
-                None
             }
+        } else {
+            error!("missing CircleCI config for: {}", repo.name);
+            None
         }
     }
 
@@ -85,10 +96,17 @@ impl<'a> App<'a> {
             Some(i) => match self.repos.items.keys().skip(i).next() {
                 Some(repo) => {
                     let chunks = repo.name.split("/").collect::<Vec<_>>();
-                    let url = format!(
-                        "https://circleci.com/gh/{}/workflows/{}/tree/{}",
-                        chunks[0], chunks[1], repo.circleci.branch
-                    );
+                    let url = if let Some(circleci) = &repo.circleci {
+                        format!(
+                            "https://circleci.com/gh/{}/workflows/{}/tree/{}",
+                            chunks[0], chunks[1], circleci.branch
+                        )
+                    } else {
+                        format!(
+                            "https://circleci.com/gh/{}/workflows/{}",
+                            chunks[0], chunks[1]
+                        )
+                    };
                     info!("opening browser to: {}", url);
                     match Command::new("open").arg(url).output() {
                         Ok(_) => (),

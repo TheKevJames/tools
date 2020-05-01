@@ -74,7 +74,7 @@ impl Mul<u16> for Refresh {
 pub struct Repo {
     // TODO: display: Enum { always, failing, ... }
     pub name: String,
-    pub circleci: CircleCI,
+    pub circleci: Option<CircleCI>,
     #[serde(default)]
     pub refresh: Refresh,
 }
