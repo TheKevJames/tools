@@ -39,6 +39,19 @@ impl fmt::Display for Branch {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct VCSSlug(String);
+impl Default for VCSSlug {
+    fn default() -> Self {
+        VCSSlug("gh".to_string())
+    }
+}
+impl fmt::Display for VCSSlug {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct CCTray {
     pub url: String,
 }
@@ -48,6 +61,8 @@ pub struct CircleCI {
     #[serde(default)]
     pub branch: Branch,
     pub token: String,
+    #[serde(default)]
+    pub vcs: VCSSlug,
     pub workflow: String,
 }
 impl Ord for CircleCI {

@@ -204,10 +204,9 @@ impl<'a> App<'a> {
                 }
             }
         } else if let Some(circleci) = &repo.circleci {
-            // TODO: support !Github
             let url = format!(
-                "https://circleci.com/api/v2/insights/gh/{}/workflows/{}?branch={}",
-                repo.name, circleci.workflow, circleci.branch
+                "https://circleci.com/api/v2/insights/{}/{}/workflows/{}?branch={}",
+                circleci.vcs, repo.name, circleci.workflow, circleci.branch
             );
             let request = client
                 .get(&url)
@@ -246,8 +245,8 @@ impl<'a> App<'a> {
                             if let Some(circleci) = &repo.circleci {
                                 // TODO: move into status.url
                                 Some(format!(
-                                    "https://circleci.com/gh/{}/workflows/{}/tree/{}",
-                                    chunks[0], chunks[1], circleci.branch
+                                    "https://circleci.com/{}/{}/workflows/{}/tree/{}",
+                                    circleci.vcs, chunks[0], chunks[1], circleci.branch
                                 ))
                             } else {
                                 None

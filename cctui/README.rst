@@ -69,7 +69,7 @@ Basically, ``repos`` accepts a list of items with the following schema:
 +-----------------------+--------------------------------------+------------+
 | field                 | decription                           | default?   |
 +=======================+======================================+============+
-| ``name``              | ``<username>/<repo>`` (Github only)  |            |
+| ``name``              | ``<username>/<repo>``                |            |
 +-----------------------+--------------------------------------+------------+
 | ``refresh``           | refresh interval between updates     | ``30``     |
 +-----------------------+--------------------------------------+------------+
@@ -84,6 +84,8 @@ And **one of** the integration configs:
 | ``circleci.branch``   | name of branch to be tracked         | ``master`` |
 +-----------------------+--------------------------------------+------------+
 | ``circleci.token``    | personal access token                |            |
++-----------------------+--------------------------------------+------------+
+| ``circleci.vcs``      | VCS slug for your repo ("gh", "bb")  | ``gh``     |
 +-----------------------+--------------------------------------+------------+
 | ``circleci.workflow`` | name of CircleCI workflow to monitor |            |
 +-----------------------+--------------------------------------+------------+
