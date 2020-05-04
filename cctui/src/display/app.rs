@@ -4,15 +4,13 @@ use crate::settings::Settings;
 use log::{error, info};
 use std::process::Command;
 
-pub struct App<'a> {
-    pub title: &'a str,
+pub struct App {
     pub repos: ReposPoller,
 }
 
-impl<'a> App<'a> {
-    pub fn new(title: &'a str, settings: Settings) -> App<'a> {
+impl App {
+    pub fn new(settings: Settings) -> App {
         App {
-            title,
             repos: ReposPoller::new(settings),
         }
     }

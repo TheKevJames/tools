@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
 
-    let mut app = App::new("CCTui", settings);
+    let mut app = App::new(settings);
     debug!("starting app");
     loop {
         terminal.draw(|mut f| ui::draw(&mut f, &mut app))?;
