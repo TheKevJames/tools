@@ -1,4 +1,5 @@
 mod display;
+mod poll;
 mod settings;
 mod util;
 

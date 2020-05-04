@@ -21,10 +21,11 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style_failure = Style::default().fg(Color::Red);
     let style_success = Style::default().fg(Color::Green);
     let style_unknown = Style::default().fg(Color::White);
-    let mut repos = app.repos.items.iter().map(|(repo, status)| {
+    let mut repos = app.repos.all.items.iter().map(|(repo, status)| {
         Text::styled(
             match app
                 .repos
+                .all
                 .items
                 .keys()
                 .filter(|&r| r.name == repo.name)
@@ -56,7 +57,7 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
 
     // TODO: better handling for too many repos to fit nicely on screen
     let height = area.height - 2; // header/footer
-    let columns = ((app.repos.items.len() as u16) + height - 1) / height;
+    let columns = ((app.repos.all.items.len() as u16) + height - 1) / height;
     let constraints = vec![Constraint::Percentage(100 / columns); columns as usize];
     let chunks = Layout::default()
         .constraints(constraints)
@@ -74,8 +75,8 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
             .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD));
 
         // share our state selector across columns
-        let mut local_state = app.repos.state.clone();
-        let selected = match app.repos.state.selected() {
+        let mut local_state = app.repos.all.state.clone();
+        let selected = match app.repos.all.state.selected() {
             Some(x) if x < (height as usize) * i => None,
             Some(x) if x >= (height as usize) * (i + 1) => None,
             Some(x) => Some(x - (height as usize * i)),
@@ -91,7 +92,7 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style_failure = Style::default().fg(Color::Red);
     let style_success = Style::default().fg(Color::Green);
     let style_unknown = Style::default().fg(Color::White);
-    let repos = app.recent.items.iter().rev().map(|(status, repo)| {
+    let repos = app.repos.recent.items.iter().rev().map(|(status, repo)| {
         Text::styled(
             if let Some(_) = &repo.cctray {
                 format!("{}", repo.name)
@@ -118,5 +119,5 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
             .title(" Recent Workflows "),
     );
 
-    f.render_stateful_widget(rows, area, &mut app.recent.state);
+    f.render_stateful_widget(rows, area, &mut app.repos.recent.state);
 }
