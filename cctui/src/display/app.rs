@@ -1,21 +1,24 @@
-use crate::poll::ReposPoller;
+use crate::poll::{NotifsPoller, ReposPoller};
 use crate::settings::Settings;
 
 use log::{error, info};
 use std::process::Command;
 
 pub struct App {
+    pub notifs: NotifsPoller,
     pub repos: ReposPoller,
 }
 
 impl App {
-    pub fn new(settings: Settings) -> App {
+    pub fn new(settings: &Settings) -> App {
         App {
+            notifs: NotifsPoller::new(settings),
             repos: ReposPoller::new(settings),
         }
     }
 
     fn browse(&mut self) {
+        // TODO: notifs
         let url = self.repos.get_selected_url();
         match url {
             Some(url) => {
@@ -30,6 +33,7 @@ impl App {
     }
 
     pub fn on_key(&mut self, c: char) {
+        self.notifs.on_key(c);
         self.repos.on_key(c);
         match c {
             '\n' => self.browse(),
@@ -38,6 +42,8 @@ impl App {
     }
 
     pub fn on_tick(&mut self) {
+        // TODO: timeslice different pollers?
+        self.notifs.on_tick(true);
         self.repos.on_tick(true);
     }
 }

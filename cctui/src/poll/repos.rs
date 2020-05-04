@@ -147,10 +147,11 @@ pub struct ReposPoller {
 }
 
 impl ReposPoller {
-    pub fn new(settings: Settings) -> ReposPoller {
+    pub fn new(settings: &Settings) -> ReposPoller {
         // remove invalid configurations
         let repos: Vec<Repo> = settings
             .repos
+            .clone()
             .into_iter()
             .filter(|r| r.cctray.is_some() || r.circleci.is_some())
             .collect();

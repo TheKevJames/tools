@@ -25,6 +25,30 @@ pub struct Logging {
     pub level: Level,
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Refresh(u16);
+impl Default for Refresh {
+    fn default() -> Self {
+        Refresh(60)
+    }
+}
+// TODO: kludge
+impl Mul<u16> for Refresh {
+    type Output = u16;
+
+    fn mul(self, rhs: u16) -> Self::Output {
+        self.0.saturating_mul(rhs)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct Notif {
+    pub service: String,
+    pub token: String,
+    #[serde(default)]
+    pub refresh: Refresh,
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Branch(String);
 impl Default for Branch {
@@ -74,22 +98,6 @@ impl Ord for CircleCI {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Refresh(u16);
-impl Default for Refresh {
-    fn default() -> Self {
-        Refresh(60)
-    }
-}
-// TODO: kludge
-impl Mul<u16> for Refresh {
-    type Output = u16;
-
-    fn mul(self, rhs: u16) -> Self::Output {
-        self.0.saturating_mul(rhs)
-    }
-}
-
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd)]
 pub struct Repo {
     // TODO: display: Enum { always, failing, ... }
@@ -112,6 +120,7 @@ impl Ord for Repo {
 #[derive(Debug, Deserialize)]
 pub struct Settings {
     pub logging: Logging,
+    pub notifs: Vec<Notif>,
     pub repos: Vec<Repo>,
 }
 
