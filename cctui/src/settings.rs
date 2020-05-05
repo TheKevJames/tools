@@ -43,6 +43,7 @@ impl Mul<u16> for Refresh {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Notif {
+    // TODO: service: Enum { Github, ...}
     pub service: String,
     pub token: String,
     #[serde(default)]

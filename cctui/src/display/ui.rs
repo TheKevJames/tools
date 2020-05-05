@@ -9,11 +9,44 @@ use tui::Frame;
 
 pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     let chunks = Layout::default()
-        .constraints([Constraint::Min(7), Constraint::Length(7)].as_ref())
+        .constraints(
+            [
+                Constraint::Length(7), // TODO: Max
+                Constraint::Min(0),
+                Constraint::Length(7),
+            ]
+            .as_ref(),
+        )
         .split(f.size());
 
-    draw_repos(f, app, chunks[0]);
-    draw_recent(f, app, chunks[1]);
+    draw_notifs(f, app, chunks[0]);
+    draw_repos(f, app, chunks[1]);
+    draw_recent(f, app, chunks[2]);
+}
+
+fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
+    let style = Style::default().fg(Color::White);
+    let notifs = app.notifs.all.items.iter().rev().map(|(status, _)| {
+        Text::styled(
+            if !status.reason.is_empty() {
+                format!(
+                    "[{}] {} ({})",
+                    status.repository.full_name, status.subject.title, status.reason
+                )
+            } else {
+                format!("[{}] {}", status.repository.full_name, status.subject.title)
+            },
+            style,
+        )
+    });
+
+    let rows = List::new(notifs).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(" Notifications "),
+    );
+
+    f.render_stateful_widget(rows, area, &mut app.notifs.all.state);
 }
 
 fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
