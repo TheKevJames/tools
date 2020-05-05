@@ -1,4 +1,4 @@
-use crate::settings::{Notif, Settings};
+use crate::settings::{Notif, NotifService, Settings};
 use crate::util::StatefulHash;
 
 use log::{debug, error, warn};
@@ -59,36 +59,35 @@ impl NotifsPoller {
     }
 
     fn make_request(client: &Client, notif: &Notif) -> Option<Vec<StatusItem>> {
-        if &notif.service == "github" {
-            let url = "https://api.github.com/notifications";
-            let request = client
-                .get(url)
-                .header("User-Agent", "CCTUI")
-                .header("Authorization", format!("Bearer {}", &notif.token));
-            match request.send() {
-                Ok(resp) => match resp.json() {
-                    Ok(body) => Some(body),
+        match &notif.service {
+            NotifService::Github => {
+                let url = "https://api.github.com/notifications";
+                let request = client
+                    .get(url)
+                    .header("User-Agent", "CCTUI")
+                    .header("Authorization", format!("Bearer {}", &notif.token));
+                match request.send() {
+                    Ok(resp) => match resp.json() {
+                        Ok(body) => Some(body),
+                        Err(e) => {
+                            error!("error decoding Github response json: {:?}", e);
+                            None
+                        }
+                    },
                     Err(e) => {
-                        error!("error decoding Github response json: {:?}", e);
+                        error!("error making Github request: {:?}", e);
                         None
                     }
-                },
-                Err(e) => {
-                    error!("error making Github request: {:?}", e);
-                    None
                 }
             }
-        } else {
-            error!("invalid config for: {}", notif.service);
-            None
         }
     }
 
     pub fn get_selected_url(&self) -> Option<String> {
         match self.all.state.selected() {
             Some(i) => match self.all.items.iter().rev().skip(i).next() {
-                Some((status, notif)) => {
-                    if &notif.service == "github" {
+                Some((status, notif)) => match &notif.service {
+                    NotifService::Github => {
                         debug!("fetching user-facing URL from {}", status.subject.url);
                         let request = self
                             .client
@@ -111,10 +110,8 @@ impl NotifsPoller {
                                 None
                             }
                         }
-                    } else {
-                        None
                     }
-                }
+                },
                 None => {
                     error!(
                         "attempted to browse to notif {} of {}",

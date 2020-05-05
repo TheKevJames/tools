@@ -26,6 +26,16 @@ pub struct Logging {
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum NotifService {
+    Github,
+}
+impl fmt::Display for NotifService {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Refresh(u16);
 impl Default for Refresh {
     fn default() -> Self {
@@ -43,8 +53,7 @@ impl Mul<u16> for Refresh {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Notif {
-    // TODO: service: Enum { Github, ...}
-    pub service: String,
+    pub service: NotifService,
     pub token: String,
     #[serde(default)]
     pub refresh: Refresh,
