@@ -5,6 +5,8 @@ CCTUI is a CCTray implementation for your terminal -- a live-updating dashboard
 of any of your repos. In addition to supporting the standard CCTray protocol,
 it additionally can support CircleCI's new Pipelines feature.
 
+It also displays your Github notifications!
+
 .. image:: sample.jpg
    :alt: CCTUI sample
    :align: center
@@ -22,14 +24,6 @@ the CCTray standard and returns the build status of *whichever job happened to
 run last* instead of the entire workflow. This project stemmed out of wishing
 CCMenu had a terminal UI and worked with CircleCI's workflows. Done and done!
 
-Anything Else?
---------------
-
-Well, I have also been itching for a better solution for managing my Github
-notifications. Adding a notification dashboard here may or may not end up being
-a future feature... I don't like tool bloat, so it may just as well be a
-separate project. ¯\\_(ツ)_/¯
-
 Usage
 -----
 
@@ -39,7 +33,8 @@ Usage
 
 Use ``j``/``k`` to scroll, ``g``/``G`` for navigating to the top/bottom,
 ``<enter>`` to open your browser to the selected repo, and ``q`` to quit. You
-can force a refresh of all repos with ``r``.
+can force a refresh of all repos with ``r``. Use ``<tab>`` to toggle between
+which tab those keys are acting upon.
 
 Configuration
 -------------
@@ -48,6 +43,10 @@ This tool doesn't really make any sense with a default configuration, so you'll
 need to edit ``~/.config/cctui/config.yml``:
 
 .. code-block:: yaml
+
+    notifs:
+    - service: Github
+      token: qwerasdfzxcv12345678910
 
     repos:
     - name: TheKevJames/tools
@@ -74,7 +73,7 @@ Basically, ``repos`` accepts a list of items with the following schema:
 | ``refresh``           | refresh interval between updates     | ``30``     |
 +-----------------------+--------------------------------------+------------+
 
-And **one of** the integration configs:
+And **one of** the following integration configs:
 
 +-----------------------+--------------------------------------+------------+
 | field                 | decription                           | default?   |
@@ -88,4 +87,14 @@ And **one of** the integration configs:
 | ``circleci.vcs``      | VCS slug for your repo ("gh", "bb")  | ``gh``     |
 +-----------------------+--------------------------------------+------------+
 | ``circleci.workflow`` | name of CircleCI workflow to monitor |            |
++-----------------------+--------------------------------------+------------+
+
+``notifs`` accepts a list of items with the following schema:
+
++-----------------------+--------------------------------------+------------+
+| field                 | decription                           | default?   |
++=======================+======================================+============+
+| ``service``           | must be ``Github``, for now (sorry!) |            |
++-----------------------+--------------------------------------+------------+
+| ``refresh``           | refresh interval between updates     | ``30``     |
 +-----------------------+--------------------------------------+------------+
