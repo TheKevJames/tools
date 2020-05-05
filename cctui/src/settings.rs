@@ -130,7 +130,7 @@ impl Ord for Repo {
 #[derive(Debug, Deserialize)]
 pub struct Settings {
     pub logging: Logging,
-    pub notifs: Vec<Notif>,
+    pub notifs: Option<Vec<Notif>>,
     pub repos: Vec<Repo>,
 }
 

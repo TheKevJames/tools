@@ -39,6 +39,7 @@ pub struct GithubNotifLookup {
 
 pub struct NotifsPoller {
     pub all: StatefulHash<StatusItem, Notif>,
+    pub enabled: bool,
 
     client: Client,
     delay: HashMap<Notif, u16>,
@@ -46,13 +47,20 @@ pub struct NotifsPoller {
 
 impl NotifsPoller {
     pub fn new(settings: &Settings) -> NotifsPoller {
-        let mut delay = HashMap::with_capacity(settings.notifs.len());
-        for repo in settings.notifs.iter() {
-            delay.insert(repo.clone(), 0);
-        }
+        let delay = match &settings.notifs {
+            Some(notifs) => {
+                let mut delay = HashMap::with_capacity(notifs.len());
+                for repo in notifs.iter() {
+                    delay.insert(repo.clone(), 0);
+                }
+                delay
+            }
+            _ => HashMap::new(),
+        };
 
         NotifsPoller {
             all: StatefulHash::with_items(BTreeMap::new()),
+            enabled: !delay.is_empty(),
             client: Client::new(),
             delay: delay,
         }
@@ -129,6 +137,10 @@ impl NotifsPoller {
     }
 
     pub fn on_key(&mut self, c: char) {
+        if !self.enabled {
+            return;
+        }
+
         match c {
             '\n' => {
                 for (_, val) in self.delay.iter_mut() {
@@ -150,6 +162,10 @@ impl NotifsPoller {
     }
 
     pub fn on_tick(&mut self, mut allow_processing: bool) {
+        if !self.enabled {
+            return;
+        }
+
         for (notif, val) in self.delay.iter_mut() {
             if val == &0 {
                 if !allow_processing {

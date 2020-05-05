@@ -5,7 +5,7 @@ CCTUI is a CCTray implementation for your terminal -- a live-updating dashboard
 of any of your repos. In addition to supporting the standard CCTray protocol,
 it additionally can support CircleCI's new Pipelines feature.
 
-It also displays your Github notifications!
+It can also (optionally) display your Github notifications!
 
 .. image:: sample.jpg
    :alt: CCTUI sample

@@ -8,20 +8,29 @@ use tui::widgets::{Block, Borders, List, Text};
 use tui::Frame;
 
 pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
-    let chunks = Layout::default()
-        .constraints(
-            [
-                Constraint::Length(7), // TODO: Max
-                Constraint::Min(0),
-                Constraint::Length(7),
-            ]
-            .as_ref(),
-        )
-        .split(f.size());
+    if app.notifs.enabled {
+        let chunks = Layout::default()
+            .constraints(
+                [
+                    Constraint::Length(7), // TODO: Max
+                    Constraint::Min(0),
+                    Constraint::Length(7),
+                ]
+                .as_ref(),
+            )
+            .split(f.size());
 
-    draw_notifs(f, app, chunks[0]);
-    draw_repos(f, app, chunks[1]);
-    draw_recent(f, app, chunks[2]);
+        draw_notifs(f, app, chunks[0]);
+        draw_repos(f, app, chunks[1]);
+        draw_recent(f, app, chunks[2]);
+    } else {
+        let chunks = Layout::default()
+            .constraints([Constraint::Min(0), Constraint::Length(7)].as_ref())
+            .split(f.size());
+
+        draw_repos(f, app, chunks[0]);
+        draw_recent(f, app, chunks[1]);
+    }
 }
 
 fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {

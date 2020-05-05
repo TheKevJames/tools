@@ -16,7 +16,7 @@ impl App {
     pub fn new(settings: &Settings) -> App {
         // N.B. must match expected order in UI
         let mut state = StatefulList::with_items(vec!["Notifs", "Repos"]);
-        state.first();
+        state.last();
         App {
             notifs: NotifsPoller::new(settings),
             repos: ReposPoller::new(settings),
