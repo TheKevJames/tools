@@ -40,11 +40,13 @@ fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         )
     });
 
-    let rows = List::new(notifs).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title(" Notifications "),
-    );
+    let rows = List::new(notifs)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Notifications "),
+        )
+        .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD));
 
     f.render_stateful_widget(rows, area, &mut app.notifs.all.state);
 }
