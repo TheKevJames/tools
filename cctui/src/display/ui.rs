@@ -49,11 +49,13 @@ fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         )
     });
 
+    let title = &format!(" Notifications ({}) ", app.notifs.all.items.len());
+    // TODO: only chain highlight_style when notif tab is selected
     let rows = List::new(notifs)
         .block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(" Notifications "),
+                .title(title),
         )
         .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD));
 
