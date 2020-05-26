@@ -4,7 +4,7 @@ use crate::util::StatefulHash;
 use log::{debug, error, warn};
 use reqwest::blocking::Client;
 use serde::Deserialize;
-use std::cmp::{min, Ordering};
+use std::cmp::{max, Ordering};
 use std::collections::{BTreeMap, HashMap};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, PartialOrd)]
@@ -141,11 +141,18 @@ impl NotifsPoller {
             return;
         }
 
+        // TODO: until we can do in-place updates, do a bit of debouncing to
+        // avoid changing things while the user is interacting
+        for (_, val) in self.delay.iter_mut() {
+            *val = max(*val, 30);
+        }
+
         match c {
             '\n' => {
                 for (_, val) in self.delay.iter_mut() {
-                    // refresh a few seconds after opening a notif
-                    *val = min(*val, 30);
+                    // force refresh a few seconds after opening a notif
+                    // TODO: only refresh the feed that got modified?
+                    *val = 30;
                 }
             }
             'G' => self.all.last(),
