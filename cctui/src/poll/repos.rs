@@ -12,6 +12,7 @@ use std::collections::{BTreeMap, HashMap};
 pub struct StatusItem {
     // TODO: status: Enum { Cancelled, Failed, .. }
     pub status: &'static str,
+    // TODO: inprogress: boolean
     timestamp: String,
     url: Option<String>,
 }

@@ -7,7 +7,8 @@ a Slack instance. Zero-dependencies (besides ``sh``)!
 Usage
 -----
 
-You must have ``SLACK_DEPLOYBOT_WEBHOOK`` set in your environment settings.
+You must have ``SLACK_DEPLOYBOT_WEBHOOK`` set in your environment settings (or
+via the ``-w`` flag).
 
 .. code-block:: yaml
 
