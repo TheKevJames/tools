@@ -171,6 +171,11 @@ jobs:
         description: |
           Newly-released version.
         type: string
+      webhook:
+        default: ${SLACK_DEPLOYBOT_WEBHOOK}
+        description: |
+          Destination webhook URL.
+        type: string
     steps:
       - run: apk add --no-cache --no-progress curl
       - run: curl https://raw.githubusercontent.com/TheKevJames/tools/master/slack-notifier/send-deploy-notif.sh > /send-deploy-notif.sh
@@ -182,4 +187,5 @@ jobs:
             -n "<<parameters.project>>" \
             -p "<<parameters.prev_version>>" \
             -u "<<parameters.user>>" \
-            -v "<<parameters.version>>"
+            -v "<<parameters.version>>" \
+            -w "<<parameters.webhook>>"
