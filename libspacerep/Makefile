@@ -19,8 +19,8 @@ testpy: $(LIBCFFI)
 
 lib: $(LIBCFFI)
 
-$(LIBC): $(wildcard src/**/*.nim) $(wildcard src/*.nim)
-	nimble make
+$(LIBC): src/spacerep.nim $(wildcard src/**/*.nim)
+	nim c --nimcache:build/ --noMain --noLinking -d:release --opt:speed --header $<
 
 $(LIBCFFI): $(LIBC) venv/bin/activate
 	. venv/bin/activate; ./ffibuild.py

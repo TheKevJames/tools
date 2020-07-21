@@ -8,7 +8,7 @@ builder = cffi.FFI()
 # TODO: can we call NimMain() automagically?
 builder.cdef("""
     void NimMain();
-    float sm2(int *xs, int xsize, float a, float b, float c, float d, float theta);
+    float sm2(int *xs, int xsize, float a, float b, float c, float d, float score_min, float score_assumed, float theta);
 """)
 builder.set_source('libspacerep',
                    '#include "spacerep.h"',
