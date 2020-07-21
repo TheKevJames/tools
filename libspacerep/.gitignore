@@ -1,3 +1,7 @@
-libspacerep.*
 build/*
+libspacerep.*
+tests/__pycache__/*
+tests/nimcache
+tests/test_lib
+tests/test_lib.o
 venv/*
