@@ -34,7 +34,7 @@ Usage
 Use ``j``/``k`` to scroll, ``g``/``G`` for navigating to the top/bottom,
 ``<enter>`` to open your browser to the selected repo, and ``q`` to quit. You
 can force a refresh of all repos with ``r``. Use ``<tab>`` to toggle between
-which tab those keys are acting upon.
+which tab those keys are acting upon and ``J``/``K`` to resize the tabs.
 
 Configuration
 -------------

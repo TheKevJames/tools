@@ -3,6 +3,7 @@ use crate::settings::Settings;
 use crate::util::StatefulList;
 
 use log::{error, info};
+use std::cmp::{max, min};
 use std::process::Command;
 
 pub struct App {
@@ -10,6 +11,7 @@ pub struct App {
     pub repos: ReposPoller,
 
     pub state: StatefulList<&'static str>,
+    pub visible_notifs: u16,
 }
 
 impl App {
@@ -21,6 +23,7 @@ impl App {
             notifs: NotifsPoller::new(settings),
             repos: ReposPoller::new(settings),
             state: state,
+            visible_notifs: 5,
         }
     }
 
@@ -42,6 +45,14 @@ impl App {
         }
     }
 
+    fn resize(&mut self, c: char) {
+        self.visible_notifs = match c {
+            'J' => min(self.visible_notifs + 1, 9999), // TODO: max based on screen size to prevent panic
+            'K' => max(self.visible_notifs - 1, 1),
+            _ => self.visible_notifs,
+        }
+    }
+
     pub fn on_key(&mut self, c: char) {
         match self.state.state.selected() {
             Some(0) => self.notifs.on_key(c),
@@ -51,6 +62,7 @@ impl App {
         match c {
             '\n' => self.browse(),
             '\t' => self.state.next(),
+            'J' | 'K' => self.resize(c),
             _ => (),
         }
     }

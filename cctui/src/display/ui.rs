@@ -12,7 +12,7 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         let chunks = Layout::default()
             .constraints(
                 [
-                    Constraint::Length(7), // TODO: Max
+                    Constraint::Length(app.visible_notifs + 2),
                     Constraint::Min(0),
                     Constraint::Length(7),
                 ]
@@ -52,11 +52,7 @@ fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let title = &format!(" Notifications ({}) ", app.notifs.all.items.len());
     // TODO: only chain highlight_style when notif tab is selected
     let rows = List::new(notifs)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(title),
-        )
+        .block(Block::default().borders(Borders::ALL).title(title))
         .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD));
 
     f.render_stateful_widget(rows, area, &mut app.notifs.all.state);
