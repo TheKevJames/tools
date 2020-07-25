@@ -50,10 +50,13 @@ fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     });
 
     let title = &format!(" Notifications ({}) ", app.notifs.all.items.len());
-    // TODO: only chain highlight_style when notif tab is selected
-    let rows = List::new(notifs)
-        .block(Block::default().borders(Borders::ALL).title(title))
-        .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD));
+    let rows = List::new(notifs).block(Block::default().borders(Borders::ALL).title(title));
+    let rows = match app.state.state.selected() {
+        Some(0) => {
+            rows.highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD))
+        }
+        _ => rows,
+    };
 
     f.render_stateful_widget(rows, area, &mut app.notifs.all.state);
 }
@@ -108,13 +111,17 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
 
     for (i, &chunk) in chunks.iter().enumerate() {
         let rows = repos.by_ref().take(height as usize);
-        let rows = List::new(rows)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(" Repo Status "),
-            )
-            .highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD));
+        let rows = List::new(rows).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Repo Status "),
+        );
+        let rows = match app.state.state.selected() {
+            Some(1) => {
+                rows.highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD))
+            }
+            _ => rows,
+        };
 
         // share our state selector across columns
         let mut local_state = app.repos.all.state.clone();
