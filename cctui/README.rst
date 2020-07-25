@@ -29,7 +29,8 @@ Usage
 
 .. code-block:: console
 
-    $ cargo run --release
+    $ cargo install cctui
+    $ cctui
 
 Use ``j``/``k`` to scroll, ``g``/``G`` for navigating to the top/bottom,
 ``<enter>`` to open your browser to the selected repo, and ``q`` to quit. You
