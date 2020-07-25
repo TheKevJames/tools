@@ -1,12 +1,11 @@
 [package]
 name = "cctui"
-version = "0.5.1"
+version = "0.5.2"
 authors = ["Kevin James <KevinJames@thekev.in>"]
 edition = "2018"
 
 description = "CCTray TUI, a build monitoring dashboard for your terminal"
-# TODO: https://github.com/rust-lang/crates.io/issues/1223
-readme = "README.rst"
+readme = "README.md"
 repository = "https://github.com/TheKevJames/tools/tree/master/cctui"
 license = "MIT"
 keywords = ["cctray", "ci", "tui"]
