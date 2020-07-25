@@ -6,7 +6,7 @@ publish-force: README.md Cargo.lock
 	cargo publish --allow-dirty
 
 README.md: README.rst
-	pandoc -t markdown $^ > $@
+	pandoc -t gfm $^ > $@
 
 Cargo.lock: Cargo.toml
 	cargo update
