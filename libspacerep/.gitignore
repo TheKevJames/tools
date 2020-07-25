@@ -1,7 +1,8 @@
 build/*
 libspacerep.*
 tests/__pycache__/*
+tests/lib_test
+tests/lib_test.o
+tests/lib_test.o.dSYM
 tests/nimcache
-tests/test_lib
-tests/test_lib.o
 venv/*

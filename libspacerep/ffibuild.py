@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# pylint: disable=line-too-long
 import pathlib
 
 import cffi
@@ -13,7 +14,11 @@ builder.cdef("""
 builder.set_source('libspacerep',
                    '#include "spacerep.h"',
                    sources=(pathlib.Path() / 'build').glob('**/*.c'),
-                   include_dirs=['/usr/lib/nim', './build'],
+                   # TODO: how find correct lib dir?
+                   include_dirs=[
+                       './build',
+                       '/Users/kevin/.choosenim/toolchains/nim-1.2.4/lib',
+                       '/usr/lib/nim'],
                    extra_compile_args=['-O2'])
 
 

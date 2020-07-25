@@ -1,13 +1,14 @@
 import pytest
-from libspacerep import lib
+
+from libspacerep import lib  # pylint: disable=no-name-in-module
 
 
 @pytest.mark.parametrize(
     'xs, expected',
     [
-        ([2,1,3,3,4,1,2,3,4], 9.4583),
+        ([2, 1, 3, 3, 4, 1, 2, 3, 4], 9.4583),
         ([3], 7.3293),
-        ([3,1,5,3,5], 15.0682),
+        ([3, 1, 5, 3, 5], 15.0682),
         ([0, 0, 1], 1.0),
         ([0], 1.0),
         ([0, 0, 1, 2], 1.0),

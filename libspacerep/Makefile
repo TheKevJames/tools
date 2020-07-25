@@ -4,14 +4,18 @@
 LIBC = build/spacerep.h
 LIBCFFI = libspacerep.c
 
+LIBNIM = /usr/lib/nim
+# TODO: how find correct lib dir?
+# LIBNIM = /Users/kevin/.choosenim/toolchains/nim-1.2.4/lib
+
 all: lib
 
 test: tests
 tests: testc testnim testpy
-testc: tests/test_lib.o
-	./tests/test_lib.o
-tests/test_lib.o: tests/test_lib.c $(LIBC)
-	clang -O0 -g -ldl -lm -o $@ -I/usr/lib/nim -I./build/ $< build/*.c
+testc: tests/lib_test.o
+	./tests/lib_test.o
+tests/lib_test.o: tests/lib_test.c $(LIBC)
+	clang -O0 -g -ldl -lm -o $@ -I$(LIBNIM) -I./build/ $< build/*.c
 testnim: $(LIBC)
 	nimble test
 testpy: $(LIBCFFI)
