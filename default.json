@@ -29,9 +29,10 @@
     "groupName": "grpcio"
   }, {
     "datasources": ["pypi"],
-    "packageNames": ["pytest", "pytest-asyncio", "pytest-cov", "pytest-datadir", "pytest-mock", "hypothesis"],
+    "packageNames": ["hypothesis", "pytest", "pytest-asyncio", "pytest-cov", "pytest-datadir", "pytest-mock"],
     "updateTypes": ["minor", "patch", "pin", "digest"],
-    "automerge": true
+    "automerge": true,
+    "extends": ["schedule:daily"]
   }],
   "prConcurrentLimit": 0,
   "prCreation": "immediate",
