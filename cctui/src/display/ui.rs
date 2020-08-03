@@ -4,7 +4,8 @@ use crate::settings::Branch;
 use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, List, Text};
+use tui::text::Span;
+use tui::widgets::{Block, Borders, List, ListItem};
 use tui::Frame;
 
 pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
@@ -35,26 +36,40 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
 
 fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style = Style::default().fg(Color::White);
-    let notifs = app.notifs.all.items.iter().rev().map(|(status, _)| {
-        Text::styled(
-            if !status.reason.is_empty() {
-                format!(
-                    "[{}] {} ({})",
-                    status.repository.full_name, status.subject.title, status.reason
-                )
-            } else {
-                format!("[{}] {}", status.repository.full_name, status.subject.title)
-            },
-            style,
-        )
-    });
+    let notifs = app
+        .notifs
+        .all
+        .items
+        .iter()
+        .rev()
+        .map(|(status, _)| {
+            ListItem::new(Span::styled(
+                if !status.reason.is_empty() {
+                    format!(
+                        "[{}] {} ({})",
+                        status.repository.full_name, status.subject.title, status.reason
+                    )
+                } else {
+                    format!("[{}] {}", status.repository.full_name, status.subject.title)
+                },
+                style,
+            ))
+        })
+        .collect::<Vec<_>>();
 
     let title = &format!(" Notifications ({}) ", app.notifs.all.items.len());
-    let rows = List::new(notifs).block(Block::default().borders(Borders::ALL).title(title));
+    // TODO: highlight selected title
+    let rows = List::new(notifs).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(Span::styled(title, Style::default())),
+    );
     let rows = match app.state.state.selected() {
-        Some(0) => {
-            rows.highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD))
-        }
+        Some(0) => rows.highlight_style(
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
         _ => rows,
     };
 
@@ -66,39 +81,45 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style_failure = Style::default().fg(Color::Red);
     let style_success = Style::default().fg(Color::Green);
     let style_unknown = Style::default().fg(Color::White);
-    let mut repos = app.repos.all.items.iter().map(|(repo, status)| {
-        Text::styled(
-            match app
-                .repos
-                .all
-                .items
-                .keys()
-                .filter(|&r| r.name == repo.name)
-                .count()
-            {
-                1 => format!("{}", repo.name),
-                _ if repo.cctray.is_some() => format!("{}", repo.name),
-                _ if repo.circleci.is_some() => {
-                    let circleci = repo.circleci.as_ref().unwrap();
-                    if circleci.branch == Branch::default() {
-                        format!("{} ({})", repo.name, circleci.workflow)
-                    } else {
-                        format!(
-                            "{} ({} on {})",
-                            repo.name, circleci.workflow, circleci.branch
-                        )
+    let repos = app
+        .repos
+        .all
+        .items
+        .iter()
+        .map(|(repo, status)| {
+            ListItem::new(Span::styled(
+                match app
+                    .repos
+                    .all
+                    .items
+                    .keys()
+                    .filter(|&r| r.name == repo.name)
+                    .count()
+                {
+                    1 => format!("{}", repo.name),
+                    _ if repo.cctray.is_some() => format!("{}", repo.name),
+                    _ if repo.circleci.is_some() => {
+                        let circleci = repo.circleci.as_ref().unwrap();
+                        if circleci.branch == Branch::default() {
+                            format!("{} ({})", repo.name, circleci.workflow)
+                        } else {
+                            format!(
+                                "{} ({} on {})",
+                                repo.name, circleci.workflow, circleci.branch
+                            )
+                        }
                     }
-                }
-                _ => format!("{}", repo.name), // impossible
-            },
-            match status.status.as_ref() {
-                "error" => style_error,
-                "failed" => style_failure,
-                "success" => style_success,
-                _ => style_unknown,
-            },
-        )
-    });
+                    _ => format!("{}", repo.name), // impossible
+                },
+                match status.status.as_ref() {
+                    "error" => style_error,
+                    "failed" => style_failure,
+                    "success" => style_success,
+                    _ => style_unknown,
+                },
+            ))
+        })
+        .collect::<Vec<_>>();
 
     // TODO: better handling for too many repos to fit nicely on screen
     let height = area.height - 2; // header/footer
@@ -109,17 +130,19 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         .direction(Direction::Horizontal)
         .split(area);
 
-    for (i, &chunk) in chunks.iter().enumerate() {
-        let rows = repos.by_ref().take(height as usize);
+    for (i, (&chunk, rows)) in chunks.iter().zip(repos.chunks(height as usize)).enumerate() {
+        // TODO: highlight selected title
         let rows = List::new(rows).block(
             Block::default()
                 .borders(Borders::ALL)
-                .title(" Repo Status "),
+                .title(Span::styled(" Repo Status ", Style::default())),
         );
         let rows = match app.state.state.selected() {
-            Some(1) => {
-                rows.highlight_style(Style::default().fg(Color::Yellow).modifier(Modifier::BOLD))
-            }
+            Some(1) => rows.highlight_style(
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
             _ => rows,
         };
 
@@ -141,26 +164,33 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     let style_failure = Style::default().fg(Color::Red);
     let style_success = Style::default().fg(Color::Green);
     let style_unknown = Style::default().fg(Color::White);
-    let repos = app.repos.recent.items.iter().rev().map(|(status, repo)| {
-        Text::styled(
-            if let Some(_) = &repo.cctray {
-                format!("{}", repo.name)
-            } else if let Some(circleci) = &repo.circleci {
-                format!(
-                    "{} ({} on {})",
-                    repo.name, circleci.workflow, circleci.branch
-                )
-            } else {
-                format!("{}", repo.name)
-            },
-            match status.status.as_ref() {
-                "error" => style_error,
-                "failed" => style_failure,
-                "success" => style_success,
-                _ => style_unknown,
-            },
-        )
-    });
+    let repos = app
+        .repos
+        .recent
+        .items
+        .iter()
+        .rev()
+        .map(|(status, repo)| {
+            ListItem::new(Span::styled(
+                if let Some(_) = &repo.cctray {
+                    format!("{}", repo.name)
+                } else if let Some(circleci) = &repo.circleci {
+                    format!(
+                        "{} ({} on {})",
+                        repo.name, circleci.workflow, circleci.branch
+                    )
+                } else {
+                    format!("{}", repo.name)
+                },
+                match status.status.as_ref() {
+                    "error" => style_error,
+                    "failed" => style_failure,
+                    "success" => style_success,
+                    _ => style_unknown,
+                },
+            ))
+        })
+        .collect::<Vec<_>>();
 
     let rows = List::new(repos).block(
         Block::default()
