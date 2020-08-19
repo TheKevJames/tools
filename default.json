@@ -33,6 +33,10 @@
     "updateTypes": ["minor", "patch", "pin", "digest"],
     "automerge": true,
     "extends": ["schedule:daily"]
+  }, {
+    "datasources": ["terraform"],
+    "packageNames": ["google", "google-beta"],
+    "groupName": "google"
   }],
   "prConcurrentLimit": 0,
   "prCreation": "immediate",
