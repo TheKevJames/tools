@@ -27,5 +27,5 @@ RUN apt-get update && \
     python3.6 -m pip install --upgrade pip && \
     python3.7 -m pip install --upgrade pip && \
     python3.8 -m pip install --upgrade pip && \
-    python3 -m pip install 'nox==2020.5.24' && \
+    python3 -m pip install 'nox==2020.8.22' && \
     rm -rf /var/cache/apt/lists
