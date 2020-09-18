@@ -9,6 +9,9 @@ Description
 Provides a docker container for the MySQLtuner script. The container is based
 on Alpine Linux, so it should be obnoxiously small.
 
+Note that I am not the maintainer of ``mysqltuner`` itself; please report any
+issues with the tool `upstream`_.
+
 Usage
 -----
 
@@ -33,7 +36,8 @@ accordingly:
         $ wget "https://raw.githubusercontent.com/major/MySQLTuner-perl/${version}/${file}" -O "./root/${file}"
     $ done
 
-.. _MySQLTuner Homepage: http://mysqltuner.com/
+.. _MySQLTuner Homepage: http://mysqltuner.pl/
+.. _upstream: https://github.com/major/MySQLTuner-perl
 
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/mysqltuner.svg?style=flat-square
     :alt: Docker Pulls

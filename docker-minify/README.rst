@@ -9,6 +9,9 @@ Description
 Provides an (unofficial) docker container for the `minify`_ tool. The container
 is based on Alpine Linux, so it should be obnoxiously small.
 
+Note that I am not the maintainer of ``minify`` itself; please report any
+issues with the tool `upstream`_.
+
 Usage
 -----
 
@@ -37,6 +40,7 @@ To use this locally, you could do:
 For full usage information, see the `minify`_ documentation.
 
 .. _minify: https://github.com/tdewolff/minify
+.. _upstream: https://github.com/tdewolff/minify
 
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/minify.svg?style=flat-square
     :alt: Docker Pulls
