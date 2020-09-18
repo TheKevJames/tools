@@ -28,6 +28,10 @@ commands:
           paths:
             - ~/.cache/pre-commit
       - run: pre-commit run --all-files -c <<parameters.config_file>>
+      - run:
+          name: git diff
+          command: git diff
+          when: on_fail
 
 jobs:
   pre-commit:
@@ -35,6 +39,7 @@ jobs:
       Runs pre-commit hooks against the current repo.
     docker:
       - image: python:<<parameters.python_version>>
+    resource_class: <<parameters.resource_class>>
     parameters:
       config_file:
         default: '.pre-commit-config.yaml'
@@ -42,9 +47,12 @@ jobs:
           Optional alternate config file.
         type: string
       python_version:
-        default: 3.7.2
+        default: 3.7.8
         description: |
           The python version used to run pre-commit.
+        type: string
+      resource_class:
+        default: small
         type: string
     steps:
       - pre-commit:
