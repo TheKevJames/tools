@@ -1,2 +1,2 @@
 cffi==1.14.3
-pytest==6.0.2
+pytest==6.1.0
