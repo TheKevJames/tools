@@ -16,8 +16,10 @@ Usage
 -----
 
 This image is meant to be used as a development environment or in CI systems.
-For example, if you use CircleCI, you might have:
 
+------------------
+ CircleCI Example
+------------------
 .. code-block:: yaml
 
     minify:
@@ -27,7 +29,22 @@ For example, if you use CircleCI, you might have:
           - checkout
           - run: minify --recursive --output build/ src/
           # do something with ./build/
+          
+---------------------
+ Drone.io CI Example
+---------------------
+.. code-block:: yaml
 
+    # Minify all assets
+    - name: Minify code
+      image: thekevjames/minify:2.9.7
+      pull: if-not-exists
+      commands:
+      - minify --recursive --verbose --output /drone/src/ /drone/src/
+
+-------------
+ Local usage
+-------------
 To use this locally, you could do:
 
 .. code-block:: console
