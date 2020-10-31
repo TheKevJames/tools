@@ -15,7 +15,7 @@ description         A very easy interface to YouTube.
 long_description    Lightweight app for searching and streaming videos from YouTube
 homepage            https://trizenx.blogspot.com/2012/03/gtk-youtube-viewer.html
 master_sites        https://github.com/trizen/youtube-viewer/archive/
-distfiles           3.8.0.tar.gz
+distfiles           ${version}.tar.gz
 
 checksums           rmd160  b485770c11bfa026eda27c6764e79ff141890641 \
                     sha256  ff1b88574c120065d07073fc89e039b36bbee3a2da992d8944e55c3cd67d6068 \
