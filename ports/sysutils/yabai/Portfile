@@ -1,0 +1,74 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+PortSystem              1.0
+PortGroup               github 1.0
+
+github.setup            koekeishiya yabai 3.3.0 v
+github.tarball_from     releases
+
+categories              sysutils
+platforms               darwin
+maintainers             {@thekevjames thekev.in:macports} nomaintainer
+license                 MIT
+description             A tiling window manager for macOS based on binary space partitioning
+long_description        yabai is a window management utility that is designed to work as an extension to the built-in window manager of macOS.
+distname                ${github.project}-v${github.version}
+
+checksums               rmd160  85d63f56aa1ef53b300ac3228236168305dbad50 \
+                        sha256  8ccb7ba4e3522fa6f52545a9d5ac0c5efb7b0720ed9c2986605022a01c9938ce \
+                        size    249829
+
+set yabai.plist         ${workpath}/org.macports.yabai.plist
+
+post-patch {
+    # Fill in startup plist template
+    copy -- ${filespath}/org.macports.yabai.plist.in ${yabai.plist}
+    foreach {rdm_key rdm_var} {
+        @PREFIX@            prefix
+    } {
+        reinplace "s|${rdm_key}|[set ${rdm_var}]|g" ${yabai.plist}
+    }
+}
+
+use_configure           no
+
+build {}
+destroot {}
+
+post-destroot {
+    # Copy pre-built binary
+    xinstall -m 755 ${worksrcpath}/bin/yabai ${destroot}${prefix}/bin/yabai
+
+    # Copy manpage
+    xinstall -m 444 ${worksrcpath}/doc/yabai.1 ${destroot}${prefix}/share/man/man1
+
+    # Copy example files
+    xinstall -d -m 0755 ${destroot}${prefix}/share/doc/${name}/examples
+    copy {*}[glob ${worksrcpath}/examples/*] \
+        ${destroot}${prefix}/share/doc/${name}/examples
+
+    # Install our custom plist
+    set launchd_dir "${prefix}/etc/${startupitem.location}/${startupitem.uniquename}"
+    xinstall -m 755 -d ${destroot}/${launchd_dir}
+    xinstall -m 644 ${yabai.plist} ${destroot}/${launchd_dir}/${startupitem.plist}
+
+    if {[getuid] == 0 && ${startupitem.install} != "no"} {
+        file mkdir "${destroot}/Library/${startupitem.location}"
+        ln -sf "${launchd_dir}/${startupitem.plist}" "${destroot}/Library/${startupitem.location}"
+    } else {
+        ln -sf ${launchd_dir}/${startupitem.plist} ${destroot}${prefix}/etc/${startupitem.location}
+    }
+}
+
+notes [subst {
+    A sample configuration is provided at
+    * ${prefix}/share/doc/${name}/examples/yabairc
+
+    You are strongly encouraged to copy this file to
+    * ~/.config/${name}/yabairc
+    and adjust it to your needs.
+}]
+
+startupitem.create      no
+startupitem.autostart   yes
+startupitem.location    LaunchAgents
+startupitem.executable  ${prefix}/bin/yabai
