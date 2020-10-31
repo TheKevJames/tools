@@ -1,14 +1,15 @@
 MacPorts Repo
 =============
 
-This is a repo of various Portfiles which I use but are not upstream. In the
-near future, I'll send 'em to the `right place`_.
+This is a repo including the various Portfiles I've built for myself. They are
+all in review pending inclusion upstream, at which point this folder will be
+deleted.
 
 The relevant ones are:
 
-* `skhd`_
-* `yabai`_
-* `youtube-viewer`_
+* `skhd`_ (`PR <https://github.com/macports/macports-ports/pull/9005>`__)
+* `yabai`_ (`PR <https://github.com/macports/macports-ports/pull/9006>`__)
+* `youtube-viewer`_ (`PR <https://github.com/macports/macports-ports/pull/9004>`__)
 
 For now, you can install these ports by checking out the repo and running::
 
