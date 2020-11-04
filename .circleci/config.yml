@@ -7,7 +7,7 @@ orbs:
 jobs:
   build-docker-readme:
     docker:
-      - image: pandoc/core:2.10.1
+      - image: pandoc/core:2.11.1
     parameters:
       module:
         type: string
