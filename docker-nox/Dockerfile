@@ -23,6 +23,7 @@ RUN apt-get update -qy && \
         python3.8-dev \
         python3.9 \
         python3.9-dev \
+        python3.9-distutils \
         python3-pip && \
     python2.7 -m pip install --upgrade pip && \
     python3.5 -m pip install --upgrade pip && \
