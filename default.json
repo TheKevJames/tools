@@ -31,8 +31,7 @@
     "datasources": ["pypi"],
     "packageNames": ["hypothesis", "pytest", "pytest-asyncio", "pytest-cov", "pytest-datadir", "pytest-mock"],
     "updateTypes": ["minor", "patch", "pin", "digest"],
-    "automerge": true,
-    "extends": ["schedule:daily"]
+    "automerge": true
   }, {
     "datasources": ["terraform"],
     "packageNames": ["google", "google-beta"],
