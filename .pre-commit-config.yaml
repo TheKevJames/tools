@@ -84,7 +84,7 @@ repos:
         args:
         - --ignore=D1,D203,D205,D212,D400,D401,D404
 -   repo: https://gitlab.com/pycqa/flake8
-    rev: 3.7.8
+    rev: 3.7.9
     hooks:
     -   id: flake8
         args:
