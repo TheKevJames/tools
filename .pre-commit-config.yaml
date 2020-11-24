@@ -78,7 +78,7 @@ repos:
     hooks:
     -   id: autopep8
 -   repo: https://github.com/PyCQA/pydocstyle
-    rev: 4.0.1
+    rev: 5.1.1
     hooks:
     -   id: pydocstyle
         args:
