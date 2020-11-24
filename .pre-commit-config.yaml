@@ -105,7 +105,7 @@ repos:
 
 # java
 -   repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
-    rev: v1.2.3
+    rev: v1.6.1
     hooks:
     -   id: pretty-format-java
         args: [--autofix]
