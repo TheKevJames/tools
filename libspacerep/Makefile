@@ -6,7 +6,7 @@ LIBCFFI = libspacerep.c
 
 LIBNIM = /usr/lib/nim
 # TODO: how find correct lib dir?
-# LIBNIM = /Users/kevin/.choosenim/toolchains/nim-1.2.4/lib
+LIBNIM = /Users/kevin/.choosenim/toolchains/nim-1.2.4/lib
 
 all: lib
 
