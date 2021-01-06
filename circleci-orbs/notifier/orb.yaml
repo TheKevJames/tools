@@ -18,6 +18,11 @@ jobs:
         description: |
           Name of the environment variable containing your Datadog API key.
         type: env_var_name
+      domain:
+        default: api.datadoghq.com
+        description: |
+          Domain of datadog api. For other regions, you may want eg. "api.datadoghq.eu".
+        type: string
       tag:
         default: ""
         description: |
@@ -31,18 +36,13 @@ jobs:
         description: |
           Title (eg. key) of the event.
         type: string
-      dd_domain:
-        default: "api.datadoghq.com"
-        description: |
-          Domain of datadog api. (It could be api.datadoghq.eu)
-        type: string
     steps:
       - run: apk add --no-cache --no-progress curl
       - run: |
           curl -XPOST \
             -H "Content-Type: application/json" \
             -d '{"title": "'"<<parameters.title>>"'", "text": "'"<<parameters.text>>"'", "tags": ["'"<<parameters.tag>>"'"], "alert_type": "success"}' \
-            "https://<<parameters.dd_domain>>/api/v1/events?api_key=${<<parameters.api_key>>}"
+            "https://<<parameters.domain>>/api/v1/events?api_key=${<<parameters.api_key>>}"
 
   sentry-deployment:
     description: |
