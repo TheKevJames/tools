@@ -1,5 +1,9 @@
 @import "./phoenix.css";
 
+$red: #f07167;
+$green: #98a886;
+$yellow: #fcaf58;
+
 /* Alerts and form errors */
 .alert {
   padding: 15px;
@@ -32,4 +36,14 @@
   color: #a94442;
   display: block;
   margin: -1rem 0 2rem;
+}
+
+.bg-green {
+  background-color: $green;
+}
+.bg-red {
+  background-color: $red;
+}
+.bg-yellow {
+  background-color: $yellow;
 }

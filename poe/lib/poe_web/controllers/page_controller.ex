@@ -50,10 +50,10 @@ defmodule PoeWeb.PageController do
     base = [0.63, 0.41, 0.45, 0.58, 0.61, 0.87, 1.03, 1.53, 1.91, 1.83, 3.3, 3.5, 5.7, 8.5, 12.6, 13.5]
 
     for {value, tier} <- Enum.with_index(base) do
-      do_alch = alch(tier, value) - value > alch_cost
-      do_chis = chis(tier, value) - value > chis_cost * 4
-      do_vaal = vaal(tier, value) - value > vaal_cost
-      do_frag = frag(tier, value) - value > frag_cost
+      alch_value = Float.round((alch(tier, value) - value) - alch_cost, 2)
+      chis_value = Float.round((chis(tier, value) - value) - chis_cost * 4, 2)
+      vaal_value = Float.round((vaal(tier, value) - value) - vaal_cost, 2)
+      frag_value = Float.round((frag(tier, value) - value) - frag_cost, 2)
 
       # TODO: sextants, prophecies (tempest, extra monsters, bountiful traps), shaped, zanas
       # refs:
@@ -62,7 +62,7 @@ defmodule PoeWeb.PageController do
       #   https://docs.google.com/spreadsheets/d/1Mdl01Fc4DycxeXrKxj_R0rIybmQVowEc0TKNtLzpLGM/edit#gid=354958689
       #   https://www.reddit.com/r/pathofexile/comments/a83vm7/new_players_guide_to_crafting_maps/
       #   https://docs.google.com/spreadsheets/d/1fIs8sdvgZG7iVouPdtFkbRx5kv55_xVja8l19yubyRU/htmlview?usp=sharing%3Cbr%3E&pru=AAABd0d78Os*Qj2_YGoUjIwCB9669xsZCw#
-      %{alch: do_alch, chis: do_chis, vaal: do_vaal, frag: do_frag}
+      %{alch: alch_value, chis: chis_value, vaal: vaal_value, frag: frag_value}
     end
   end
 

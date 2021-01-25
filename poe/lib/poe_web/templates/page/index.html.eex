@@ -10,12 +10,27 @@
     <%= for {item, i} <- Enum.with_index(@calc) do %>
       <tr>
         <td>T<%= i + 1 %></td>
-        <!-- TODO: colorize -->
         <!-- TODO: bold etc header and between tiers -->
-        <td><%= Map.get(item, :chis) %></td>
-        <td><%= Map.get(item, :alch) %></td>
-        <td><%= Map.get(item, :vaal) %></td>
-        <td><%= Map.get(item, :frag) %></td>
+        <td class="<%= case Map.get(item, :chis) do
+          x when x < 0 -> "bg-red"
+          x when x < 0.2 -> "bg-yellow"
+          _ -> "bg-green"
+        end %>"><%= Map.get(item, :chis) %></td>
+        <td class="<%= case Map.get(item, :alch) do
+          x when x < 0 -> "bg-red"
+          x when x < 0.2 -> "bg-yellow"
+          _ -> "bg-green"
+        end %>"><%= Map.get(item, :alch) %></td>
+        <td class="<%= case Map.get(item, :vaal) do
+          x when x < 0 -> "bg-red"
+          x when x < 0.2 -> "bg-yellow"
+          _ -> "bg-green"
+        end %>"><%= Map.get(item, :vaal) %></td>
+        <td class="<%= case Map.get(item, :frag) do
+          x when x < 0 -> "bg-red"
+          x when x < 0.2 -> "bg-yellow"
+          _ -> "bg-green"
+        end %>"><%= Map.get(item, :frag) %></td>
       </tr>
     <% end %>
   </table>
