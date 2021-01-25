@@ -3,7 +3,7 @@ defmodule PoeWeb.MapsController do
   use PoeWeb, :controller
   alias Poe.Maps
 
-  def calc() do
+  def rows() do
     for tier <- 1..16 do
       returns = for {key, value} <- Maps.crafting_return(tier), into: %{} do
         color = case value do
@@ -18,6 +18,6 @@ defmodule PoeWeb.MapsController do
   end
 
   def index(conn, _params) do
-    render(conn, "index.html", calc: calc())
+    render(conn, "index.html", rows: rows())
   end
 end

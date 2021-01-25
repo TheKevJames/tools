@@ -6,23 +6,19 @@
       <td>Alch</td>
       <td>Vaal</td>
       <td>Fragment</td>
+      <td>Simple Sextant</td>
+      <td>Prime Sextant</td>
+      <td>Awakened Sextant</td>
     </tr>
-    <%= for item <- @calc do %>
+    <%= for item <- @rows do %>
       <tr>
         <!-- TODO: bold etc header and between tiers -->
         <td><%= Map.get(item, :name) %>
-        <td class="<%= Map.get(Map.get(item, :chis), :color) %>">
-          <%= Map.get(Map.get(item, :chis), :value) %>
-        </td>
-        <td class="<%= Map.get(Map.get(item, :alch), :color) %>">
-          <%= Map.get(Map.get(item, :alch), :value) %>
-        </td>
-        <td class="<%= Map.get(Map.get(item, :vaal), :color) %>">
-          <%= Map.get(Map.get(item, :vaal), :value) %>
-        </td>
-        <td class="<%= Map.get(Map.get(item, :frag), :color) %>">
-          <%= Map.get(Map.get(item, :frag), :value) %>
-        </td>
+        <%= for name <- [:chis, :alch, :vaal, :frag, :sexs, :sexp, :sexa] do %>
+          <td class="<%= Map.get(Map.get(item, name), :color) %>">
+            <%= Map.get(Map.get(item, name), :value) %>
+          </td>
+        <% end %>
       </tr>
     <% end %>
   </table>
