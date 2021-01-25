@@ -36,8 +36,6 @@ defmodule Poe.Maps do
 
   def affix(tier) do
 		tag = case tier do
-    	# TODO: does t16 count as top tier for affixes?
-			16 -> "top_tier_map"
 			n when n > 10 -> "top_tier_map"
 			n when n > 5 -> "mid_tier_map"
 			n when n > 0 -> "low_tier_map"
@@ -91,46 +89,50 @@ defmodule Poe.Maps do
 
 	# TODO: get real numbers on this
 	def base(tier) do
-    Enum.at([0.63, 0.41, 0.45, 0.58, 0.61, 0.87, 1.03, 1.53, 1.91, 1.83, 3.3, 3.5, 5.7, 8.5, 12.6, 13.5], tier - 1)
+    Enum.at([0.63, 0.41, 0.45, 0.58, 0.61, 0.87, 1.03, 1.53, 1.91, 1.83, 3.3, 3.5, 5.7, 8.5, 12.6, 13.5, 15], tier - 1)
 	end
 
 	# apply crafting operations
-  def alch(tier, value) do
+  def alch(tier) do
 		# TODO: verify alching rolls equally distributed 3-6 affixes
-		value * :math.pow(affix(tier), 4.5)
+		base(tier) * :math.pow(affix(tier), 4.5)
   end
 
-  def chis(_tier, value) do
-		value * Mod.bonus(%Mod{iiq: 20})
+  def chis(tier) do
+		base(tier) * Mod.bonus(%Mod{iiq: 20})
   end
 
-  def frag(_tier, value) do
-		value * Mod.bonus(%Mod{iiq: 5})
+  def frag(tier) do
+		base(tier) * Mod.bonus(%Mod{iiq: 5})
   end
 
-  def vaal(tier, value) do
-    # TODO: actual numbers for T15 -> Vaal Temple reroll
+  def vaal(tier) do
     effects = [
       # nada
-      0, 0,
-      # reroll, maybe uptier
-			:math.pow(affix(tier), 5), :math.pow(affix(tier + 1), 5),
+      base(tier),
+      base(tier),
+      # reroll
+      base(tier) * :math.pow(affix(tier), 5),
+      # uptier and reroll
+      base(tier + 1) * :math.pow(affix(tier + 1), 5),
       # full reroll
-			:math.pow(affix(tier), 8), :math.pow(affix(tier), 8),
+      base(tier) * :math.pow(affix(tier), 8),
+      base(tier) * :math.pow(affix(tier), 8),
       # unidentify
-			Mod.bonus(%Mod{iiq: 30}), Mod.bonus(%Mod{iiq: 30}),
+      base(tier) * Mod.bonus(%Mod{iiq: 30}),
+      base(tier) * Mod.bonus(%Mod{iiq: 30}),
     ]
-    value * (Enum.sum(effects) / length(effects))
+    (Enum.sum(effects) / length(effects))
   end
 
 	def crafting_return(tier) do
 		value = base(tier)
-		alch_value = (alch(tier, value) - value) - Currency.cost(:alch)
-		chis_value = (chis(tier, value) - value) - Currency.cost(:chis) * 4
-		vaal_value = (vaal(tier, value) - value) - Currency.cost(:vaal)
-		frag_value = (frag(tier, value) - value) - Currency.cost(:frag)
+		alch_value = (alch(tier) - value) - Currency.cost(:alch)
+		chis_value = (chis(tier) - value) - Currency.cost(:chis) * 4
+		vaal_value = (vaal(tier) - value) - Currency.cost(:vaal)
+		frag_value = (frag(tier) - value) - Currency.cost(:frag)
 
-		# TODO: sextants, prophecies (tempest, extra monsters, bountiful traps), shaped, zanas
+		# TODO: sextants, prophecies (tempest, extra monsters, bountiful traps), shaped, zanas, scarabs
 		# refs:
 		#   https://imgur.com/1EsuAEP
 		#   https://i.imgur.com/AsOZpGt.png
