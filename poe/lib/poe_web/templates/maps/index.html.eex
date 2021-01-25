@@ -9,12 +9,15 @@
       <td>Simple Sextant</td>
       <td>Prime Sextant</td>
       <td>Awakened Sextant</td>
+      <td>Tempest Prophecy</td>
+      <td>Extra Monsters Prophecy</td>
+      <td>Bountiful Traps</td>
     </tr>
     <%= for item <- @rows do %>
       <tr>
         <!-- TODO: bold etc header and between tiers -->
         <td><%= Map.get(item, :name) %>
-        <%= for name <- [:chis, :alch, :vaal, :frag, :sexs, :sexp, :sexa] do %>
+        <%= for name <- [:chis, :alch, :vaal, :frag, :sexs, :sexp, :sexa, :temp, :empr, :trap] do %>
           <td class="<%= Map.get(Map.get(item, name), :color) %>">
             <%= Map.get(Map.get(item, name), :value) %>
           </td>

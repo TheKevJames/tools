@@ -5,10 +5,13 @@ defmodule Poe.Maps.Mod do
 
   def bonus(mod) do
     # TODO: include iir
-    # TODO: effective IIQ calcs:
-    # https://www.reddit.com/r/pathofexile/comments/7zyyu8/the_formula_behind_iiq_and_how_many_drops_you_get/
     (1 + mod.iiq / 100.0) * (1 + mod.ps / 100.0) * (1 + mod.em / 50.0)
   end
+
+  # TODO: calculate em from flat added pack count
+  # https://i.imgur.com/MZ69Pw8.png
+  # bountiful traps -> 18 packs
+  # sextant mods
 
   def from_map(%{"title" => %{"name" => name, "stat text raw" => raw_stats, "weight" => weight}}) do
     stats =
@@ -179,23 +182,29 @@ defmodule Poe.Maps do
     base(tier) * Mod.bonus(%Mod{iiq: 20})
   end
 
+  def craft_emprop(tier) do
+    # TODO: find the math behind this one
+    base(tier) * 1.16
+  end
+
   def craft_fragment(tier) do
     base(tier) * Mod.bonus(%Mod{iiq: 5})
   end
 
-  # TODO: pulled from https://www.reddit.com/r/pathofexile/comments/a83vm7/new_players_guide_to_crafting_maps/
-  # This is definitely out-of-date data, this spreadsheet might be more accurate:
-  # https://docs.google.com/spreadsheets/d/1sSPczBrOK-xQSXgvgZ55Zq8uS9CVDsXFrpzgD-m9cSQ/edit#gid=1731351453
-  def craft_ssextant(tier) do
+  def craft_sextant(_kind, tier) do
+    # TODO: pulled from https://www.reddit.com/r/pathofexile/comments/a83vm7/new_players_guide_to_crafting_maps/
+    # This is definitely out-of-date data, this spreadsheet might be more accurate:
+    # https://docs.google.com/spreadsheets/d/1sSPczBrOK-xQSXgvgZ55Zq8uS9CVDsXFrpzgD-m9cSQ/edit#gid=1731351453
     base(tier) * 1.13
   end
 
-  def craft_psextant(tier) do
-    base(tier) * 1.13
+  def craft_tempest(tier) do
+    base(tier) * Mod.bonus(%Mod{iiq: 30, iir: 30})
   end
 
-  def craft_asextant(tier) do
-    base(tier) * 1.13
+  def craft_traps(tier) do
+    # TODO: old data; need to calculate 18 packs -> Mod.em to make this accurate
+    base(tier) * 1.33
   end
 
   def craft_vaal(tier) do
@@ -221,17 +230,21 @@ defmodule Poe.Maps do
   def crafting_return(tier) do
     value = base(tier)
 
+    # TODO: 
     %{
       alch: craft_alch(tier) - value - Market.cost(:alch),
       chis: craft_chisel(tier) - value - Market.cost(:chis) * 4,
+      empr: craft_emprop(tier) - value - Market.cost(:empr),
       frag: craft_fragment(tier) - value - Market.cost(:frag),
-      sexa: craft_asextant(tier) - value - Market.cost(:sexa),
-      sexp: craft_psextant(tier) - value - Market.cost(:sexp),
-      sexs: craft_ssextant(tier) - value - Market.cost(:sexs),
+      sexa: craft_sextant(:sexa, tier) - value - Market.cost(:sexa),
+      sexp: craft_sextant(:sexp, tier) - value - Market.cost(:sexp),
+      sexs: craft_sextant(:sexs, tier) - value - Market.cost(:sexs),
+      temp: craft_tempest(tier) - value - Market.cost(:temp),
+      trap: craft_traps(tier) - value - Market.cost(:trap),
       vaal: craft_vaal(tier) - value - Market.cost(:vaal)
     }
 
-    # TODO: prophecies (tempest, extra monsters, bountiful traps), shaped, zanas, scarabs
+    # TODO: shaped, zanas, scarabs
     # refs:
     #   https://imgur.com/1EsuAEP
     #   https://i.imgur.com/AsOZpGt.png
