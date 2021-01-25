@@ -1,0 +1,11 @@
+*.ez
+/.fetch
+/_build/
+/assets/node_modules/
+/cover/
+/deps/
+/doc/
+/priv/static/
+erl_crash.dump
+npm-debug.log
+poe-*.tar
