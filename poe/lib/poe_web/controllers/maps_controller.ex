@@ -1,4 +1,4 @@
-defmodule PoeWeb.PageController do
+defmodule PoeWeb.MapsController do
   require Logger
   use PoeWeb, :controller
 

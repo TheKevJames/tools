@@ -16,7 +16,8 @@ defmodule PoeWeb.Router do
   scope "/", PoeWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    get "/", HomeController, :index
+    get "/maps", MapsController, :index
   end
 
   # Other scopes may use custom stacks.
