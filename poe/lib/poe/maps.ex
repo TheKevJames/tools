@@ -173,38 +173,38 @@ defmodule Poe.Maps do
     )
   end
 
+  # TODO: verify alching rolls equally distributed 3-6 affixes
   def craft_alch(tier) do
-    # TODO: verify alching rolls equally distributed 3-6 affixes
-    base(tier) * :math.pow(affix(tier), 4.5)
+    base(tier) * :math.pow(affix(tier), 4.5) - base(tier) - Market.cost(:alch)
   end
 
   def craft_chisel(tier) do
-    base(tier) * Mod.bonus(%Mod{iiq: 20})
+    base(tier) * Mod.bonus(%Mod{iiq: 20}) - base(tier) - Market.cost(:chis) * 4
   end
 
+  # TODO: find the math behind this one
   def craft_emprop(tier) do
-    # TODO: find the math behind this one
-    base(tier) * 1.16
+    base(tier) * 1.16 - base(tier) - Market.cost(:empr)
   end
 
   def craft_fragment(tier) do
-    base(tier) * Mod.bonus(%Mod{iiq: 5})
+    base(tier) * Mod.bonus(%Mod{iiq: 5}) - base(tier) - Market.cost(:frag)
   end
 
-  def craft_sextant(_kind, tier) do
-    # TODO: pulled from https://www.reddit.com/r/pathofexile/comments/a83vm7/new_players_guide_to_crafting_maps/
-    # This is definitely out-of-date data, this spreadsheet might be more accurate:
-    # https://docs.google.com/spreadsheets/d/1sSPczBrOK-xQSXgvgZ55Zq8uS9CVDsXFrpzgD-m9cSQ/edit#gid=1731351453
-    base(tier) * 1.13
+  # TODO: pulled from https://www.reddit.com/r/pathofexile/comments/a83vm7/new_players_guide_to_crafting_maps/
+  # This is definitely out-of-date data, this spreadsheet might be more accurate:
+  # https://docs.google.com/spreadsheets/d/1sSPczBrOK-xQSXgvgZ55Zq8uS9CVDsXFrpzgD-m9cSQ/edit#gid=1731351453
+  def craft_sextant(kind, tier) do
+    base(tier) * 1.13 - base(tier) - Market.cost(kind)
   end
 
   def craft_tempest(tier) do
-    base(tier) * Mod.bonus(%Mod{iiq: 30, iir: 30})
+    base(tier) * Mod.bonus(%Mod{iiq: 30, iir: 30}) - base(tier) - Market.cost(:temp)
   end
 
+  # TODO: old data; need to calculate 18 packs -> Mod.em to make this accurate
   def craft_traps(tier) do
-    # TODO: old data; need to calculate 18 packs -> Mod.em to make this accurate
-    base(tier) * 1.33
+    base(tier) * 1.33 - base(tier) - Market.cost(:trap)
   end
 
   def craft_vaal(tier) do
@@ -224,27 +224,69 @@ defmodule Poe.Maps do
       base(tier) * Mod.bonus(%Mod{iiq: 30})
     ]
 
-    Enum.sum(effects) / length(effects)
+    Enum.sum(effects) / length(effects) - base(tier) - Market.cost(:vaal)
+  end
+
+  # TODO: get all these, compare to default (eg. :iiq)
+  def craft_zana(kind, tier) do
+    effects = %{
+      # TODO: 3 strongboxes
+      amb: 1,
+      # TODO: 3 exiles
+      ana: 1,
+      # TODO: chance of beyonds
+      bey: 1,
+      # TODO: 4 shrines
+      dom: 1,
+      iiq: Mod.bonus(%Mod{iiq: 8}),
+      # TODO: 1 legion
+      leg: 1,
+      # TODO: 2 perandus chests
+      per: 1,
+      # TODO: 3 warbands
+      war: 1
+    }
+
+    {mult, cost} =
+      case kind do
+        :amb -> {Map.get(effects, kind), 3}
+        :ana -> {Map.get(effects, kind), 2}
+        :bey -> {Map.get(effects, kind), 5}
+        :dom -> {Map.get(effects, kind), 4}
+        :ffb -> {Enum.sum(Map.values(effects)) / map_size(effects), 3}
+        :iiq -> {Map.get(effects, kind), 0}
+        :leg -> {Map.get(effects, kind), 6}
+        :per -> {Map.get(effects, kind), 4}
+        :war -> {Map.get(effects, kind), 2}
+      end
+
+    base(tier) * mult - base(tier) - cost
   end
 
   def crafting_return(tier) do
-    value = base(tier)
-
-    # TODO: 
     %{
-      alch: craft_alch(tier) - value - Market.cost(:alch),
-      chis: craft_chisel(tier) - value - Market.cost(:chis) * 4,
-      empr: craft_emprop(tier) - value - Market.cost(:empr),
-      frag: craft_fragment(tier) - value - Market.cost(:frag),
-      sexa: craft_sextant(:sexa, tier) - value - Market.cost(:sexa),
-      sexp: craft_sextant(:sexp, tier) - value - Market.cost(:sexp),
-      sexs: craft_sextant(:sexs, tier) - value - Market.cost(:sexs),
-      temp: craft_tempest(tier) - value - Market.cost(:temp),
-      trap: craft_traps(tier) - value - Market.cost(:trap),
-      vaal: craft_vaal(tier) - value - Market.cost(:vaal)
+      alch: craft_alch(tier),
+      chis: craft_chisel(tier),
+      empr: craft_emprop(tier),
+      frag: craft_fragment(tier),
+      sexa: craft_sextant(:sexa, tier),
+      sexp: craft_sextant(:sexp, tier),
+      sexs: craft_sextant(:sexs, tier),
+      temp: craft_tempest(tier),
+      trap: craft_traps(tier),
+      vaal: craft_vaal(tier),
+      zamb: craft_zana(:amb, tier),
+      zana: craft_zana(:ana, tier),
+      zbey: craft_zana(:bey, tier),
+      zdom: craft_zana(:dom, tier),
+      zffb: craft_zana(:ffb, tier),
+      ziiq: craft_zana(:iiq, tier),
+      zleg: craft_zana(:leg, tier),
+      zper: craft_zana(:per, tier),
+      zwar: craft_zana(:war, tier)
     }
 
-    # TODO: shaped, zanas, scarabs
+    # TODO: shaped, scarabs
     # refs:
     #   https://imgur.com/1EsuAEP
     #   https://i.imgur.com/AsOZpGt.png

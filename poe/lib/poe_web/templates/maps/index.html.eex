@@ -2,24 +2,17 @@
   <table>
     <tr>
       <td></td>
-      <td>Chisel</td>
-      <td>Alch</td>
-      <td>Vaal</td>
-      <td>Fragment</td>
-      <td>Simple Sextant</td>
-      <td>Prime Sextant</td>
-      <td>Awakened Sextant</td>
-      <td>Tempest Prophecy</td>
-      <td>Extra Monsters Prophecy</td>
-      <td>Bountiful Traps</td>
+      <%= for {_, name} <- @cols do %>
+        <td><%= name %></td>
+      <% end %>
     </tr>
     <%= for item <- @rows do %>
       <tr>
         <!-- TODO: bold etc header and between tiers -->
         <td><%= Map.get(item, :name) %>
-        <%= for name <- [:chis, :alch, :vaal, :frag, :sexs, :sexp, :sexa, :temp, :empr, :trap] do %>
-          <td class="<%= Map.get(Map.get(item, name), :color) %>">
-            <%= Map.get(Map.get(item, name), :value) %>
+        <%= for {key, _} <- @cols do %>
+          <td class="<%= Map.get(Map.get(item, key), :color) %>">
+            <%= Map.get(Map.get(item, key), :value) %>
           </td>
         <% end %>
       </tr>

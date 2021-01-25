@@ -3,6 +3,30 @@ defmodule PoeWeb.MapsController do
   use PoeWeb, :controller
   alias Poe.Maps
 
+  def cols() do
+    [
+      {:chis, "Chisel"},
+      {:alch, "Alch"},
+      {:vaal, "Vaal"},
+      {:frag, "Fragment"},
+      {:sexs, "Simple Sextant"},
+      {:sexp, "Prime Sextant"},
+      {:sexa, "Awakened Sextant"},
+      {:temp, "Prophecy (Tempest)"},
+      {:empr, "Prophecy (Extra Monsters)"},
+      {:trap, "Prophecy (Bountiful Traps)"},
+      # {:zamb, "Zana (Ambush)"},
+      # {:zana, "Zana (Anarchy)"},
+      # {:zbey, "Zana (Beyond)"},
+      # {:zdom, "Zana (Domination)"},
+      # {:zffb, "Zana (Random)"},
+      # {:ziiq, "Zana (No Mod)"},
+      # {:zleg, "Zana (Legion)"},
+      # {:zper, "Zana (Perandus)"},
+      # {:zwar, "Zana (Warbands)"}
+    ]
+  end
+
   def rows() do
     for tier <- 1..16 do
       returns =
@@ -22,6 +46,6 @@ defmodule PoeWeb.MapsController do
   end
 
   def index(conn, _params) do
-    render(conn, "index.html", rows: rows())
+    render(conn, "index.html", cols: cols(), rows: rows())
   end
 end

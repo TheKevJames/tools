@@ -14,14 +14,16 @@ defmodule Poe.Market do
           case name do
             :alch -> 1.0 / 6.1
             :chis -> 1.0 / 2.6
-            :empr -> 1.0  # TODO: all the same?
+            # TODO: all the same?
+            :empr -> 1.0
             :frag -> 1.0 / 3.8
             :vaal -> 1.0 / 1.5
             :sexs -> 1.0 / 1.4
             :sexp -> 1.0 / 1.2
             :sexa -> 1.2 / 1.0
             :sexe -> 43.8 / 1.0
-            :temp -> 1.0  # TODO: all the same?
+            # TODO: all the same?
+            :temp -> 1.0
             :trap -> 1.3
             _ -> 0.0
           end
