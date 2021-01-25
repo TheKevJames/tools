@@ -2,7 +2,7 @@
 defmodule Poe.Cache do
   use GenServer
 
-	@table __MODULE__
+  @table __MODULE__
 
   def init(args) do
     :ets.new(@table, [
@@ -12,6 +12,7 @@ defmodule Poe.Cache do
       {:read_concurrency, true},
       {:write_concurrency, true}
     ])
+
     {:ok, args}
   end
 

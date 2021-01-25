@@ -8,7 +8,7 @@ defmodule Poe.Application do
       PoeWeb.Telemetry,
       {Phoenix.PubSub, name: Poe.PubSub},
       Poe.Cache,
-      PoeWeb.Endpoint,
+      PoeWeb.Endpoint
     ]
 
     opts = [strategy: :one_for_one, name: Poe.Supervisor]
