@@ -7,8 +7,8 @@ defmodule Poe.Application do
     children = [
       PoeWeb.Telemetry,
       {Phoenix.PubSub, name: Poe.PubSub},
-      PoeWeb.Endpoint
-      # {Poe.Worker, arg}
+      Poe.Cache,
+      PoeWeb.Endpoint,
     ]
 
     opts = [strategy: :one_for_one, name: Poe.Supervisor]

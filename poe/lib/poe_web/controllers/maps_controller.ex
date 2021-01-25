@@ -1,68 +1,19 @@
 defmodule PoeWeb.MapsController do
   require Logger
   use PoeWeb, :controller
-
-  def bonus(iiq, ps, em) do
-    # TODO: include iir
-    (1 + iiq/100.0) * (1 + ps/100.0) * (1 + em/100.0)
-  end
-
-  def alch(tier, value) do
-    # TODO: migrate fetch() to elixir
-    mult = [2.259, 2.225, 2.245]
-    # TODO: does t16 count as top tier for affixes?
-    value * Enum.at(mult, min(div(tier, 5), 2))
-  end
-
-  def chis(_tier, value) do
-    value * bonus(20, 0, 0)
-  end
-
-  def frag(_tier, value) do
-    value * bonus(5, 0, 0)
-  end
-
-  def vaal(tier, value) do
-    # TODO: migrate fetch() to elixir
-    # TODO: actual numbers for T15 -> Vaal Temple reroll
-    affix = [1.197, 1.195, 1.199, 1.21]
-    effects = [
-      # nada
-      0, 0,
-      # reroll, maybe uptier
-      :math.pow(Enum.at(affix, div(tier, 5)), 5), :math.pow(Enum.at(affix, div(tier + 1, 5)), 5),
-      # full reroll
-      :math.pow(Enum.at(affix, div(tier, 5)), 8), :math.pow(Enum.at(affix, div(tier, 5)), 8),
-      # unidentify
-      bonus(30, 0, 0), bonus(30, 0, 0),
-    ]
-    value * (Enum.sum(effects) / length(effects))
-  end
+  alias Poe.Maps
 
   def calc() do
-    # TODO: fetch live values
-    alch_cost = 1.0 / 6.1
-    chis_cost = 1.0 / 2.6
-    frag_cost = 1.0 / 3.8
-    vaal_cost = 1.0 / 1.5
-
-    # TODO: get real numbers on this
-    base = [0.63, 0.41, 0.45, 0.58, 0.61, 0.87, 1.03, 1.53, 1.91, 1.83, 3.3, 3.5, 5.7, 8.5, 12.6, 13.5]
-
-    for {value, tier} <- Enum.with_index(base) do
-      alch_value = Float.round((alch(tier, value) - value) - alch_cost, 2)
-      chis_value = Float.round((chis(tier, value) - value) - chis_cost * 4, 2)
-      vaal_value = Float.round((vaal(tier, value) - value) - vaal_cost, 2)
-      frag_value = Float.round((frag(tier, value) - value) - frag_cost, 2)
-
-      # TODO: sextants, prophecies (tempest, extra monsters, bountiful traps), shaped, zanas
-      # refs:
-      #   https://imgur.com/1EsuAEP
-      #   https://i.imgur.com/AsOZpGt.png
-      #   https://docs.google.com/spreadsheets/d/1Mdl01Fc4DycxeXrKxj_R0rIybmQVowEc0TKNtLzpLGM/edit#gid=354958689
-      #   https://www.reddit.com/r/pathofexile/comments/a83vm7/new_players_guide_to_crafting_maps/
-      #   https://docs.google.com/spreadsheets/d/1fIs8sdvgZG7iVouPdtFkbRx5kv55_xVja8l19yubyRU/htmlview?usp=sharing%3Cbr%3E&pru=AAABd0d78Os*Qj2_YGoUjIwCB9669xsZCw#
-      %{alch: alch_value, chis: chis_value, vaal: vaal_value, frag: frag_value}
+    for tier <- 1..16 do
+      returns = for {key, value} <- Maps.crafting_return(tier), into: %{} do
+        color = case value do
+          x when x < 0 -> "bg-red"
+          x when x < 0.2 -> "bg-yellow"
+          _ -> "bg-green"
+        end
+        {key, %{color: color, value: Float.round(value, 2)}}
+      end
+      Map.put(returns, :name, "T#{tier}")
     end
   end
 
