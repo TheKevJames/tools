@@ -148,7 +148,10 @@ defmodule Poe.Maps do
   end
 
   # TODO: get real numbers on this
+  # current numbers from https://www.reddit.com/r/pathofexile/comments/a83vm7/new_players_guide_to_crafting_maps/
   def base(tier) do
+    # https://i.imgur.com/AsOZpGt.png
+    """
     Enum.at(
       [
         0.63,
@@ -166,16 +169,21 @@ defmodule Poe.Maps do
         5.7,
         8.5,
         12.6,
-        13.5,
-        15
+        13.5
       ],
       tier - 1
     )
+    """
+    # https://docs.google.com/spreadsheets/d/1Mdl01Fc4DycxeXrKxj_R0rIybmQVowEc0TKNtLzpLGM/edit#gid=1120006489
+    # wolfram alpha: fit [{1, 0.5}, {3, 1}, {6, 3}, {11, 5.096}, {12, 4.697}, {13, 6.189}, {14, 7.392}, {15, 13.443}, {16, 14.487}]
+    # quartic model seemed visually reasonable. cubic and exponential both looked valid
+    # hard data only exists for T11+ in v3.5.0
+    # TODO: add {9, 3.9} from https://www.reddit.com/r/pathofexile/comments/a83vm7/new_players_guide_to_crafting_maps/ec88th2?utm_source=share&utm_medium=web2x&context=3
+    0.00139194 * :math.pow(tier, 4) - 0.0340657 * :math.pow(tier, 3) + 0.262759 * :math.pow(tier, 2) - 0.250333 * tier + 0.426206
   end
 
-  # TODO: verify alching rolls equally distributed 3-6 affixes
   def craft_alch(tier) do
-    base(tier) * :math.pow(affix(tier), 4.5) - base(tier) - Market.cost(:alch)
+    base(tier) * :math.pow(affix(tier), 5) - base(tier) - Market.cost(:alch)
   end
 
   def craft_chisel(tier) do
@@ -187,6 +195,7 @@ defmodule Poe.Maps do
     base(tier) * 1.16 - base(tier) - Market.cost(:empr)
   end
 
+  # TODO: calculate with multiple fragments
   def craft_fragment(tier) do
     base(tier) * Mod.bonus(%Mod{iiq: 5}) - base(tier) - Market.cost(:frag)
   end
@@ -215,7 +224,8 @@ defmodule Poe.Maps do
       # reroll
       base(tier) * :math.pow(affix(tier), 5),
       # uptier and reroll
-      base(tier + 1) * :math.pow(affix(tier + 1), 5),
+      # T16s can't uptier
+      base(min(tier + 1, 16)) * :math.pow(affix(min(tier + 1, 16)), 5),
       # full reroll
       base(tier) * :math.pow(affix(tier), 8),
       base(tier) * :math.pow(affix(tier), 8),
@@ -241,8 +251,7 @@ defmodule Poe.Maps do
       iiq: Mod.bonus(%Mod{iiq: 8}),
       # TODO: 1 legion
       leg: 1,
-      # TODO: 2 perandus chests
-      per: 1,
+      per: 3 * 30 * Market.cost(:pdus),
       # TODO: 3 warbands
       war: 1
     }
@@ -263,7 +272,9 @@ defmodule Poe.Maps do
     base(tier) * mult - base(tier) - cost
   end
 
+  # TODO: not quite right; bonuses are multiplicative
   def crafting_return(tier) do
+    # TODO: scarabs, transmute, chance
     %{
       alch: craft_alch(tier),
       chis: craft_chisel(tier),
@@ -285,13 +296,5 @@ defmodule Poe.Maps do
       zper: craft_zana(:per, tier),
       zwar: craft_zana(:war, tier)
     }
-
-    # TODO: shaped, scarabs
-    # refs:
-    #   https://imgur.com/1EsuAEP
-    #   https://i.imgur.com/AsOZpGt.png
-    #   https://docs.google.com/spreadsheets/d/1Mdl01Fc4DycxeXrKxj_R0rIybmQVowEc0TKNtLzpLGM/edit#gid=354958689
-    #   https://www.reddit.com/r/pathofexile/comments/a83vm7/new_players_guide_to_crafting_maps/
-    #   https://docs.google.com/spreadsheets/d/1fIs8sdvgZG7iVouPdtFkbRx5kv55_xVja8l19yubyRU/htmlview?usp=sharing%3Cbr%3E&pru=AAABd0d78Os*Qj2_YGoUjIwCB9669xsZCw#
   end
 end

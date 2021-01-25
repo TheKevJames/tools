@@ -17,14 +17,15 @@ defmodule Poe.Market do
             # TODO: all the same?
             :empr -> 1.0
             :frag -> 1.0 / 3.8
-            :vaal -> 1.0 / 1.5
-            :sexs -> 1.0 / 1.4
-            :sexp -> 1.0 / 1.2
+            :pdus -> 1.0 / 300.0
             :sexa -> 1.2 / 1.0
             :sexe -> 43.8 / 1.0
+            :sexp -> 1.0 / 1.2
+            :sexs -> 1.0 / 1.4
             # TODO: all the same?
             :temp -> 1.0
             :trap -> 1.3
+            :vaal -> 1.0 / 1.5
             _ -> 0.0
           end
 
