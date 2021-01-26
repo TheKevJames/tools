@@ -5,25 +5,26 @@ defmodule PoeWeb.MapsController do
 
   def cols() do
     [
-      {:chis, "Chisel"},
-      {:alch, "Alch"},
-      {:vaal, "Vaal"},
+      {:base, "Base Value"},
+      {:alch, "+Alch"},
+      {:chis, "+Chisel"},
+      {:vaal, "+Vaal"},
       {:frag, "Fragment"},
-      {:sexs, "Simple Sextant"},
-      {:sexp, "Prime Sextant"},
-      {:sexa, "Awakened Sextant"},
       {:temp, "Prophecy (Tempest)"},
       {:empr, "Prophecy (Extra Monsters)"},
       {:trap, "Prophecy (Bountiful Traps)"},
-      # {:zamb, "Zana (Ambush)"},
+      {:sexs, "Simple Sextant"},
+      {:sexp, "Prime Sextant"},
+      {:sexa, "Awakened Sextant"},
+      # {:ziiq, "Zana (No Mod)"},
+      {:zamb, "Zana (Ambush)"},
       # {:zana, "Zana (Anarchy)"},
       # {:zbey, "Zana (Beyond)"},
       # {:zdom, "Zana (Domination)"},
-      # {:zffb, "Zana (Random)"},
-      # {:ziiq, "Zana (No Mod)"},
-      # {:zleg, "Zana (Legion)"},
+      {:zleg, "Zana (Legion)"},
       # {:zper, "Zana (Perandus)"},
-      # {:zwar, "Zana (Warbands)"}
+      # {:zwar, "Zana (Warbands)"},
+      # {:zffb, "Zana (Random)"},
     ]
   end
 
@@ -34,7 +35,7 @@ defmodule PoeWeb.MapsController do
           color =
             case value do
               x when x < 0 -> "bg-red"
-              x when x < 0.2 -> "bg-yellow"
+              x when x < 0.5 -> "bg-yellow"
               _ -> "bg-green"
             end
 

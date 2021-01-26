@@ -9,19 +9,19 @@ defmodule Poe.Market do
         value
 
       {:miss} ->
-        # TODO: fetch live values
+        # TODO: fetch live values from poe.ninja
         value =
           case name do
-            :alch -> 1.0 / 6.1
+            :alch -> 1.0 / 6.5
             :chis -> 1.0 / 2.6
+            :frag -> 1.0 / 3.5
+            # TODO: only on currency.poe.trade, not ninja: why?
+            :pdus -> 1.0 / 300.0
+            :sexa -> 1.0 / 1.0
+            :sexp -> 1.0 / 1.2
+            :sexs -> 1.0 / 1.2
             # TODO: all the same?
             :empr -> 1.0
-            :frag -> 1.0 / 3.8
-            :pdus -> 1.0 / 300.0
-            :sexa -> 1.2 / 1.0
-            :sexe -> 43.8 / 1.0
-            :sexp -> 1.0 / 1.2
-            :sexs -> 1.0 / 1.4
             # TODO: all the same?
             :temp -> 1.0
             :trap -> 1.3
