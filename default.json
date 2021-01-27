@@ -29,7 +29,7 @@
     "groupName": "grpcio"
   }, {
     "datasources": ["pypi"],
-    "packageNames": ["hypothesis", "pytest", "pytest-asyncio", "pytest-cov", "pytest-datadir", "pytest-mock"],
+    "packageNames": ["hypothesis", "pytest", "pytest-asyncio", "pytest-cases", "pytest-cov", "pytest-datadir", "pytest-mock"],
     "updateTypes": ["minor", "patch", "pin", "digest"],
     "automerge": true
   }, {
