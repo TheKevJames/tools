@@ -21,7 +21,7 @@ defmodule PoeWeb.MapsController do
       # {:zana, "Zana (Anarchy)"},
       # {:zbey, "Zana (Beyond)"},
       # {:zdom, "Zana (Domination)"},
-      {:zleg, "Zana (Legion)"},
+      {:zleg, "Zana (Legion)"}
       # {:zper, "Zana (Perandus)"},
       # {:zwar, "Zana (Warbands)"},
       # {:zffb, "Zana (Random)"},

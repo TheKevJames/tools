@@ -70,7 +70,10 @@ defmodule Poe.Maps.Mod do
             Map.put(acc, :ps, String.to_integer(Enum.at(matches, 1)))
 
           matches = Regex.run(~r/\((.*)-(.*)\)%.*more magic monsters/i, stat) ->
-            avg_more = (String.to_integer(Enum.at(matches, 1)) + String.to_integer(Enum.at(matches, 2))) / 2
+            avg_more =
+              (String.to_integer(Enum.at(matches, 1)) + String.to_integer(Enum.at(matches, 2))) /
+                2
+
             Map.put(acc, :em, @magic * avg_more)
 
           matches = Regex.run(~r/(.*)%.*increased pack size in unidentified maps/i, stat) ->
@@ -81,11 +84,13 @@ defmodule Poe.Maps.Mod do
           matches = Regex.run(~r/areas contain (.*) additional packs of monsters/i, stat) ->
             Map.put(acc, :em, String.to_integer(Enum.at(matches, 1)))
 
-          matches = Regex.run(~r/area contains (.*) additional packs of corrupted vaal monsters/i, stat) ->
+          matches =
+              Regex.run(~r/area contains (.*) additional packs of corrupted vaal monsters/i, stat) ->
             # TODO: do corrupted monsters drop better loot?
             Map.put(acc, :em, String.to_integer(Enum.at(matches, 1)))
 
-          _matches = Regex.run(~r/areas contain (.*) additional clusters of mysterious barrels/i, stat) ->
+          _matches =
+              Regex.run(~r/areas contain (.*) additional clusters of mysterious barrels/i, stat) ->
             # TODO: looks like this might be a roll beteen :em and :iiq ?
             acc
 
@@ -112,22 +117,35 @@ defmodule Poe.Maps.Mod do
       weight: String.to_integer(weight)
     }
   end
+
+  def from_maps(maps) do
+    Enum.map(maps, &from_map/1)
+  end
 end
 
 defmodule Poe.Maps do
   require Logger
-  alias Poe.Market
+  alias Poe.Api.Ninja
+  alias Poe.Api.Wiki
+  alias Poe.Cache
   alias Poe.Maps.Mod
 
-  def affix(%{sextant: _sextant}) do
+  @enforce_keys [:tier, :value]
+  defstruct [:tier, :value, cost: 0.0, mod: %Mod{}]
+
+  def init(tier) do
+    %Poe.Maps{tier: tier, value: base(tier)}
+  end
+
+  defp do_affix(%{sextant: _sextant}) do
     # TODO: figure out how to get only the mods for a specific tier of sextant
     # https://docs.google.com/spreadsheets/d/1sSPczBrOK-xQSXgvgZ55Zq8uS9CVDsXFrpzgD-m9cSQ/edit#gid=1731351453
-    options = mods(11, 0, 0)
+    options = Wiki.sextant_mods() |> Mod.from_maps()
     weight = Enum.sum(Enum.map(options, & &1.weight))
     Mod.div(Enum.reduce(Enum.map(options, &Mod.weighted/1), %Mod{}, &Mod.add/2), weight)
   end
 
-  def affix(%{tier: tier}) do
+  defp do_affix(%{tier: tier}) do
     tag =
       case tier do
         n when n > 10 ->
@@ -144,13 +162,13 @@ defmodule Poe.Maps do
           "low_tier_map"
       end
 
-    prefixes = mods(5, "default", 1) ++ mods(5, tag, 1)
+    prefixes = Mod.from_maps(Wiki.map_mods("default", 1) ++ Wiki.map_mods(tag, 1))
     pweight = Enum.sum(Enum.map(prefixes, & &1.weight))
 
     prefix =
       Mod.div(Enum.reduce(Enum.map(prefixes, &Mod.weighted/1), %Mod{}, &Mod.add/2), pweight)
 
-    suffixes = mods(5, "default", 2) ++ mods(5, tag, 2)
+    suffixes = Mod.from_maps(Wiki.map_mods("default", 2) ++ Wiki.map_mods(tag, 2))
     pweight = Enum.sum(Enum.map(suffixes, & &1.weight))
 
     suffix =
@@ -159,74 +177,18 @@ defmodule Poe.Maps do
     Mod.div(Mod.add(prefix, suffix), 2)
   end
 
-  def fetch_mods(domain, tag, generation) do
-    api = "https://pathofexile.gamepedia.com/api.php"
-    # TODO: ew
-    filter =
-      case domain do
-        5 ->
-          "mods.domain=5 AND mods.generation_type=#{generation} AND mods.name!=\"\" AND spawn_weights.tag=\"#{
-            tag
-          }\""
+  def affix(kind) do
+    key = {__MODULE__, :affix, kind}
 
-        11 ->
-          "mods.domain=11"
-
-        _ ->
-          Logger.error("searching for invalid mod domain #{domain}")
-          ""
-      end
-
-    url =
-      api
-      |> URI.parse()
-      |> Map.put(
-        :query,
-        URI.encode_query(
-          action: "cargoquery",
-          fields: "mods.stat_text_raw,spawn_weights.weight",
-          format: "json",
-          join_on: "mods._pageID=spawn_weights._pageID",
-          tables: "mods,spawn_weights",
-          where: "#{filter} AND spawn_weights.weight>0"
-        )
-      )
-      |> URI.to_string()
-
-    case HTTPoison.get(url) do
-      {:ok, %{status_code: 200, body: body}} ->
-        case Jason.decode!(body) do
-          %{"error" => %{"info" => info}} ->
-            Logger.error("cargoquery API returned error: #{info}")
-
-          data ->
-            Enum.map(Map.get(data, "cargoquery"), &Mod.from_map/1)
-        end
-
-      {:error, _} ->
-        Logger.error("unknown error hitting cargoquery API")
-    end
-  end
-
-  def mods(domain, tag, generation) do
-    key = {__MODULE__, domain, tag, generation}
-
-    case Poe.Cache.get(key) do
+    case Cache.get(key) do
       {:hit, value} ->
         value
 
       {:miss} ->
-        value = fetch_mods(domain, tag, generation)
-        Poe.Cache.put(key, value)
+        value = do_affix(kind)
+        Cache.put(key, value)
         value
     end
-  end
-
-  @enforce_keys [:tier, :value]
-  defstruct [:tier, :value, cost: 0.0, mod: %Mod{}]
-
-  def init(tier) do
-    %Poe.Maps{tier: tier, value: base(tier)}
   end
 
   # TODO: get real numbers on this
@@ -273,34 +235,34 @@ defmodule Poe.Maps do
   end
 
   def craft_alch(map) do
-    craft(map, Market.cost(:alch), Mod.pow(affix(%{tier: map.tier}), 5))
+    craft(map, Ninja.currency(:alch), Mod.pow(affix(%{tier: map.tier}), 5))
   end
 
   def craft_chisel(map) do
-    craft(map, Market.cost(:chis) * 4, %Mod{iiq: 20})
+    craft(map, Ninja.currency(:chis) * 4, %Mod{iiq: 20})
   end
 
   # TODO: find the math behind this one
   def craft_emprop(map) do
-    craft(map, Market.cost(:empr), %Mod{ps: 16})
+    craft(map, Ninja.fragment(:sacr), %Mod{ps: 16})
   end
 
   # TODO: calculate with multiple fragments
   def craft_fragment(map) do
-    craft(map, Market.cost(:frag), %Mod{iiq: 5})
+    craft(map, Ninja.fragment(:sacr), %Mod{iiq: 5})
   end
 
   def craft_sextant(map, kind) do
-    craft(map, Market.cost(kind), affix(%{sextant: kind}))
+    craft(map, Ninja.currency(kind), affix(%{sextant: kind}))
   end
 
   def craft_tempest(map) do
-    craft(map, Market.cost(:temp), %Mod{iiq: 30, iir: 30})
+    craft(map, Ninja.prophecy(:temp), %Mod{iiq: 30, iir: 30})
   end
 
   # TODO: shouldn't this also give a bit of bonus iiq?
   def craft_traps(map) do
-    craft(map, Market.cost(:trap), %Mod{em: 18})
+    craft(map, Ninja.prophecy(:trap), %Mod{em: 18})
   end
 
   @doc """
@@ -329,11 +291,13 @@ defmodule Poe.Maps do
 
     avg = Mod.div(Enum.reduce(results, %Mod{}, &Mod.add/2), length(results))
 
-    tiered_map = case map.tier do
-      n when n < 16 -> %{map | tier: map.tier + 1, value: base(map.tier + 1)}
-      _ -> map
-    end
-    craft(tiered_map, Market.cost(:alch) + Market.cost(:vaal), avg)
+    tiered_map =
+      case map.tier do
+        n when n < 16 -> %{map | tier: map.tier + 1, value: base(map.tier + 1)}
+        _ -> map
+      end
+
+    craft(tiered_map, Ninja.currency(:alch) + Ninja.currency(:vaal), avg)
   end
 
   def craft_zana(map, kind) do
@@ -349,7 +313,9 @@ defmodule Poe.Maps do
       iiq: {0, %Mod{iiq: 8}},
       # TODO: very inaccurate; based on 2019 post on farming tier 7s returning ~7.5c
       leg: {0, %Mod{em: 35}},
-      per: {3 * 30 * Market.cost(:pdus), %Mod{}},
+      # TODO: why are perandus coins not in poe.ninja?
+      # 3 chests, ~30 coins per, value is 1/300c
+      per: {3 * 30 * 1 / 300.0, %Mod{}},
       # 3 warbands -> 3 mobs?
       war: {0, %Mod{em: 3}}
     }
@@ -381,11 +347,15 @@ defmodule Poe.Maps do
     alch_net = map |> craft_alch |> return
     alch = alch_net - map.value
 
-    chis_net = map |> craft_chisel |> (fn x -> (alch > 0 && x |> craft_alch) || x end).() |> return
-    chis = chis_net - (alch > 0 && alch_net || map.value)
+    chis_net =
+      map |> craft_chisel |> (fn x -> (alch > 0 && x |> craft_alch) || x end).() |> return
 
-    vaal_net = map |> (fn x -> (chis > 0 && x |> craft_chisel) || x end).() |> craft_vaal |> return
-    vaal = vaal_net - (chis > 0 && chis_net || alch_net)
+    chis = chis_net - ((alch > 0 && alch_net) || map.value)
+
+    vaal_net =
+      map |> (fn x -> (chis > 0 && x |> craft_chisel) || x end).() |> craft_vaal |> return
+
+    vaal = vaal_net - ((chis > 0 && chis_net) || alch_net)
 
     frag_net =
       map
@@ -393,13 +363,15 @@ defmodule Poe.Maps do
       |> (fn x -> (vaal > 0 && x |> craft_vaal) || ((alch > 0 && x |> craft_alch) || x) end).()
       |> craft_fragment
       |> return
-    frag = frag_net - (vaal > 0 && vaal_net || (chis > 0 && chis_net || alch_net))
+
+    frag = frag_net - ((vaal > 0 && vaal_net) || ((chis > 0 && chis_net) || alch_net))
 
     crafted =
       map
       |> (fn x -> (chis > 0 && x |> craft_chisel) || x end).()
       |> (fn x -> (vaal > 0 && x |> craft_vaal) || ((alch > 0 && x |> craft_alch) || x) end).()
       |> (fn x -> (frag > 0 && x |> craft_fragment) || x end).()
+
     crafted_return = crafted |> return
 
     empr = (crafted |> craft_emprop |> return) - crafted_return
@@ -444,7 +416,7 @@ defmodule Poe.Maps do
       ziiq: ziiq,
       zleg: zleg,
       zper: zper,
-      zwar: zwar,
+      zwar: zwar
     }
   end
 end
