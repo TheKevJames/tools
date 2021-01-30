@@ -433,6 +433,7 @@ workflows:
           pre-steps:
             - setup_remote_docker:
                 version: 19.03.12
+            - run: echo "$DOCKER_PASS" | docker login -u "$DOCKER_USERNAME" --password-stdin
           filters:
             branches:
               only: /master/
