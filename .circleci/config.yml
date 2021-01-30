@@ -1,6 +1,7 @@
 version: 2.1
 
 orbs:
+  docker: talkiq/docker@2.1.0
   orb-tools: circleci/orb-tools@7.3.0
   linter: thekevjames/linter@volatile
 
@@ -423,6 +424,40 @@ workflows:
               ignore: /.*/
           requires:
             - build-docker-readme-nox
+
+      # DOCKER: poe
+      - docker/publish:
+          name: build-docker-poe
+          image: thekevjames/poe
+          path: poe
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - linter/pre-commit
+      - build-docker-readme:
+          name: build-docker-readme-poe
+          module: poe
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - linter/pre-commit
+      - push-docker-readme:
+          name: push-docker-readme-poe
+          module: poe
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - build-docker-poe
+            - build-docker-readme-poe
 
       # DOCKER: tuning-primer
       - build-docker-readme:
