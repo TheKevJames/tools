@@ -35,6 +35,7 @@ venv/bin/activate: tests/requirements.txt
 
 clean:
 	rm -f libspacerep.*
+	rm -f tests/test_lib tests/test_lib.o
 	rm -rf build/
 	rm -rf tests/__pycache__
 	rm -rf venv/
