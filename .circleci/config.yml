@@ -10,13 +10,13 @@ jobs:
     docker:
       - image: pandoc/core:2.11.4
     parameters:
-      module:
+      path:
         type: string
     steps:
       - run: apk add --no-cache --no-progress ca-certificates openssl
       - run: mkdir /meta
       - checkout
-      - run: pandoc -o/meta/README.md docker-<<parameters.module>>/README.rst
+      - run: pandoc -o/meta/README.md <<parameters.path>>/README.rst
       - persist_to_workspace:
           root: /meta
           paths:
@@ -27,7 +27,7 @@ jobs:
     docker:
       - image: node:12.20.1-alpine
     parameters:
-      module:
+      title:
         type: string
     steps:
       - run: apk add --no-cache --no-progress ca-certificates openssl
@@ -35,7 +35,7 @@ jobs:
       - run: npm install docker-hub-api
       - attach_workspace:
           at: /meta
-      - run: node ./docker-update-readme.js thekevjames <<parameters.module>> /meta/README.md
+      - run: node ./docker-update-readme.js thekevjames <<parameters.title>> /meta/README.md
 
 workflows:
   run-jobs:
@@ -362,7 +362,7 @@ workflows:
       # DOCKER: minify
       - build-docker-readme:
           name: build-docker-readme-minify
-          module: minify
+          path: docker-minify
           filters:
             branches:
               only: /master/
@@ -372,7 +372,7 @@ workflows:
             - linter/pre-commit
       - push-docker-readme:
           name: push-docker-readme-minify
-          module: minify
+          title: minify
           filters:
             branches:
               only: /master/
@@ -384,7 +384,7 @@ workflows:
       # DOCKER: mysqltuner
       - build-docker-readme:
           name: build-docker-readme-mysqltuner
-          module: mysqltuner
+          path: docker-mysqltuner
           filters:
             branches:
               only: /master/
@@ -394,7 +394,7 @@ workflows:
             - linter/pre-commit
       - push-docker-readme:
           name: push-docker-readme-mysqltuner
-          module: mysqltuner
+          title: mysqltuner
           filters:
             branches:
               only: /master/
@@ -406,7 +406,7 @@ workflows:
       # DOCKER: nox
       - build-docker-readme:
           name: build-docker-readme-nox
-          module: nox
+          path: docker-nox
           filters:
             branches:
               only: /master/
@@ -416,7 +416,7 @@ workflows:
             - linter/pre-commit
       - push-docker-readme:
           name: push-docker-readme-nox
-          module: nox
+          title: nox
           filters:
             branches:
               only: /master/
@@ -430,6 +430,9 @@ workflows:
           name: build-docker-poe
           image: thekevjames/poe
           path: poe
+          pre-steps:
+            - setup_remote_docker:
+                version: 19.03.12
           filters:
             branches:
               only: /master/
@@ -439,7 +442,7 @@ workflows:
             - linter/pre-commit
       - build-docker-readme:
           name: build-docker-readme-poe
-          module: poe
+          path: poe
           filters:
             branches:
               only: /master/
@@ -449,7 +452,7 @@ workflows:
             - linter/pre-commit
       - push-docker-readme:
           name: push-docker-readme-poe
-          module: poe
+          title: poe
           filters:
             branches:
               only: /master/
@@ -462,7 +465,7 @@ workflows:
       # DOCKER: tuning-primer
       - build-docker-readme:
           name: build-docker-readme-tuning-primer
-          module: tuning-primer
+          path: docker-tuning-primer
           filters:
             branches:
               only: /master/
@@ -472,7 +475,7 @@ workflows:
             - linter/pre-commit
       - push-docker-readme:
           name: push-docker-readme-tuning-primer
-          module: tuning-primer
+          title: tuning-primer
           filters:
             branches:
               only: /master/
