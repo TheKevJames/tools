@@ -94,9 +94,9 @@ workflows:
           release: patch
           filters:
             branches:
-              only: /master/
-            tags:
               ignore: /.*/
+            tags:
+              only: /orb-docker-patch/
           requires:
             - publish-dev-orbs-docker
       - orb-tools/dev-promote-prod:
@@ -156,9 +156,9 @@ workflows:
           release: patch
           filters:
             branches:
-              only: /master/
-            tags:
               ignore: /.*/
+            tags:
+              only: /orb-gcloud-patch/
           requires:
             - publish-dev-orbs-gcloud
       - orb-tools/dev-promote-prod:
@@ -218,9 +218,9 @@ workflows:
           release: patch
           filters:
             branches:
-              only: /master/
-            tags:
               ignore: /.*/
+            tags:
+              only: /orb-linter-patch/
           requires:
             - publish-dev-orbs-linter
       - orb-tools/dev-promote-prod:
@@ -280,9 +280,9 @@ workflows:
           release: patch
           filters:
             branches:
-              only: /master/
-            tags:
               ignore: /.*/
+            tags:
+              only: /orb-notifier-patch/
           requires:
             - publish-dev-orbs-notifier
       - orb-tools/dev-promote-prod:
@@ -342,9 +342,9 @@ workflows:
           release: patch
           filters:
             branches:
-              only: /master/
-            tags:
               ignore: /.*/
+            tags:
+              only: /orb-tester-patch/
           requires:
             - publish-dev-orbs-tester
       - orb-tools/dev-promote-prod:
