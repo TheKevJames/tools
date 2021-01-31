@@ -12,6 +12,13 @@ config :poe, PoeWeb.Endpoint,
     port: String.to_integer(System.get_env("PORT") || "80"),
     transport_options: [socket_opts: [:inet6]]
   ],
+  https: [
+    port: String.to_integer(System.get_env("PORTS") || "443"),
+    cipher_suite: :strong,
+    otp_app: :poe,
+    keyfile: System.get_env("SSL_KEY"),
+    certfile: System.get_env("SSL_CERT")
+  ],
   secret_key_base: secret_key_base
 
 config :poe, PoeWeb.Endpoint, server: true
