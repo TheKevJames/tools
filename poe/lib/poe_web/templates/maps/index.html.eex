@@ -17,7 +17,8 @@
 </section>
 
 <section class="maps">
-  <p>Expected returns (in equivalent chaos value) are as follows. Note that some columns are exclusive, eg. assumes that only one prophecy, sextant, or Zana mod may apply to a given map.</p>
+  <p>Expected returns (in equivalent chaos value) after buying and applying the given item are as follows. Note that some columns are exclusive, eg. assumes that only one prophecy, sextant, or Zana mod may apply to a given map.</p>
+  <p>It is assumed that crafting options are applied in the optimal order, eg. apply four chisels while the map is white, then an alch, then a vaal (skipping any steps with negative returns at that tier).</p>
   <table>
     <tr>
       <td></td>
@@ -37,6 +38,24 @@
       </tr>
     <% end %>
   </table>
+</section>
 
-  * Profits marked in Chaos
+<!-- TODO: live link these to Github issues? -->
+<section class="math">
+  <p>The following assumptions were made based on various adhoc data collection methods rather than API data. They're roughly in descending order of how much of an impact on the results they'd have.</p>
+  <ul>
+    <li>Uncrafted maps have a base return value of <pre>f(x) = 0.261393 * e<sup>0.252491x</sup></pre>This is a best fit curve taking into account all the data I could find on this, but much of that data was fairly out of date.</li>
+    <li>An uncrafted map contains ~55 packs of monsters, with a ratio of ~80:19:1 normal:magic:rare monsters.</li>
+    <li>IIR has no effect -- this is of course incorrect, but the IIR math is quite elusive. I suspect fixing this will increase returns across the board; likely pulling up the tier at which various options are worth it by a bit.</li>
+    <li>Several things have zero value (and yes, this is obviously wrong): mysterious barrels, essences, breaches, abysses, invasion bosses, beyond encounters.</li>
+    <li>All sextants apply the same mods -- this is also clearly wrong, but the API does not seem to allow me to sort out which restrictions apply here</li>
+    <li>The loot from strongboxes themselves is ignored (eg. we only calculate the loot from the monster pacs guarding the boxes).</li>
+    <li>Legion encounters are worth ~35 mobs.</li>
+    <li>"Extra Monsters" prophecies add ~16 packs.</li>
+    <li>Corrupted monsters do not drop better loot.</li>
+    <li>A rogue exile drops about as much loot as a mob.</li>
+    <li>A warband drops about as much loot as a mob.</li>
+  </ul>
+
+  <p>We also assume all mods are used favourably -- for example, if you have a sextant mod with "increased pack size in unidentified maps", you should only be running unidentified maps in that region.</p>
 </section>

@@ -247,7 +247,6 @@ defmodule Poe.Maps do
     craft(map, Ninja.prophecy(:extr), %Mod{ps: 16})
   end
 
-  # TODO: calculate with multiple fragments
   def craft_fragment(map) do
     craft(map, Ninja.fragment(:sacr), %Mod{iiq: 5})
   end
