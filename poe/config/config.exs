@@ -2,7 +2,7 @@ use Mix.Config
 
 # Configures the endpoint
 config :poe, PoeWeb.Endpoint,
-  url: [host: "localhost"],
+  url: [host: "0.0.0.0"],
   secret_key_base: "5B2VcxEyeTuQWafvlIVGxwaAKGRYffxw/UO2IqoQW/DKP1fPgR1Rsbw4uGbSSY+A",
   render_errors: [view: PoeWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: Poe.PubSub,

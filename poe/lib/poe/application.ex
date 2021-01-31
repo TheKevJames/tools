@@ -5,8 +5,10 @@ defmodule Poe.Application do
 
   def start(_type, _args) do
     children = [
+      # Pheonix Builtins
       PoeWeb.Telemetry,
       {Phoenix.PubSub, name: Poe.PubSub},
+      # Custom
       Poe.Cache,
       PoeWeb.Endpoint
     ]
