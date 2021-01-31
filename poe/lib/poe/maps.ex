@@ -244,7 +244,7 @@ defmodule Poe.Maps do
 
   # TODO: find the math behind this one
   def craft_emprop(map) do
-    craft(map, Ninja.fragment(:sacr), %Mod{ps: 16})
+    craft(map, Ninja.prophecy(:extr), %Mod{ps: 16})
   end
 
   # TODO: calculate with multiple fragments
