@@ -1,4 +1,23 @@
+<section class="prices">
+  <p>Using the following market prices:</p>
+  <table>
+    <tr>
+      <td></td>
+      <%= for {key, _} <- @prices do %>
+        <td><%= Map.get(Map.new(@cols), key) %></td>
+      <% end %>
+    </tr>
+    <tr>
+      <td>Price</td>
+      <%= for {_, value} <- @prices do %>
+        <td><%= value %></td>
+      <% end %>
+    </tr>
+  </table>
+</section>
+
 <section class="maps">
+  <p>Expected returns (in equivalent chaos value) are as follows. Note that some columns are exclusive, eg. assumes that only one prophecy, sextant, or Zana mod may apply to a given map.</p>
   <table>
     <tr>
       <td></td>
