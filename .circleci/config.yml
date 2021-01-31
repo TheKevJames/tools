@@ -47,7 +47,7 @@ jobs:
           project: thekevjames-175823
       - run: |
           gcloud compute instances update-container poe \
-            --zone=us-west3-a \
+            --zone=us-west1-a \
             --container-image=thekevjames/poe:${CIRCLE_SHA1:0:10}
 
 workflows:

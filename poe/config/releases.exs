@@ -12,6 +12,7 @@ config :poe, PoeWeb.Endpoint,
     port: String.to_integer(System.get_env("PORT") || "80"),
     transport_options: [socket_opts: [:inet6]]
   ],
+  # TODO: fallback to no HTTP when values are unset
   https: [
     port: String.to_integer(System.get_env("PORTS") || "443"),
     cipher_suite: :strong,
