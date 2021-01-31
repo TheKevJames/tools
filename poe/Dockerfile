@@ -31,9 +31,6 @@ RUN apk add --no-cache ncurses-libs openssl
 ENV HOME=/app
 
 WORKDIR /app
-RUN chown nobody:nobody /app
-USER nobody:nobody
-
-COPY --from=build --chown=nobody:nobody /app/_build/prod/rel/poe ./
+COPY --from=build /app/_build/prod/rel/poe ./
 
 CMD ["bin/poe", "start"]

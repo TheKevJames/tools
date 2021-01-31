@@ -426,6 +426,11 @@ workflows:
             - build-docker-readme-nox
 
       # DOCKER: poe
+      # TODO: bump instance
+      #   gcloud compute instances update-container poe --zone=us-west3-a --container-image=thekevjames/poe:${CIRCLE_SHA1}
+      # TODO: static IP?
+      # TODO: zero-downtime? Looks like the above restarts the instance... Cloudflare caching?
+      #       why is it so slow to shut down anyway? Maybe I'm missing a SIGTERM capture in phx?
       - docker/publish:
           name: build-docker-poe
           image: thekevjames/poe
