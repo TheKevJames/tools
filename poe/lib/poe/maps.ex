@@ -260,6 +260,7 @@ defmodule Poe.Maps do
   end
 
   # TODO: shouldn't this also give a bit of bonus iiq?
+  # TODO: calculate Monstrous Treasure as well
   def craft_traps(map) do
     craft(map, Ninja.prophecy(:trap), %Mod{em: 18})
   end

@@ -18,6 +18,7 @@ defmodule PoeWeb.Router do
 
     get "/", HomeController, :index
     get "/maps", MapsController, :index
+    get "/strongboxes", StrongboxesController, :index
   end
 
   # Other scopes may use custom stacks.
