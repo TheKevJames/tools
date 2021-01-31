@@ -3,6 +3,7 @@ version: 2.1
 orbs:
   docker: talkiq/docker@2.1.0
   orb-tools: circleci/orb-tools@7.3.0
+  gcloud: talkiq/gcloud@6.0.1
   linter: thekevjames/linter@volatile
 
 jobs:
@@ -36,6 +37,18 @@ jobs:
       - attach_workspace:
           at: /meta
       - run: node ./docker-update-readme.js thekevjames <<parameters.title>> /meta/README.md
+
+  update-poe-container:
+    docker:
+      - image: google/cloud-sdk:alpine
+    resource_class: small
+    steps:
+      - gcloud/auth:
+          project: thekevjames-175823
+      - run: |
+          gcloud compute instances update-container poe \
+            --zone=us-west3-a \
+            --container-image=thekevjames/poe:${CIRCLE_SHA1:0:10}
 
 workflows:
   run-jobs:
@@ -426,11 +439,6 @@ workflows:
             - build-docker-readme-nox
 
       # DOCKER: poe
-      # TODO: bump instance
-      #   gcloud compute instances update-container poe --zone=us-west3-a --container-image=thekevjames/poe:${CIRCLE_SHA1}
-      # TODO: static IP?
-      # TODO: zero-downtime? Looks like the above restarts the instance... Cloudflare caching?
-      #       why is it so slow to shut down anyway? Maybe I'm missing a SIGTERM capture in phx?
       - docker/publish:
           name: build-docker-poe
           image: thekevjames/poe
@@ -467,6 +475,15 @@ workflows:
           requires:
             - build-docker-poe
             - build-docker-readme-poe
+      - update-poe-container:
+          name: deploy-poe
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - linter/pre-commit
 
       # DOCKER: tuning-primer
       - build-docker-readme:
