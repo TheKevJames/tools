@@ -17,7 +17,7 @@
 </section>
 
 <section class="maps">
-  <p>Expected returns (in equivalent chaos value) after buying and applying the given item are as follows. Note that some columns are exclusive, eg. assumes that only one prophecy, sextant, or Zana mod may apply to a given map.</p>
+  <p>Expected returns (in equivalent chaos value) after buying and applying the given item are as follows. Note that some columns are exclusive, eg. assumes that only one prophecy, sextant, or Zana mod may apply to a given map. Each cell, then, shows the expected amount of chaos <em>added</em>to your map returns by applying that type of crafting/etc, assuming you've also applied all of the previous steps with a positive return value. Note that for the Zana columns, the comparison is against the default, free +8% IIQ rather than against "no Zana mod".</p>
   <p>It is assumed that crafting options are applied in the optimal order, eg. apply four chisels while the map is white, then an alch, then a vaal (skipping any steps with negative returns at that tier).</p>
   <table>
     <tr>
