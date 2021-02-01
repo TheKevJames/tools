@@ -137,6 +137,13 @@ defmodule Poe.Maps do
     %Poe.Maps{tier: tier, value: base(tier)}
   end
 
+  def fetch() do
+    Wiki.maps()
+    |> Enum.reduce(%{}, fn %{"title" => %{"name" => name, "tier" => tier}}, acc ->
+      Map.put(acc, String.replace(name, " Map", ""), String.to_integer(tier))
+    end)
+  end
+
   defp do_affix(%{sextant: _sextant}) do
     # TODO: figure out how to get only the mods for a specific tier of sextant
     # https://docs.google.com/spreadsheets/d/1sSPczBrOK-xQSXgvgZ55Zq8uS9CVDsXFrpzgD-m9cSQ/edit#gid=1731351453

@@ -40,7 +40,7 @@ defmodule PoeWeb.MapsController do
       {:empr, Float.round(Ninja.prophecy(:extr), 3)},
       {:sexs, Float.round(Ninja.currency(:sexs), 3)},
       {:sexp, Float.round(Ninja.currency(:sexp), 3)},
-      {:sexa, Float.round(Ninja.currency(:sexa), 3)},
+      {:sexa, Float.round(Ninja.currency(:sexa), 3)}
     ]
   end
 

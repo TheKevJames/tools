@@ -1,0 +1,25 @@
+<section class="pantheon">
+  <p>Warning: Ritual data has not yet been pushed to the cargoquery API, the following tiers are being reported from Heist League.</p>
+
+  <table>
+    <tr>
+      <td>God</td>
+      <td>Effects: Map &rarr; Upgrade</td>
+    </tr>
+    <%= for {name, locations} <- @data do %>
+    <tr>
+      <td><%= name %></td>
+      <td>
+        <table>
+        <%= for {loc, text} <- locations do %>
+          <tr>
+            <td width="200rem"><%= loc %></td>
+            <td><%= raw text %></td>
+          </tr>
+        <% end %>
+        </table>
+      </td>
+    </tr>
+    <% end %>
+  </table>
+</section>
