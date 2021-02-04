@@ -33,6 +33,9 @@
     "updateTypes": ["minor", "patch", "pin", "digest"],
     "automerge": true
   }, {
+    "managers": ["poetry"],
+    "versioning": "poetry"
+  }, {
     "datasources": ["terraform"],
     "packageNames": ["google", "google-beta"],
     "groupName": "google"
