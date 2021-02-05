@@ -57,16 +57,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         terminal.draw(|mut f| ui::draw(&mut f, &mut app))?;
 
         match events.next()? {
-            Event::Input(key) => match key {
-                Key::Char(c) => {
-                    app.on_key(c);
-                    if c == 'q' {
+            Event::Input(key) => {
+                let acted = app.on_key(key);
+                if let Key::Char(c) = key {
+                    if !acted && c == 'q' {
                         debug!("quitting for user request");
                         break;
                     }
                 }
-                _ => {}
-            },
+            }
             Event::Tick => {
                 app.on_tick();
             }

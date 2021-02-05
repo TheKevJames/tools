@@ -5,8 +5,10 @@ use crate::util::StatefulList;
 use log::{error, info};
 use std::cmp::{max, min};
 use std::process::Command;
+use termion::event::Key;
 
 pub struct App {
+    pub filter: String,
     pub notifs: NotifsPoller,
     pub repos: ReposPoller,
 
@@ -16,13 +18,11 @@ pub struct App {
 
 impl App {
     pub fn new(settings: &Settings) -> App {
-        // N.B. must match expected order in UI
-        let mut state = StatefulList::with_items(vec!["Notifs", "Repos"]);
-        state.last();
         App {
+            filter: String::new(),
             notifs: NotifsPoller::new(settings),
             repos: ReposPoller::new(settings),
-            state: state,
+            state: StatefulList::with_items(vec!["Notifs", "Repos", "Filter"]),
             visible_notifs: 5,
         }
     }
@@ -53,17 +53,87 @@ impl App {
         }
     }
 
-    pub fn on_key(&mut self, c: char) {
-        match self.state.state.selected() {
-            Some(0) => self.notifs.on_key(c),
-            Some(1) => self.repos.on_key(c),
-            _ => (),
-        };
-        match c {
-            '\n' => self.browse(),
-            '\t' => self.state.next(),
-            'J' | 'K' => self.resize(c),
-            _ => (),
+    pub fn on_key(&mut self, key: Key) -> bool {
+        match key {
+            Key::Backspace => match self.state.state.selected() {
+                Some(2) => {
+                    self.filter.pop();
+                    true
+                }
+                _ => false,
+            },
+            Key::Char(c) => {
+                match self.state.state.selected() {
+                    Some(0) => {
+                        self.notifs.on_key(c);
+                        match c {
+                            '/' => {
+                                self.state.last();
+                                true
+                            }
+                            '\n' => {
+                                self.browse();
+                                true
+                            }
+                            '\t' => {
+                                self.state.next();
+                                true
+                            }
+                            'J' | 'K' => {
+                                self.resize(c);
+                                true
+                            }
+                            _ => false,
+                        }
+                    }
+                    Some(1) => {
+                        self.repos.on_key(c);
+                        match c {
+                            '/' => {
+                                self.state.last();
+                                true
+                            }
+                            '\n' => {
+                                self.browse();
+                                true
+                            }
+                            '\t' => {
+                                self.state.prev();
+                                true
+                            }
+                            'J' | 'K' => {
+                                self.resize(c);
+                                true
+                            }
+                            _ => false,
+                        }
+                    }
+                    Some(2) => {
+                        match c {
+                            '\n' => {
+                                // TODO: only apply on \n?
+                                self.state.next();
+                                true
+                            }
+                            '\t' => false,
+                            _ => {
+                                self.filter.push(c);
+                                true
+                            }
+                        }
+                    }
+                    _ => false,
+                }
+            }
+            Key::Down => {
+                self.state.next();
+                true
+            }
+            Key::Up => {
+                self.state.prev();
+                true
+            }
+            _ => false,
         }
     }
 

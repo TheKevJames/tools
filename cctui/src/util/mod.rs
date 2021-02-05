@@ -10,8 +10,10 @@ pub struct StatefulList<T> {
 
 impl<T> StatefulList<T> {
     pub fn with_items(items: Vec<T>) -> StatefulList<T> {
+        let mut state = ListState::default();
+        state.select(Some(0));
         StatefulList {
-            state: ListState::default(),
+            state: state,
             items: items,
         }
     }
@@ -38,19 +40,19 @@ impl<T> StatefulList<T> {
         self.state.select(Some(i));
     }
 
-    // pub fn prev(&mut self) {
-    //     let i = match self.state.selected() {
-    //         Some(i) => {
-    //             if i == 0 {
-    //                 self.items.len() - 1
-    //             } else {
-    //                 i - 1
-    //             }
-    //         }
-    //         None => 0,
-    //     };
-    //     self.state.select(Some(i));
-    // }
+    pub fn prev(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    self.items.len() - 1
+                } else {
+                    i - 1
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
 }
 
 pub struct StatefulHash<T, V> {

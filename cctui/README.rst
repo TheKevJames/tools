@@ -8,7 +8,7 @@ it additionally can support CircleCI's new Pipelines feature.
 It can also (optionally) display your Github notifications!
 
 .. image:: sample.jpg
-   :alt: CCTUI sample
+   :alt: CCTUI sample screenshot
    :align: center
 
 You Named It What?
@@ -32,10 +32,20 @@ Usage
     $ cargo install cctui
     $ cctui
 
-Use ``j``/``k`` to scroll, ``g``/``G`` for navigating to the top/bottom,
-``<enter>`` to open your browser to the selected repo, and ``q`` to quit. You
-can force a refresh of all repos with ``r``. Use ``<tab>`` to toggle between
-which tab those keys are acting upon and ``J``/``K`` to resize the tabs.
+The keybindings are "vaguely vim-like":
+
+* use ``<tab>`` to toggle active pane
+* scroll within a pane ``j``/``k``
+* navigate to top/bottom of a pane with ``g``/``G``
+* ``<enter>`` opens your browser to the highlighted item
+* ``J``/``K`` to resize the pans
+* ``\`` to enter filter mode:
+
+  * enter text normally, that filter will be applied to all other panes
+  * ``<enter>`` to return to the app
+
+* ``r`` to refresh the given pane's data
+* ``q`` to quit
 
 Configuration
 -------------

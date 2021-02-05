@@ -16,6 +16,7 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
                     Constraint::Length(app.visible_notifs + 2),
                     Constraint::Min(0),
                     Constraint::Length(7),
+                    Constraint::Length(3),
                 ]
                 .as_ref(),
             )
@@ -24,14 +25,36 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         draw_notifs(f, app, chunks[0]);
         draw_repos(f, app, chunks[1]);
         draw_recent(f, app, chunks[2]);
+        draw_filter(f, app, chunks[3]);
     } else {
         let chunks = Layout::default()
-            .constraints([Constraint::Min(0), Constraint::Length(7)].as_ref())
+            .constraints(
+                [
+                    Constraint::Min(0),
+                    Constraint::Length(7),
+                    Constraint::Length(3),
+                ]
+                .as_ref(),
+            )
             .split(f.size());
 
         draw_repos(f, app, chunks[0]);
         draw_recent(f, app, chunks[1]);
+        draw_filter(f, app, chunks[2]);
     }
+}
+
+fn draw_filter<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
+    let style = match app.state.state.selected() {
+        Some(2) => Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD),
+        _ => Style::default().fg(Color::White),
+    };
+    let filter = ListItem::new(Span::styled(&app.filter, style));
+    // TODO: highlight selected title
+    let rows = List::new([filter]).block(Block::default().borders(Borders::ALL).title(" Filter "));
+    f.render_widget(rows, area);
 }
 
 fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
@@ -43,18 +66,17 @@ fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         .iter()
         .rev()
         .map(|(status, _)| {
-            ListItem::new(Span::styled(
-                if !status.reason.is_empty() {
-                    format!(
-                        "[{}] {} ({})",
-                        status.repository.full_name, status.subject.title, status.reason
-                    )
-                } else {
-                    format!("[{}] {}", status.repository.full_name, status.subject.title)
-                },
-                style,
-            ))
+            if !status.reason.is_empty() {
+                format!(
+                    "[{}] {} ({})",
+                    status.repository.full_name, status.subject.title, status.reason
+                )
+            } else {
+                format!("[{}] {}", status.repository.full_name, status.subject.title)
+            }
         })
+        .filter(|text| text.contains(&app.filter))
+        .map(|text| ListItem::new(Span::styled(text, style)))
         .collect::<Vec<_>>();
 
     let title = &format!(" Notifications ({}) ", app.notifs.all.items.len());
@@ -87,30 +109,35 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         .items
         .iter()
         .map(|(repo, status)| {
-            ListItem::new(Span::styled(
-                match app
-                    .repos
-                    .all
-                    .items
-                    .keys()
-                    .filter(|&r| r.name == repo.name)
-                    .count()
-                {
-                    1 => format!("{}", repo.name),
-                    _ if repo.cctray.is_some() => format!("{}", repo.name),
-                    _ if repo.circleci.is_some() => {
-                        let circleci = repo.circleci.as_ref().unwrap();
-                        if circleci.branch == Branch::default() {
-                            format!("{} ({})", repo.name, circleci.workflow)
-                        } else {
-                            format!(
-                                "{} ({} on {})",
-                                repo.name, circleci.workflow, circleci.branch
-                            )
-                        }
+            let text = match app
+                .repos
+                .all
+                .items
+                .keys()
+                .filter(|&r| r.name == repo.name)
+                .count()
+            {
+                1 => format!("{}", repo.name),
+                _ if repo.cctray.is_some() => format!("{}", repo.name),
+                _ if repo.circleci.is_some() => {
+                    let circleci = repo.circleci.as_ref().unwrap();
+                    if circleci.branch == Branch::default() {
+                        format!("{} ({})", repo.name, circleci.workflow)
+                    } else {
+                        format!(
+                            "{} ({} on {})",
+                            repo.name, circleci.workflow, circleci.branch
+                        )
                     }
-                    _ => format!("{}", repo.name), // impossible
-                },
+                }
+                _ => format!("{}", repo.name), // impossible
+            };
+            (text, status)
+        })
+        .filter(|(text, _)| text.contains(&app.filter))
+        .map(|(text, status)| {
+            ListItem::new(Span::styled(
+                text,
                 match status.status.as_ref() {
                     "error" => style_error,
                     "failed" => style_failure,
