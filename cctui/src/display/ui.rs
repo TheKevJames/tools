@@ -5,7 +5,7 @@ use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::text::Span;
-use tui::widgets::{Block, Borders, List, ListItem};
+use tui::widgets::{Block, Borders, List, ListItem, ListState};
 use tui::Frame;
 
 pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
@@ -64,7 +64,7 @@ fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         .all
         .items
         .iter()
-        .rev()
+        .filter(|(_, (_, visible))| *visible)
         .map(|(status, _)| {
             if !status.reason.is_empty() {
                 format!(
@@ -75,7 +75,6 @@ fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                 format!("[{}] {}", status.repository.full_name, status.subject.title)
             }
         })
-        .filter(|text| text.contains(&app.filter))
         .map(|text| ListItem::new(Span::styled(text, style)))
         .collect::<Vec<_>>();
 
@@ -108,7 +107,8 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         .all
         .items
         .iter()
-        .map(|(repo, status)| {
+        .filter(|(_, (_, visible))| *visible)
+        .map(|(repo, (status, _))| {
             let text = match app
                 .repos
                 .all
@@ -134,7 +134,6 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
             };
             (text, status)
         })
-        .filter(|(text, _)| text.contains(&app.filter))
         .map(|(text, status)| {
             ListItem::new(Span::styled(
                 text,
@@ -174,8 +173,8 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         };
 
         // share our state selector across columns
-        let mut local_state = app.repos.all.state.clone();
-        let selected = match app.repos.all.state.selected() {
+        let mut local_state: &mut ListState = &mut (&*app.repos.all.state).clone();
+        let selected = match local_state.selected() {
             Some(x) if x < (height as usize) * i => None,
             Some(x) if x >= (height as usize) * (i + 1) => None,
             Some(x) => Some(x - (height as usize * i)),
@@ -197,18 +196,23 @@ fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         .items
         .iter()
         .rev()
-        .map(|(status, repo)| {
+        .filter(|(_, (_, visible))| *visible)
+        .map(|(status, (repo, _))| {
+            let text = if let Some(_) = &repo.cctray {
+                format!("{}", repo.name)
+            } else if let Some(circleci) = &repo.circleci {
+                format!(
+                    "{} ({} on {})",
+                    repo.name, circleci.workflow, circleci.branch
+                )
+            } else {
+                format!("{}", repo.name)
+            };
+            (text, status)
+        })
+        .map(|(text, status)| {
             ListItem::new(Span::styled(
-                if let Some(_) = &repo.cctray {
-                    format!("{}", repo.name)
-                } else if let Some(circleci) = &repo.circleci {
-                    format!(
-                        "{} ({} on {})",
-                        repo.name, circleci.workflow, circleci.branch
-                    )
-                } else {
-                    format!("{}", repo.name)
-                },
+                text,
                 match status.status.as_ref() {
                     "error" => style_error,
                     "failed" => style_failure,

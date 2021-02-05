@@ -5,7 +5,7 @@ use log::{error, warn};
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use serde_xml_rs::from_str;
-use std::cmp::Ordering;
+use std::cmp::{max, Ordering};
 use std::collections::{BTreeMap, HashMap};
 
 #[derive(Clone, Debug, Eq, PartialEq, PartialOrd)]
@@ -145,6 +145,7 @@ pub struct ReposPoller {
 
     client: Client,
     delay: HashMap<Repo, u16>,
+    polling: bool,
 }
 
 impl ReposPoller {
@@ -166,10 +167,11 @@ impl ReposPoller {
             all: StatefulHash::with_items(
                 repos
                     .iter()
-                    .map(|r| (r.clone(), StatusItem::new("unknown")))
+                    .map(|r| (r.clone(), (StatusItem::new("unknown"), true)))
                     .collect(),
             ),
             recent: StatefulHash::with_items(BTreeMap::new()),
+            polling: !delay.is_empty(),
             client: Client::new(),
             delay: delay,
         }
@@ -235,7 +237,7 @@ impl ReposPoller {
     pub fn get_selected_url(&self) -> Option<String> {
         match self.all.state.selected() {
             Some(i) => match self.all.items.iter().skip(i).next() {
-                Some((repo, status)) => {
+                Some((repo, (status, _))) => {
                     let chunks = repo.name.split("/").collect::<Vec<_>>();
                     match &status.url {
                         Some(x) => Some(x.clone()),
@@ -269,6 +271,30 @@ impl ReposPoller {
         }
     }
 
+    pub fn filter(&mut self, filter: &str) {
+        self.polling = filter.is_empty() && !self.delay.is_empty();
+        if self.polling {
+            // In case we've been filtered for a while, make sure to update
+            // soon after un-filtering
+            // TODO: once we can do in-place upgrades, we should be able to
+            // avoid toggling off polling while filtered
+            for (_, val) in self.delay.iter_mut() {
+                *val = max(*val, 10);
+            }
+        }
+
+        // TODO: include repo.circleci.{workflow,branch} in check
+        for (repo, (_, visible)) in self.all.items.iter_mut() {
+            let show = repo.name.contains(filter);
+            *visible = show;
+        }
+        for (_, (repo, visible)) in self.recent.items.iter_mut() {
+            let show = repo.name.contains(filter);
+            *visible = show;
+        }
+        self.all.first();
+    }
+
     pub fn on_key(&mut self, c: char) {
         match c {
             'G' => self.all.last(),
@@ -285,6 +311,10 @@ impl ReposPoller {
     }
 
     pub fn on_tick(&mut self, mut allow_processing: bool) {
+        if !self.polling {
+            return;
+        }
+
         for (repo, val) in self.delay.iter_mut() {
             if val == &0 {
                 if !allow_processing {
@@ -296,9 +326,11 @@ impl ReposPoller {
                     Some(status) => {
                         match status.items {
                             Some(items) if items.len() > 0 => {
-                                self.all.items.insert(repo.clone(), items[0].clone());
+                                self.all
+                                    .items
+                                    .insert(repo.clone(), (items[0].clone(), true));
                                 for job in items {
-                                    self.recent.items.insert(job, repo.clone());
+                                    self.recent.items.insert(job, (repo.clone(), true));
                                     if self.recent.items.len() > 5 {
                                         let entry = match self.recent.items.iter().next() {
                                             Some((k, _)) => Some(k.clone()),
@@ -315,7 +347,7 @@ impl ReposPoller {
                                 // warn!("got unknown CI status for {}", repo.name);
                                 self.all
                                     .items
-                                    .insert(repo.clone(), StatusItem::new("unknown"));
+                                    .insert(repo.clone(), (StatusItem::new("unknown"), true));
                                 ()
                             }
                         }

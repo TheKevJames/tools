@@ -18,11 +18,13 @@ pub struct App {
 
 impl App {
     pub fn new(settings: &Settings) -> App {
+        let mut state = StatefulList::with_items(vec!["Notifs", "Repos", "Filter"]);
+        state.first();
         App {
             filter: String::new(),
             notifs: NotifsPoller::new(settings),
             repos: ReposPoller::new(settings),
-            state: StatefulList::with_items(vec!["Notifs", "Repos", "Filter"]),
+            state: state,
             visible_notifs: 5,
         }
     }
@@ -54,6 +56,7 @@ impl App {
     }
 
     pub fn on_key(&mut self, key: Key) -> bool {
+        // TODO: fixup ugly return value handling
         match key {
             Key::Backspace => match self.state.state.selected() {
                 Some(2) => {
@@ -68,6 +71,7 @@ impl App {
                         self.notifs.on_key(c);
                         match c {
                             '/' => {
+                                self.filter.clear();
                                 self.state.last();
                                 true
                             }
@@ -90,6 +94,7 @@ impl App {
                         self.repos.on_key(c);
                         match c {
                             '/' => {
+                                self.filter.clear();
                                 self.state.last();
                                 true
                             }
@@ -111,12 +116,14 @@ impl App {
                     Some(2) => {
                         match c {
                             '\n' => {
-                                // TODO: only apply on \n?
-                                self.state.next();
+                                self.notifs.filter(&self.filter);
+                                self.repos.filter(&self.filter);
+                                self.state.first();
                                 true
                             }
                             '\t' => false,
                             _ => {
+                                // TODO: consider applying filters on each key press
                                 self.filter.push(c);
                                 true
                             }
@@ -124,14 +131,6 @@ impl App {
                     }
                     _ => false,
                 }
-            }
-            Key::Down => {
-                self.state.next();
-                true
-            }
-            Key::Up => {
-                self.state.prev();
-                true
             }
             _ => false,
         }

@@ -43,6 +43,7 @@ pub struct NotifsPoller {
 
     client: Client,
     delay: HashMap<Notif, u16>,
+    polling: bool,
 }
 
 impl NotifsPoller {
@@ -61,6 +62,7 @@ impl NotifsPoller {
         NotifsPoller {
             all: StatefulHash::with_items(BTreeMap::new()),
             enabled: !delay.is_empty(),
+            polling: !delay.is_empty(),
             client: Client::new(),
             delay: delay,
         }
@@ -93,47 +95,71 @@ impl NotifsPoller {
 
     pub fn get_selected_url(&self) -> Option<String> {
         match self.all.state.selected() {
-            Some(i) => match self.all.items.iter().rev().skip(i).next() {
-                Some((status, notif)) => match &notif.service {
-                    NotifService::Github => {
-                        debug!("fetching user-facing URL from {}", status.subject.url);
-                        let request = self
-                            .client
-                            .get(&status.subject.url)
-                            .header("User-Agent", "CCTUI")
-                            .header("Authorization", format!("Bearer {}", &notif.token));
-                        match request.send() {
-                            Ok(resp) => match resp.json() {
-                                Ok(body) => {
-                                    let lookup: GithubNotifLookup = body;
-                                    Some(lookup.html_url)
-                                }
+            Some(i) => {
+                match self.all.items.iter().skip(i).next() {
+                    Some((status, (notif, _))) => match &notif.service {
+                        NotifService::Github => {
+                            debug!("fetching user-facing URL from {}", status.subject.url);
+                            let request = self
+                                .client
+                                .get(&status.subject.url)
+                                .header("User-Agent", "CCTUI")
+                                .header("Authorization", format!("Bearer {}", &notif.token));
+                            match request.send() {
+                                Ok(resp) => match resp.json() {
+                                    Ok(body) => {
+                                        let lookup: GithubNotifLookup = body;
+                                        Some(lookup.html_url)
+                                    }
+                                    Err(e) => {
+                                        error!("could not retrieve user-facing URL: {:?}", e);
+                                        None
+                                    }
+                                },
                                 Err(e) => {
-                                    error!("could not retrieve user-facing URL: {:?}", e);
+                                    error!("error making Github request: {:?}", e);
                                     None
                                 }
-                            },
-                            Err(e) => {
-                                error!("error making Github request: {:?}", e);
-                                None
                             }
                         }
+                    },
+                    None => {
+                        // impossible
+                        error!(
+                            "attempted to browse to notif {} of {}",
+                            i,
+                            self.all.items.len() - 1
+                        );
+                        None
                     }
-                },
-                None => {
-                    error!(
-                        "attempted to browse to notif {} of {}",
-                        i,
-                        self.all.items.len() - 1
-                    );
-                    None
                 }
-            },
+            }
             None => {
                 warn!("attempted to browse to unselected notif");
                 None
             }
         }
+    }
+
+    pub fn filter(&mut self, filter: &str) {
+        self.polling = filter.is_empty() && !self.delay.is_empty();
+        if self.polling {
+            // In case we've been filtered for a while, make sure to update
+            // soon after un-filtering
+            // TODO: once we can do in-place upgrades, we should be able to
+            // avoid toggling off polling while filtered
+            for (_, val) in self.delay.iter_mut() {
+                *val = max(*val, 10);
+            }
+        }
+
+        for (status, (_, visible)) in self.all.items.iter_mut() {
+            let show = status.repository.full_name.contains(filter)
+                || status.subject.title.contains(filter)
+                || status.reason.contains(filter);
+            *visible = show;
+        }
+        self.all.first();
     }
 
     pub fn on_key(&mut self, c: char) {
@@ -169,7 +195,7 @@ impl NotifsPoller {
     }
 
     pub fn on_tick(&mut self, mut allow_processing: bool) {
-        if !self.enabled {
+        if !self.polling {
             return;
         }
 
@@ -183,7 +209,7 @@ impl NotifsPoller {
                     // TODO: do an in-place refresh instead of wiping everything
                     self.all.items.clear();
                     for item in items {
-                        self.all.items.insert(item.clone(), notif.clone());
+                        self.all.items.insert(item.clone(), (notif.clone(), true));
                     }
                     self.all.first();
                 }

@@ -59,7 +59,7 @@ checksum = "4c0496836a84f8d0495758516b8621a622beb77c0fed418570e50764093ced48"
 
 [[package]]
 name = "cctui"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "chrono",
  "config",
