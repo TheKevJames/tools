@@ -26,7 +26,7 @@ defmodule Poe.MixProject do
 
   defp deps do
     [
-      {:gettext, "~> 0.11"},
+      {:gettext, "~> 0. or ^0.18.0"},
       {:httpoison, "~> 1.8"},
       {:jason, "~> 1.0"},
       {:phoenix, "~> 1.5.7"},
