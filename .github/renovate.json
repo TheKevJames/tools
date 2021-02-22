@@ -1,7 +1,3 @@
 {
-  "extends": ["github>thekevjames/tools:personal"],
-  "packageRules": [{
-    "paths": ["poe/assets/package.json", "poe/mix.exs"],
-    "rangeStrategy": "widen"
-  }]
+  "extends": ["github>thekevjames/tools:personal"]
 }
