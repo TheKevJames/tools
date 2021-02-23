@@ -1,3 +1,7 @@
 {
-  "extends": ["github>thekevjames/tools:personal"]
+  "extends": ["github>thekevjames/tools:personal"],
+  "packageRules": [{
+    "paths": ["poe/assets/package.json"],
+    "enabled": false
+  }]
 }
