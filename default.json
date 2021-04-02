@@ -14,6 +14,14 @@
     "packageNames": ["python"],
     "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$"
   }, {
+    "managers": ["pre-commit"],
+    "packageNames": ["pycqa/pylint"],
+    "versioning": "regex:^pylint-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$"
+  }, {
+    "managers": ["pre-commit"],
+    "packageNames": ["pre-commit/mirrors-mypy"],
+    "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d)\\.?(?<patch>\\d+)$"
+  }, {
     "datasources": ["orb"],
     "rangeStrategy": "replace",
     "patch": {
