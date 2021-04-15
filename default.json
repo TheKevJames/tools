@@ -47,6 +47,9 @@
     "datasources": ["terraform"],
     "packageNames": ["google", "google-beta"],
     "groupName": "google"
+  }, {
+    "packageNames": ["hashicorp/terraform", "terraform"],
+    "groupName": "terraform"
   }],
   "prConcurrentLimit": 0,
   "prCreation": "immediate",

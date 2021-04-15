@@ -1,10 +1,5 @@
 {
   "extends": ["github>thekevjames/tools"],
   "labels": ["task"],
-  "automergeType": "branch",
-  "packageRules": [{
-    "datasources": ["docker", "terraform"],
-    "packageNames": ["hashicorp/terraform", "terraform"],
-    "groupName": "terraform"
-  }]
+  "automergeType": "branch"
 }
