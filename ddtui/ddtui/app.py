@@ -1,5 +1,6 @@
 import asyncio
 import curses
+import enum
 import os
 import pathlib
 import shelve
@@ -136,37 +137,42 @@ async def tick(stdscr, q: asyncio.Queue):
         await asyncio.sleep(10)
 
 
+class Sort(enum.Enum):
+    NAME = 'n'
+    VALUE = 'v'
+
+
 async def render(stdscr, slos: shelve.Shelf):
     q = asyncio.Queue(maxsize=1)
     asyncio.create_task(tick(stdscr, q))
     asyncio.create_task(readio(stdscr, q))
 
-    curses.use_default_colors()
-    curses.init_pair(1, curses.COLOR_GREEN, -1)
-    curses.init_pair(2, curses.COLOR_YELLOW, -1)
-    curses.init_pair(3, curses.COLOR_RED, -1)
-
-    sort_mode = 'name'  # TODO: enum
+    sort_mode = Sort.NAME
     while True:
         k = await q.get()
         if k == ord('q'):
             return
-        elif k == ord('n'):
-            sort_mode = 'name'
-        elif k == ord('v'):
-            sort_mode = 'value'
+        elif k in {ord('n'), ord('v')}:
+            sort_mode = Sort(chr(k))
 
-        if sort_mode == 'name':
+        # TODO: reverseable
+        if sort_mode == Sort.NAME:
             items = sorted(slos.values(), key=lambda xs: xs['name'])
-        elif sort_mode == 'value':
-            items = reversed(sorted(slos.values(), key=lambda xs: min(
-                x['value'] for x in xs['results'])))
+        elif sort_mode == Sort.VALUE:
+            items = sorted(slos.values(),
+                           key=lambda xs: min(x['value']
+                                              for x in xs['results']),
+                           reverse=True)
 
         height, width = stdscr.getmaxyx()
 
         i = 0
         stdscr.clear()
         for payload in items:
+            if i >= height-2:
+                # TODO: pagination
+                break
+
             stdscr.addstr(i, 0, payload['name'])
             for result in payload['results']:
                 stdscr.addstr(i, width//2, result['name'])
@@ -179,17 +185,29 @@ async def render(stdscr, slos: shelve.Shelf):
 
         stdscr.addstr(height-1, 0, 'Sort:')
         stdscr.addstr(height-1, 6, '[n]ame',
-                      curses.A_BOLD if sort_mode == 'name' else 0)
+                      curses.A_BOLD if sort_mode == Sort.NAME else 0)
         stdscr.addstr(height-1, 13, '[v]alue',
-                      curses.A_BOLD if sort_mode == 'value' else 0)
+                      curses.A_BOLD if sort_mode == Sort.VALUE else 0)
 
         stdscr.refresh()
 
 
-def main(stdscr) -> None:
+def init(stdscr) -> None:
     stdscr.nodelay(True)
+
     stdscr.idlok(True)
     stdscr.scrollok(True)
+
+    curses.curs_set(0)
+
+    curses.use_default_colors()
+    curses.init_pair(1, curses.COLOR_GREEN, -1)
+    curses.init_pair(2, curses.COLOR_YELLOW, -1)
+    curses.init_pair(3, curses.COLOR_RED, -1)
+
+
+def main(stdscr) -> None:
+    init(stdscr)
     stdscr.clear()
 
     cache_dir = pathlib.Path.home() / '.cache' / 'ddtui'
@@ -206,10 +224,9 @@ def main(stdscr) -> None:
                 task.result()
             except asyncio.CancelledError:
                 pass
-
-        stdscr.clear()
     finally:
         slos.close()
+        stdscr.clear()
 
 
 def cli():
