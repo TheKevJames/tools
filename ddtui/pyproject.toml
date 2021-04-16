@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "ddtui"
+version = "0.1.0"
+description = "DataDog TUI, an SLO monitoring dashboard for your terminal"
+authors = ["Kevin James <KevinJames@thekev.in>"]
+license = "MIT"
+
+[tool.poetry.scripts]
+ddtui = "ddtui.app:cli"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+aiohttp = "^3.7.4"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
