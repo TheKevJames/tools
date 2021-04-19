@@ -124,16 +124,17 @@ async def readio(stdscr, q: asyncio.Queue):
         k = stdscr.getch(0, 0)
         if k != -1:
             await q.put(k)
+        # TODO: faster without polling too often
         await asyncio.sleep(1)
 
 
 async def tick(stdscr, q: asyncio.Queue):
     for _ in range(5):
-        await q.put('r')
+        await q.put(' ')
         await asyncio.sleep(1)
 
     while True:
-        await q.put('r')
+        await q.put(' ')
         await asyncio.sleep(10)
 
 
@@ -142,27 +143,35 @@ class Sort(enum.Enum):
     VALUE = 'v'
 
 
+class State:
+    def __init__(self):
+        self.sort = Sort.NAME
+        self.reverse = False
+
+
 async def render(stdscr, slos: shelve.Shelf):
     q = asyncio.Queue(maxsize=1)
     asyncio.create_task(tick(stdscr, q))
     asyncio.create_task(readio(stdscr, q))
 
-    sort_mode = Sort.NAME
+    state = State()
     while True:
         k = await q.get()
         if k == ord('q'):
             return
         elif k in {ord('n'), ord('v')}:
-            sort_mode = Sort(chr(k))
+            state.sort = Sort(chr(k))
+        elif k in {ord('r')}:
+            state.reverse = not state.reverse
 
-        # TODO: reverseable
-        if sort_mode == Sort.NAME:
-            items = sorted(slos.values(), key=lambda xs: xs['name'])
-        elif sort_mode == Sort.VALUE:
+        if state.sort == Sort.NAME:
+            items = sorted(slos.values(), key=lambda xs: xs['name'],
+                           reverse=state.reverse)
+        elif state.sort == Sort.VALUE:
             items = sorted(slos.values(),
                            key=lambda xs: min(x['value']
                                               for x in xs['results']),
-                           reverse=True)
+                           reverse=not state.reverse)
 
         height, width = stdscr.getmaxyx()
 
@@ -183,11 +192,15 @@ async def render(stdscr, slos: shelve.Shelf):
                 i += 1
             stdscr.addstr(i, 0, '')
 
-        stdscr.addstr(height-1, 0, 'Sort:')
-        stdscr.addstr(height-1, 6, '[n]ame',
-                      curses.A_BOLD if sort_mode == Sort.NAME else 0)
-        stdscr.addstr(height-1, 13, '[v]alue',
-                      curses.A_BOLD if sort_mode == Sort.VALUE else 0)
+        statusbar = ['Sort: ', '[n]ame', ' ', '[v]alue', ' | ', '[r]everse']
+        for i, text in enumerate(statusbar):
+            prev = sum(len(x) for x in statusbar[:i])
+            if (i == 1 and state.sort == Sort.NAME
+                    or i == 3 and state.sort == Sort.VALUE
+                    or i == 5 and state.reverse):
+                stdscr.attron(curses.A_BOLD)
+            stdscr.addstr(height-1, prev, text)
+            stdscr.attroff(curses.A_BOLD)
 
         stdscr.refresh()
 
