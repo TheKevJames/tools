@@ -1,6 +1,6 @@
 FROM elixir:1.11.4-alpine AS build
 
-RUN apk add --no-cache build-base git npm python3
+RUN apk add --no-cache build-base git npm python2
 
 WORKDIR /app
 RUN mix local.hex --force && \
