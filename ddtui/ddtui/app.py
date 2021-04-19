@@ -1,10 +1,19 @@
 import asyncio
 import curses
+import dataclasses
 import enum
 import os
 import pathlib
 import shelve
 import time
+from typing import Any
+from typing import Callable
+from typing import cast
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
 import aiohttp
 
@@ -15,120 +24,171 @@ HEADERS = {
     'DD-API-KEY': os.environ['DD_API_KEY'],
     'DD-APPLICATION-KEY': os.environ['DD_APP_KEY'],
 }
-PARAMS = {}
+PARAMS: Dict[str, Any] = {}
 
 
-def parse(s: str):
-    for i, c in enumerate(s):
-        if c == '(':
-            x = s[i:].find(')')
-            rem = s[i+x+1:].strip()
-            if rem:
-                return (rem[0], parse(s[i+1:i+x]), parse(rem[1:]))
-            else:
-                return ('=', parse(s[i+1:i+s[i:].find(')')]))
-        elif c in {'+', '*'}:
-            return (c, parse(s[:i]), parse(s[i+1:]))
+class Ast:
+    eq: Optional[str] = None
+    add: Optional[Tuple['Ast', 'Ast']] = None
+    mult: Optional[Tuple['Ast', 'Ast']] = None
 
-    return ('=', s.replace('MASK', '()').strip())
+    def __init__(self, op: str, lhs: Union[str, 'Ast'],
+                 rhs: Optional['Ast'] = None) -> None:
+        if op == '=':
+            self.eq = cast(str, lhs)
+        elif op == '+':
+            self.add = (cast(Ast, lhs), cast(Ast, rhs))
+        elif op == '*':
+            self.mult = (cast(Ast, lhs), cast(Ast, rhs))
+        else:
+            assert False, f'invalid AST node {op}, {lhs}, {rhs}'
+
+    @classmethod
+    def parse(cls, s: str) -> 'Ast':
+        # Splits based on brackets, +, and *. This should be a CFG.
+        for i, c in enumerate(s):
+            if c == '(':
+                x = s[i:].find(')')
+                rem = s[i + x + 1:].strip()
+                if rem:
+                    return cls(rem[0], cls.parse(s[i + 1:i + x]),
+                               cls.parse(rem[1:]))
+
+                value = cls.parse(s[i + 1:i + s[i:].find(')')])
+                if isinstance(value, str):
+                    return cls('=', value)
+                return value
+
+            if c in {'+', '*'}:
+                return cls(c, cls.parse(s[:i]), cls.parse(s[i + 1:]))
+
+        return cls('=', s.replace('MASK', '()').strip())
+
+    async def visit(self, s: aiohttp.ClientSession) -> Dict[str, float]:
+        if self.eq:
+            resp = await s.get(f'{API}/query',
+                               params={**PARAMS, 'query': self.eq})
+            series = (await resp.json())['series']
+            if not series:
+                return {}
+            return dict(series[0]['pointlist'])
+
+        if self.add:
+            lhs = await self.add[0].visit(s)
+            rhs = await self.add[1].visit(s)
+            return {k: lhs.get(k, 0.) + rhs.get(k, 0)
+                    for k in set(lhs) | set(rhs)}
+
+        if self.mult:
+            lhs = await self.mult[0].visit(s)
+            rhs = await self.mult[1].visit(s)
+            return {k: lhs.get(k, 0.) * rhs.get(k, 0)
+                    for k in set(lhs) | set(rhs)}
+
+        raise Exception(f'visiting unsupported AST node {self}')
 
 
-async def visit(s: aiohttp.ClientSession, ast: tuple):
-    if ast[0] == '=':
-        if isinstance(ast[1], tuple):
-            return await visit(s, ast[1])
+@dataclasses.dataclass
+class SloResult:
+    name: str
+    value: float
 
-        resp = await s.get(f'{API}/query', params={**PARAMS, 'query': ast[1]})
-        series = (await resp.json())['series']
-        if not series:
-            return {}
-        return dict(series[0]['pointlist'])
-    elif ast[0] == '+':
-        lhs = await visit(s, ast[1])
-        rhs = await visit(s, ast[2])
-        return {k: lhs.get(k, 0) + rhs.get(k, 0) for k in set(lhs) | set(rhs)}
-    elif ast[0] == '*':
-        lhs = await visit(s, ast[1])
-        rhs = await visit(s, ast[2])
-        return {k: lhs.get(k, 0) * rhs.get(k, 0) for k in set(lhs) | set(rhs)}
-    else:
-        raise Exception(f'unsupported AST node {ast[0]}')
-
-
-async def slo(s: aiohttp.ClientSession, slos: shelve.Shelf, data: dict):
-    if time.time() - slos[data['id']].get('updated', 0) < 60:
-        return
-
-    results = []
-    if data['type'] == 'metric':
+    @classmethod
+    async def from_metric(cls, data: Dict[str, Any],
+                          s: aiohttp.ClientSession) -> 'SloResult':
         queries = data['query']['numerator'].strip()
-        ast = parse(queries.replace('()', 'MASK'))
-        numerators = await visit(s, ast)
+        ast = Ast.parse(queries.replace('()', 'MASK'))
+        numerators = await ast.visit(s)
 
         queries = data['query']['denominator'].strip()
-        ast = parse(queries.replace('()', 'MASK'))
-        denominators = await visit(s, ast)
+        ast = Ast.parse(queries.replace('()', 'MASK'))
+        denominators = await ast.visit(s)
 
         points = {k: numerators[k] / denominators[k]
                   for k in set(numerators) & set(denominators)}
         result = 100. * sum(points.values()) / len(points)
-        results.append({'name': data['name'], 'value': result})
-    elif data['type'] == 'monitor':
-        for monitor in data['monitor_ids']:
-            resp = await s.get(f'{API}/monitor/{monitor}')
-            payload = await resp.json()
+        return SloResult(data['name'], result)
 
-            query, _gt, target_str = payload['query'].rsplit(' ', 2)
-            target = float(target_str)
-            _agg, query = query.split(':', 1)
+    @classmethod
+    async def from_monitor(cls, monitor: str,
+                           s: aiohttp.ClientSession) -> 'SloResult':
+        resp = await s.get(f'{API}/monitor/{monitor}')
+        payload = await resp.json()
 
-            resp = await s.get(f'{API}/query', params={**PARAMS, 'query': query})
-            monitors = [(sum((x[1] or 0.) > target for x in series['pointlist'])
-                         / len(series['pointlist']))
-                        for series in (await resp.json())['series']]
-            result = 100 - sum(monitors) / len(monitors)
+        query, _gt, target_str = payload['query'].rsplit(' ', 2)
+        target = float(target_str)
+        _agg, query = query.split(':', 1)
 
-            results.append({'name': payload['name'], 'value': result})
-    else:
-        assert False, f'unsupported SLO type {data["type"]}'
+        resp = await s.get(f'{API}/query', params={**PARAMS, 'query': query})
+        monitors = [(sum((x[1] or 0.) > target for x in series['pointlist'])
+                     / len(series['pointlist']))
+                    for series in (await resp.json())['series']]
+        result = 100. - sum(monitors) / len(monitors)
 
-    slos[data['id']] = {'name': data['name'],
-                        'results': results, 'updated': time.time()}
+        return SloResult(payload['name'], result)
 
 
-async def poll(slos: shelve.Shelf):
-    async with aiohttp.ClientSession(headers=HEADERS, raise_for_status=True) as s:
+@dataclasses.dataclass
+class Slo:
+    name: str
+    results: List[SloResult]
+    updated: float
+
+    @classmethod
+    async def fetch(cls, slos: shelve.Shelf, data: Dict[str, Any],
+                    s: aiohttp.ClientSession) -> None:
+        if data['id'] in slos and time.time() - slos[data['id']].updated < 60:
+            return
+
+        results = []
+        if data['type'] == 'metric':
+            results.append(await SloResult.from_metric(data, s))
+        elif data['type'] == 'monitor':
+            for monitor in data['monitor_ids']:
+                results.append(await SloResult.from_monitor(monitor, s))
+        else:
+            assert False, f'unsupported SLO type {data["type"]}'
+
+        slos[data['id']] = Slo(data['name'], results, time.time())
+
+
+async def poll(slos: shelve.Shelf) -> None:
+    """Poll loop: grab each slow for this week hourly."""
+    async with aiohttp.ClientSession(headers=HEADERS,
+                                     raise_for_status=True) as s:
         resp = await s.get(f'{API}/slo')
-        slos_data = (await resp.json())['data']
+        data = (await resp.json())['data']
 
         while True:
             PARAMS['to'] = int(time.time()) - 600
             PARAMS['from'] = PARAMS['to'] - 60 * 60 * 24 * 7
 
             try:
-                await asyncio.gather(*[slo(s, slos, data) for data in slos_data])
-            except Exception as e:
-                try:
-                    if e.status == 429:
-                        await asyncio.sleep(int(e.headers.get('x-ratelimit-reset')) + 1)
-                        continue
-                except Exception:
-                    pass
-                raise e
+                await asyncio.gather(*[Slo.fetch(slos, d, s) for d in data])
+            except aiohttp.ClientResponseError as e:
+                if s.status == 429:
+                    try:
+                        delay = int(e.headers['x-ratelimit-reset'])
+                    except KeyError:
+                        raise e from None
+                    else:
+                        await asyncio.sleep(delay)
             else:
                 await asyncio.sleep(60 * 60)
 
 
-async def readio(stdscr, q: asyncio.Queue):
+async def readio(stdscr: 'curses._CursesWindow',
+                 q: 'asyncio.Queue[str]') -> None:
     while True:
         k = stdscr.getch(0, 0)
         if k != -1:
-            await q.put(k)
+            await q.put(chr(k))
+            continue
         # TODO: faster without polling too often
         await asyncio.sleep(1)
 
 
-async def tick(stdscr, q: asyncio.Queue):
+async def tick(q: 'asyncio.Queue[str]') -> None:
     for _ in range(5):
         await q.put(' ')
         await asyncio.sleep(1)
@@ -144,68 +204,92 @@ class Sort(enum.Enum):
 
 
 class State:
-    def __init__(self):
+    def __init__(self) -> None:
         self.sort = Sort.NAME
-        self.reverse = False
+        self._reverse = False
+
+    @property
+    def key(self) -> Callable[[Slo], Union[str, float]]:
+        if self.sort is Sort.NAME:
+            return lambda x: x.name
+        if self.sort is Sort.VALUE:
+            return lambda xs: min(x.value for x in xs.results)
+        assert False, f'invalid Sort value {self.sort}'
+        return lambda _: 0.
+
+    @property
+    def reverse(self) -> bool:
+        if self.sort is Sort.VALUE:
+            return not self._reverse
+        return self._reverse
+
+    def handle(self, key: str) -> None:
+        if key in {'n', 'v'}:
+            self.sort = Sort(key)
+        elif key in {'r'}:
+            self._reverse = not self._reverse
+
+    def render_bar(self, stdscr: 'curses._CursesWindow', row: int) -> None:
+        stdscr.addstr(row, 0, 'Sort:', curses.A_DIM)
+
+        if self.sort == Sort.NAME:
+            stdscr.attron(curses.A_BOLD)
+        stdscr.addstr(row, 6, '[n]ame')
+        stdscr.attroff(curses.A_BOLD)
+
+        if self.sort == Sort.VALUE:
+            stdscr.attron(curses.A_BOLD)
+        stdscr.addstr(row, 13, '[v]alue')
+        stdscr.attroff(curses.A_BOLD)
+
+        stdscr.addstr(row, 21, '|')
+        stdscr.addstr(row, 23, 'Order:', curses.A_DIM)
+
+        if self._reverse:
+            stdscr.attron(curses.A_BOLD)
+        stdscr.addstr(row, 30, '[r]everse')
+        stdscr.attroff(curses.A_BOLD)
 
 
-async def render(stdscr, slos: shelve.Shelf):
-    q = asyncio.Queue(maxsize=1)
-    asyncio.create_task(tick(stdscr, q))
+async def render(stdscr: 'curses._CursesWindow', slos: shelve.Shelf) -> None:
+    q: 'asyncio.Queue[str]' = asyncio.Queue(maxsize=1)
+    asyncio.create_task(tick(q))
     asyncio.create_task(readio(stdscr, q))
 
     state = State()
     while True:
         k = await q.get()
-        if k == ord('q'):
+        if k == 'q':
             return
-        elif k in {ord('n'), ord('v')}:
-            state.sort = Sort(chr(k))
-        elif k in {ord('r')}:
-            state.reverse = not state.reverse
 
-        if state.sort == Sort.NAME:
-            items = sorted(slos.values(), key=lambda xs: xs['name'],
-                           reverse=state.reverse)
-        elif state.sort == Sort.VALUE:
-            items = sorted(slos.values(),
-                           key=lambda xs: min(x['value']
-                                              for x in xs['results']),
-                           reverse=not state.reverse)
+        state.handle(k)
+        items = sorted(slos.values(), key=state.key, reverse=state.reverse)
 
         height, width = stdscr.getmaxyx()
 
         i = 0
         stdscr.clear()
         for payload in items:
-            if i >= height-2:
+            if i >= height - 1 - len(payload.results):
                 # TODO: pagination
                 break
 
-            stdscr.addstr(i, 0, payload['name'])
-            for result in payload['results']:
-                stdscr.addstr(i, width//2, result['name'])
-                value = f'{result["value"]:.2f}'
-                style = 1 if result['value'] >= 99.99 else 2 if result['value'] >= 99.9 else 3
+            stdscr.addstr(i, 0, payload.name)
+            for result in payload.results:
+                stdscr.addstr(i, width // 2, result.name)
+                value = f'{result.value:.2f}'
+                style = (1 if result.value >= 99.99
+                         else 2 if result.value >= 99.9 else 3)
                 stdscr.addstr(i, width - len(value) - 1,
                               value, curses.color_pair(style))
                 i += 1
             stdscr.addstr(i, 0, '')
 
-        statusbar = ['Sort: ', '[n]ame', ' ', '[v]alue', ' | ', '[r]everse']
-        for i, text in enumerate(statusbar):
-            prev = sum(len(x) for x in statusbar[:i])
-            if (i == 1 and state.sort == Sort.NAME
-                    or i == 3 and state.sort == Sort.VALUE
-                    or i == 5 and state.reverse):
-                stdscr.attron(curses.A_BOLD)
-            stdscr.addstr(height-1, prev, text)
-            stdscr.attroff(curses.A_BOLD)
-
+        state.render_bar(stdscr, height - 1)
         stdscr.refresh()
 
 
-def init(stdscr) -> None:
+def init(stdscr: 'curses._CursesWindow') -> None:
     stdscr.nodelay(True)
 
     stdscr.idlok(True)
@@ -219,7 +303,7 @@ def init(stdscr) -> None:
     curses.init_pair(3, curses.COLOR_RED, -1)
 
 
-def main(stdscr) -> None:
+def main(stdscr: 'curses._CursesWindow') -> None:
     init(stdscr)
     stdscr.clear()
 
@@ -242,5 +326,5 @@ def main(stdscr) -> None:
         stdscr.clear()
 
 
-def cli():
+def cli() -> None:
     curses.wrapper(main)
