@@ -29,7 +29,7 @@ defmodule Poe.MixProject do
       {:gettext, "0.18.2"},
       {:httpoison, "1.8.0"},
       {:jason, "1.2.2"},
-      {:phoenix, "1.5.7"},
+      {:phoenix, "== 1.5.8"},
       {:phoenix_html, "2.14.3"},
       {:phoenix_live_dashboard, "0.4.0"},
       {:phoenix_live_reload, "== 1.3.1", only: :dev},
