@@ -33,7 +33,7 @@ defmodule Poe.MixProject do
       {:phoenix_html, "2.14.3"},
       {:phoenix_live_dashboard, "0.4.0"},
       {:phoenix_live_reload, "== 1.3.1", only: :dev},
-      {:plug_cowboy, "2.4.1"},
+      {:plug_cowboy, "== 2.5.0"},
       {:telemetry_metrics, "0.6.0"},
       {:telemetry_poller, "0.5.1"}
     ]
