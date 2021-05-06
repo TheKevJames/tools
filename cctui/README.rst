@@ -38,7 +38,7 @@ The keybindings are "vaguely vim-like":
 * scroll within a pane ``j``/``k``
 * navigate to top/bottom of a pane with ``g``/``G``
 * ``<enter>`` opens your browser to the highlighted item
-* ``J``/``K`` to resize the pans
+* ``J``/``K`` to resize the panes
 * ``/`` to enter filter mode:
 
   * enter text normally, that filter will be applied to all other panes
