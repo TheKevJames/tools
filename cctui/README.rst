@@ -39,9 +39,10 @@ The keybindings are "vaguely vim-like":
 * navigate to top/bottom of a pane with ``g``/``G``
 * ``<enter>`` opens your browser to the highlighted item
 * ``J``/``K`` to resize the pans
-* ``\`` to enter filter mode:
+* ``/`` to enter filter mode:
 
   * enter text normally, that filter will be applied to all other panes
+  * use ``!`` as the first character for a negative search
   * ``<enter>`` to return to the app
 
 * ``r`` to refresh the given pane's data

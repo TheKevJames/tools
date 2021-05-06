@@ -154,9 +154,21 @@ impl NotifsPoller {
         }
 
         for (status, (_, visible)) in self.all.items.iter_mut() {
-            let show = status.repository.full_name.contains(filter)
-                || status.subject.title.contains(filter)
-                || status.reason.contains(filter);
+            let show = {
+                if filter.chars().count() > 0 && &filter[0..1] == "!" {
+                    if filter.chars().count() > 1 {
+                        !status.repository.full_name.contains(&filter[1..])
+                            && !status.subject.title.contains(&filter[1..])
+                            && !status.reason.contains(&filter[1..])
+                    } else {
+                        true
+                    }
+                } else {
+                    status.repository.full_name.contains(filter)
+                        || status.subject.title.contains(filter)
+                        || status.reason.contains(filter)
+                }
+            };
             *visible = show;
         }
         self.all.first();

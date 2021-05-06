@@ -285,11 +285,31 @@ impl ReposPoller {
 
         // TODO: include repo.circleci.{workflow,branch} in check
         for (repo, (_, visible)) in self.all.items.iter_mut() {
-            let show = repo.name.contains(filter);
+            let show = {
+                if filter.chars().count() > 0 && &filter[0..1] == "!" {
+                    if filter.chars().count() > 1 {
+                        !repo.name.contains(&filter[1..])
+                    } else {
+                        true
+                    }
+                } else {
+                    repo.name.contains(filter)
+                }
+            };
             *visible = show;
         }
         for (_, (repo, visible)) in self.recent.items.iter_mut() {
-            let show = repo.name.contains(filter);
+            let show = {
+                if filter.chars().count() > 0 && &filter[0..1] == "!" {
+                    if filter.chars().count() > 1 {
+                        !repo.name.contains(&filter[1..])
+                    } else {
+                        true
+                    }
+                } else {
+                    repo.name.contains(filter)
+                }
+            };
             *visible = show;
         }
         self.all.first();
