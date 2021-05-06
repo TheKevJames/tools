@@ -166,7 +166,7 @@ async def poll(slos: shelve.Shelf) -> None:
             try:
                 await asyncio.gather(*[Slo.fetch(slos, d, s) for d in data])
             except aiohttp.ClientResponseError as e:
-                if s.status == 429:
+                if e.status == 429:
                     try:
                         delay = int(e.headers['x-ratelimit-reset'])
                     except KeyError:
