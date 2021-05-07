@@ -26,7 +26,7 @@ jobs:
   # TODO: this should be doable with curl or python...
   push-docker-readme:
     docker:
-      - image: node:12.22.1-alpine
+      - image: node:13.14.0-alpine
     parameters:
       title:
         type: string
