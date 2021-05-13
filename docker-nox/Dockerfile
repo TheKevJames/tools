@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/GMT
@@ -12,7 +12,6 @@ RUN apt-get update -qy && \
     apt-get install -qy \
         python2.7 \
         python2.7-dev \
-        python-pip \
         python3.5 \
         python3.5-dev \
         python3.6 \
@@ -25,6 +24,9 @@ RUN apt-get update -qy && \
         python3.9-dev \
         python3.9-distutils \
         python3-pip && \
+    curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output /tmp/get-pip.py && \
+    python2.7 /tmp/get-pip.py && \
+    rm /tmp/get-pip.py && \
     python2.7 -m pip install --upgrade pip && \
     python3.5 -m pip install --upgrade pip && \
     python3.6 -m pip install --upgrade pip && \
