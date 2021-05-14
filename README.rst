@@ -9,6 +9,7 @@ completely forgotten about.
 - `32-bit Ubuntu Docker Images`_
 - `CCTUI`_
 - `CircleCI Orbs`_
+- `Dockerized gcloud Pubsub Emulator`_
 - `Dockerized Minify`_
 - `Dockerized MySQLTuner`_
 - `Dockerized Nox`_
@@ -32,6 +33,7 @@ Kevin has done anywhere" config with:
 .. _32-bit Ubuntu Docker Images: https://github.com/TheKevJames/tools/tree/master/docker-ubuntu32
 .. _CCTUI: https://github.com/TheKevJames/tools/tree/master/cctui
 .. _CircleCI Orbs: https://github.com/TheKevJames/tools/tree/master/circleci-orbs
+.. _Dockerized gcloud Pubsub Emulator: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator
 .. _Dockerized Minify: https://github.com/TheKevJames/tools/tree/master/docker-minify
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
 .. _Dockerized Nox: https://github.com/TheKevJames/tools/tree/master/docker-nox
