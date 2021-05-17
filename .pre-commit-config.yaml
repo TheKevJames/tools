@@ -8,6 +8,7 @@ repos:
     -   id: check-json
     -   id: check-merge-conflict
     -   id: check-shebang-scripts-are-executable
+        exclude: 'slack-notifier/send-deploy-notif.sh'
     -   id: check-symlinks
     -   id: check-toml
     -   id: check-vcs-permalinks
