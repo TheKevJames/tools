@@ -48,6 +48,10 @@
     "packageNames": ["google", "google-beta"],
     "groupName": "google"
   }, {
+    "managers": ["terraform"],
+    "packagePatterns": ["^google"],
+    "groupName": "google"
+  }, {
     "packageNames": ["hashicorp/terraform", "terraform"],
     "groupName": "terraform"
   }],
