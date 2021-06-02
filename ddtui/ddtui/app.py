@@ -164,7 +164,7 @@ async def poll(slos: shelve.Shelf) -> None:
             PARAMS['from'] = PARAMS['to'] - 60 * 60 * 24 * 7
 
             try:
-                await asyncio.gather(*[Slo.fetch(slos, d, s) for d in data])
+                await asyncio.gather(*(Slo.fetch(slos, d, s) for d in data))
             except aiohttp.ClientResponseError as e:
                 if e.status == 429:
                     try:
