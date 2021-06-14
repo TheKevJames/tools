@@ -41,6 +41,10 @@
     "updateTypes": ["minor", "patch", "pin", "digest"],
     "automerge": true
   }, {
+    "managers": ["pre-commit"],
+    "updateTypes": ["patch", "pin", "digest"],
+    "automerge": true
+  }, {
     "managers": ["poetry"],
     "versioning": "poetry"
   }, {
