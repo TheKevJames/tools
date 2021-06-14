@@ -33,5 +33,5 @@ RUN apt-get update -qy && \
     python3.7 -m pip install --upgrade pip && \
     python3.8 -m pip install --upgrade pip && \
     python3.9 -m pip install --upgrade pip && \
-    python3 -m pip install 'nox==2021.6.6' && \
+    python3 -m pip install 'nox==2021.6.12' && \
     rm -rf /var/cache/apt/lists
