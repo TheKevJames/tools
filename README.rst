@@ -14,7 +14,6 @@ completely forgotten about.
 - `Dockerized MySQLTuner`_
 - `Dockerized Nox`_
 - `Dockerized Tuning-Primer`_
-- `MacPorts Repo`_
 - `Slack Notifier`_
 
 Renovate
@@ -38,7 +37,6 @@ Kevin has done anywhere" config with:
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
 .. _Dockerized Nox: https://github.com/TheKevJames/tools/tree/master/docker-nox
 .. _Dockerized Tuning-Primer: https://github.com/TheKevJames/tools/tree/master/docker-tuning-primer
-.. _MacPorts Repo: https://github.com/TheKevJames/tools/tree/master/ports
 .. _Renovate: https://renovatebot.com/
 .. _Slack Notifier: https://github.com/TheKevJames/tools/tree/master/slack-notifier
 .. _experiment: https://github.com/TheKevJames/experiments
