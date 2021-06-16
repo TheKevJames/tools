@@ -3,7 +3,7 @@ version: 2.1
 orbs:
   docker: talkiq/docker@2.1.0
   orb-tools: circleci/orb-tools@7.3.0
-  gcloud: talkiq/gcloud@6.0.1
+  gcloud: talkiq/gcloud@6.1.1
   linter: thekevjames/linter@volatile
 
 jobs:
