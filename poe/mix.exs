@@ -29,10 +29,10 @@ defmodule Poe.MixProject do
       {:gettext, "0.18.2"},
       {:httpoison, "1.8.0"},
       {:jason, "1.2.2"},
-      {:phoenix, "== 1.5.8"},
+      {:phoenix, "== 1.5.9"},
       {:phoenix_html, "2.14.3"},
       {:phoenix_live_dashboard, "0.4.0"},
-      {:phoenix_live_reload, "== 1.3.1", only: :dev},
+      {:phoenix_live_reload, "== 1.3.2", only: :dev},
       {:plug_cowboy, "== 2.5.0"},
       {:telemetry_metrics, "0.6.0"},
       {:telemetry_poller, "0.5.1"}
