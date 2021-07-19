@@ -1,5 +1,7 @@
 version: 2.1
-description: "Tools for running lint commands"
+description: |
+  Tools for running lint commands
+  [DEPRECATED] use talkiq/linter instead!
 
 commands:
   pre-commit:

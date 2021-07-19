@@ -1,5 +1,7 @@
 version: 2.1
-description: "Tools for running docker commands."
+description: |
+  Tools for running docker commands.
+  [DEPRECATED] use talkiq/docker instead!
 
 commands:
   build:

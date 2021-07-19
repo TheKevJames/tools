@@ -1,5 +1,7 @@
 version: 2.1
-description: "Tools for notifying external services about CI events"
+description: |
+  Tools for notifying external services about CI events
+  [DEPRECATED] use talkiq/notifier instead!
 
 executors:
   alpine-stable:

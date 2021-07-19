@@ -1,5 +1,7 @@
 version: 2.1
-description: "Tools for running test commands."
+description: |
+  Tools for running test commands.
+  [DEPRECATED] use talkiq/linter instead!
 
 jobs:
   pipcheck:
