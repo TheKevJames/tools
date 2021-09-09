@@ -1,4 +1,4 @@
-FROM elixir:1.11.4-alpine AS build
+FROM elixir:1.12.3-alpine AS build
 
 RUN apk add --no-cache build-base git npm python2
 
