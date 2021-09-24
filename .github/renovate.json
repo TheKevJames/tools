@@ -8,5 +8,10 @@
     "groupName": "phoenix_view",
     "managers": ["mix"],
     "separateMajorMinor": false
-  }]
+  }],
+  "pip_requirements": {
+    "fileMatch": [
+      "docker-nox/requirements.txt"
+    ]
+  }
 }
