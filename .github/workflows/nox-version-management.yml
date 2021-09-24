@@ -1,0 +1,30 @@
+name: Nox Version Management
+on:
+  schedule:
+    - cron: '30 5 * * *'
+
+jobs:
+  detect-new-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install latest nox
+        run: |
+          pip install nox
+          pip freeze | grep nox > docker-nox/requirements.txt
+
+      - name: Create Pull Request if required
+        uses: peter-evans/create-pull-request@v3
+        with:
+          branch: new-nox-version
+          title: New Nox version
+          body: Upgrade nox version
+          commit-message: Upgrade nox version
+          delete-branch: true

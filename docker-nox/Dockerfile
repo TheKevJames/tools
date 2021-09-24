@@ -2,6 +2,7 @@ FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/GMT
+COPY requirements.txt /
 # https://devguide.python.org/#status-of-python-branches
 RUN apt-get update -qy && \
     apt-get install -qy ca-certificates curl gnupg2 && \
@@ -33,5 +34,5 @@ RUN apt-get update -qy && \
     python3.7 -m pip install --upgrade pip && \
     python3.8 -m pip install --upgrade pip && \
     python3.9 -m pip install --upgrade pip && \
-    python3 -m pip install 'nox==2021.6.12' && \
+    python3 -m pip install -r /requirements.txt && \
     rm -rf /var/cache/apt/lists
