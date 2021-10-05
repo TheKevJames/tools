@@ -6,28 +6,48 @@ orbs:
   linter: talkiq/linter@1
 
 jobs:
-  build-docker-readme:
+  docker-publish:
+    docker:
+      - image: docker:20.10.6-git
+    parameters:
+      ident:
+        type: string
+      tag:
+        type: string
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.6
+      - docker/build:
+          local_image_name: "<<parameters.ident>>:${CIRCLE_SHA1:0:10}"
+          path: "docker-<<parameters.ident>>"
+      - run: docker tag "<<parameters.ident>>:${CIRCLE_SHA1:0:10}" "thekevjames/<<parameters.ident>>:<<parameters.tag>>"
+      - run: docker tag "<<parameters.ident>>:${CIRCLE_SHA1:0:10}" "thekevjames/<<parameters.ident>>:latest"
+      - run: docker push "thekevjames/<<parameters.ident>>:<<parameters.tag>>"
+      - run: docker push "thekevjames/<<parameters.ident>>:latest"
+
+  docker-readme-build:
     docker:
       - image: pandoc/core:2.14.1
     parameters:
-      path:
+      ident:
         type: string
     steps:
       - run: apk add --no-cache --no-progress ca-certificates openssl
       - run: mkdir /meta
       - checkout
-      - run: pandoc -o/meta/README.md <<parameters.path>>/README.rst
+      - run: pandoc -o/meta/README.md docker-<<parameters.ident>>/README.rst
       - persist_to_workspace:
           root: /meta
           paths:
             - README.md
 
   # TODO: this should be doable with curl or python...
-  push-docker-readme:
+  docker-readme-push:
     docker:
       - image: node:16.10.0-alpine
     parameters:
-      title:
+      ident:
         type: string
     steps:
       - run: apk add --no-cache --no-progress ca-certificates openssl
@@ -35,7 +55,7 @@ jobs:
       - run: npm install docker-hub-api
       - attach_workspace:
           at: /meta
-      - run: node ./docker-update-readme.js thekevjames <<parameters.title>> /meta/README.md
+      - run: node ./docker-update-readme.js thekevjames <<parameters.ident>> /meta/README.md
 
   update-poe-container:
     docker:
@@ -53,7 +73,7 @@ workflows:
   run-jobs:
     jobs:
       - linter/pre-commit:
-          python_version: 3.7.4
+          python_version: 3.7.12
           pre-steps:
             - run: apt-get update
             - run: apt-get install -qy shellcheck
@@ -61,10 +81,17 @@ workflows:
             tags:
               only: /.*/
 
-      # DOCKER: minify
-      - build-docker-readme:
-          name: build-docker-readme-minify
-          path: docker-minify
+      - docker-readme-build:
+          name: docker-readme-build-<<matrix.ident>>
+          matrix:
+            parameters:
+              ident:
+                - gcloud-pubsub-emulator
+                - minify
+                - mysqltuner
+                - nox
+                - poe
+                - tuning-primer
           filters:
             branches:
               only: /master/
@@ -72,60 +99,68 @@ workflows:
               ignore: /.*/
           requires:
             - linter/pre-commit
-      - push-docker-readme:
-          name: push-docker-readme-minify
-          title: minify
+      - docker-readme-push:
+          name: docker-readme-push-<<matrix.ident>>
+          matrix:
+            parameters:
+              ident:
+                - gcloud-pubsub-emulator
+                - minify
+                - mysqltuner
+                - nox
+                - poe
+                - tuning-primer
           filters:
             branches:
               only: /master/
             tags:
               ignore: /.*/
           requires:
-            - build-docker-readme-minify
+            - docker-readme-build-<<matrix.ident>>
+
+      # DOCKER: gcloud-pubsub-emulator
+      - docker-publish:
+          name: docker-publish-gcloud-pubsub-emulator
+          ident: gcloud-pubsub-emulator
+          tag: "${CIRCLE_TAG:30}"
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^docker-gcloud-pubsub-emulator-.*/
+
+      # DOCKER: minify
+      - docker-publish:
+          name: docker-publish-minify
+          ident: minify
+          tag: "${CIRCLE_TAG:14}"
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^docker-minify-.*/
 
       # DOCKER: mysqltuner
-      - build-docker-readme:
-          name: build-docker-readme-mysqltuner
-          path: docker-mysqltuner
+      - docker-publish:
+          name: docker-publish-mysqltuner
+          ident: mysqltuner
+          tag: "${CIRCLE_TAG:18}"
           filters:
             branches:
-              only: /master/
-            tags:
               ignore: /.*/
-          requires:
-            - linter/pre-commit
-      - push-docker-readme:
-          name: push-docker-readme-mysqltuner
-          title: mysqltuner
-          filters:
-            branches:
-              only: /master/
             tags:
-              ignore: /.*/
-          requires:
-            - build-docker-readme-mysqltuner
+              only: /^docker-mysqltuner-.*/
 
       # DOCKER: nox
-      - build-docker-readme:
-          name: build-docker-readme-nox
-          path: docker-nox
+      - docker-publish:
+          name: docker-publish-nox
+          ident: nox
+          tag: "${CIRCLE_TAG:11}"
           filters:
             branches:
-              only: /master/
-            tags:
               ignore: /.*/
-          requires:
-            - linter/pre-commit
-      - push-docker-readme:
-          name: push-docker-readme-nox
-          title: nox
-          filters:
-            branches:
-              only: /master/
             tags:
-              ignore: /.*/
-          requires:
-            - build-docker-readme-nox
+              only: /^docker-nox-.*/
 
       # DOCKER: poe
       - docker/publish:
@@ -143,27 +178,6 @@ workflows:
               ignore: /.*/
           requires:
             - linter/pre-commit
-      - build-docker-readme:
-          name: build-docker-readme-poe
-          path: poe
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-          requires:
-            - linter/pre-commit
-      - push-docker-readme:
-          name: push-docker-readme-poe
-          title: poe
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-          requires:
-            - build-docker-poe
-            - build-docker-readme-poe
       - update-poe-container:
           name: deploy-poe
           filters:
@@ -175,23 +189,22 @@ workflows:
             - build-docker-poe
 
       # DOCKER: tuning-primer
-      - build-docker-readme:
-          name: build-docker-readme-tuning-primer
-          path: docker-tuning-primer
+      - docker-publish:
+          name: docker-publish-tuning-primer
+          ident: tuning-primer
+          tag: "${CIRCLE_TAG:21}"
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^docker-tuning-primer-.*/
+      # TODO: nuke once we can trigger tags from gcloud version bumps
+      - docker-publish:
+          name: docker-publish-tuning-primer-master
+          ident: tuning-primer
+          tag: "${CIRCLE_SHA1:0:10}"
           filters:
             branches:
               only: /master/
             tags:
               ignore: /.*/
-          requires:
-            - linter/pre-commit
-      - push-docker-readme:
-          name: push-docker-readme-tuning-primer
-          title: tuning-primer
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-          requires:
-            - build-docker-readme-tuning-primer
