@@ -18,6 +18,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 20.10.6
+      - run: echo "$DOCKER_PASS" | docker login --username "$DOCKER_USER" --password-stdin
       - docker/build:
           local_image_name: "<<parameters.ident>>:${CIRCLE_SHA1:0:10}"
           path: "docker-<<parameters.ident>>"
@@ -122,12 +123,23 @@ workflows:
       - docker-publish:
           name: docker-publish-gcloud-pubsub-emulator
           ident: gcloud-pubsub-emulator
+          # TODO: build tag automagically from ident, then use a matrix?
           tag: "${CIRCLE_TAG:30}"
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /^docker-gcloud-pubsub-emulator-.*/
+      # TODO: nuke once we can trigger tags from gcloud version bumps
+      - docker-publish:
+          name: docker-publish-gcloud-pubsub-emulator-master
+          ident: gcloud-pubsub-emulator
+          tag: "${CIRCLE_SHA1:0:10}"
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
 
       # DOCKER: minify
       - docker-publish:
@@ -198,13 +210,3 @@ workflows:
               ignore: /.*/
             tags:
               only: /^docker-tuning-primer-.*/
-      # TODO: nuke once we can trigger tags from gcloud version bumps
-      - docker-publish:
-          name: docker-publish-tuning-primer-master
-          ident: tuning-primer
-          tag: "${CIRCLE_SHA1:0:10}"
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
