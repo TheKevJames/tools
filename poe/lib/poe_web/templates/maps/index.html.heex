@@ -29,9 +29,9 @@
     <%= for item <- @rows do %>
       <tr>
         <!-- TODO: bold etc header and between tiers -->
-        <td><%= Map.get(item, :name) %>
+        <td><%= Map.get(item, :name) %></td>
         <%= for {key, _} <- @cols do %>
-          <td class="<%= Map.get(Map.get(item, key), :color) %>">
+          <td class={Map.get(Map.get(item, key), :color)}>
             <%= Map.get(Map.get(item, key), :value) %>
           </td>
         <% end %>
