@@ -3,7 +3,7 @@ defmodule Poe.Api.Wiki do
   alias Poe.Cache
 
   # https://pathofexile.gamepedia.com/Special:CargoTables
-  @api "https://pathofexile.gamepedia.com/api.php"
+  @api "https://pathofexile.fandom.com/api.php"
   # TODO: Ritual data not yet loaded into the wiki
   @league "Heist"
 

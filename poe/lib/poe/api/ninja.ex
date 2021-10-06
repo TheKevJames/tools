@@ -21,6 +21,8 @@ defmodule Poe.Api.Ninja do
       |> URI.to_string()
 
     case HTTPoison.get(api) do
+      {:ok, %{status_code: 200, body: ""}} ->
+        raise "empty poe.ninja response"
       {:ok, %{status_code: 200, body: body}} ->
         case Jason.decode!(body) do
           %{"lines" => data} ->
