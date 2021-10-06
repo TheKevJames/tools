@@ -26,6 +26,7 @@ defmodule Poe.MixProject do
 
   defp deps do
     [
+      {:esbuild, "== 0.3.1", runtime: Mix.env() == :dev},
       {:gettext, "0.18.2"},
       {:httpoison, "1.8.0"},
       {:jason, "1.2.2"},
@@ -39,9 +40,5 @@ defmodule Poe.MixProject do
     ]
   end
 
-  defp aliases do
-    [
-      setup: ["deps.get", "cmd npm install --prefix assets"]
-    ]
-  end
+  defp aliases, do: []
 end
