@@ -59,6 +59,9 @@
   }, {
     "packageNames": ["hashicorp/terraform", "terraform"],
     "groupName": "terraform"
+  }, {
+    "packageNames": ["sanic", "sanic-testing"],
+    "groupName": "sanic"
   }],
   "prConcurrentLimit": 0,
   "prCreation": "immediate",
