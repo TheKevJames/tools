@@ -33,11 +33,14 @@ jobs:
     parameters:
       ident:
         type: string
+      prefix:
+        default: 'docker-'
+        type: string
     steps:
       - run: apk add --no-cache --no-progress ca-certificates openssl
       - run: mkdir /meta
       - checkout
-      - run: pandoc -o/meta/README.md docker-<<parameters.ident>>/README.rst
+      - run: pandoc -o/meta/README.md <<parameters.prefix>><<parameters.ident>>/README.rst
       - persist_to_workspace:
           root: /meta
           paths:
@@ -91,8 +94,18 @@ workflows:
                 - minify
                 - mysqltuner
                 - nox
-                - poe
                 - tuning-primer
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+          requires:
+            - linter/pre-commit
+      - docker-readme-build:
+          name: docker-readme-build-poe
+          ident: poe
+          prefix: ''  # TODO: sigh, fixme
           filters:
             branches:
               only: /master/

@@ -15,7 +15,7 @@ RUN mix do deps.get, deps.compile
 COPY priv priv
 COPY assets assets
 RUN mix esbuild default --minify && \
-    phx.digest
+    mix phx.digest
 
 COPY lib lib
 RUN mix do compile, release
