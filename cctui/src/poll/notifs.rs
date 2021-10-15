@@ -217,12 +217,22 @@ impl NotifsPoller {
                     continue;
                 }
 
+                debug!("fetching notifications for {}", notif.service);
                 if let Some(items) = Self::make_request(&self.client, &notif) {
-                    // TODO: do an in-place refresh instead of wiping everything
-                    self.all.items.clear();
+                    self.all.items = self
+                        .all
+                        .items
+                        .clone()
+                        .into_iter()
+                        .filter(|(i, (n, _))| &n != &notif || items.contains(&i))
+                        .collect();
                     for item in items {
                         self.all.items.insert(item.clone(), (notif.clone(), true));
                     }
+                    // TODO: keep pointing at the current element
+                    // concerns to address:
+                    // - current element was removed
+                    // - any items were inserted or removed above our current index
                     self.all.first();
                 }
 
