@@ -78,12 +78,24 @@ fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         .map(|text| ListItem::new(Span::styled(text, style)))
         .collect::<Vec<_>>();
 
-    let title = &format!(" Notifications ({}) ", app.notifs.all.items.len());
+    let current = &app
+        .notifs
+        .all
+        .items
+        .iter()
+        .filter(|(_, (_, visible))| *visible)
+        .count();
+    let total = &app.notifs.all.items.len();
+    let title = match current == total {
+        true => format!(" Notifications ({}) ", &total),
+        false => format!(" Notifications ({}/{}) ", &current, &total),
+    };
+
     // TODO: highlight selected title
     let rows = List::new(notifs).block(
         Block::default()
             .borders(Borders::ALL)
-            .title(Span::styled(title, Style::default())),
+            .title(Span::styled(&title, Style::default())),
     );
     let rows = match app.state.state.selected() {
         Some(0) => rows.highlight_style(
