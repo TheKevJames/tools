@@ -49,11 +49,18 @@ fn draw_filter<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         Some(2) => Style::default()
             .fg(Color::Yellow)
             .add_modifier(Modifier::BOLD),
-        _ => Style::default().fg(Color::White),
+        _ => match !app.filter.is_empty() {
+            true => Style::default().fg(Color::Yellow),
+            false => Style::default().fg(Color::White),
+        },
     };
     let filter = ListItem::new(Span::styled(&app.filter, style));
-    // TODO: highlight selected title
-    let rows = List::new([filter]).block(Block::default().borders(Borders::ALL).title(" Filter "));
+    let rows = List::new([filter]).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(style)
+            .title(" Filter "),
+    );
     f.render_widget(rows, area);
 }
 
@@ -91,20 +98,20 @@ fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         false => format!(" Notifications ({}/{}) ", &current, &total),
     };
 
-    // TODO: highlight selected title
-    let rows = List::new(notifs).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .title(Span::styled(&title, Style::default())),
-    );
-    let rows = match app.state.state.selected() {
-        Some(0) => rows.highlight_style(
-            Style::default()
-                .fg(Color::Yellow)
-                .add_modifier(Modifier::BOLD),
-        ),
-        _ => rows,
+    let style = match app.state.state.selected() {
+        Some(0) => Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD),
+        _ => Style::default().fg(Color::White),
     };
+    let rows = List::new(notifs)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(style)
+                .title(Span::styled(&title, Style::default())),
+        )
+        .highlight_style(style);
 
     f.render_stateful_widget(rows, area, &mut app.notifs.all.state);
 }
@@ -169,20 +176,20 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         .split(area);
 
     for (i, (&chunk, rows)) in chunks.iter().zip(repos.chunks(height as usize)).enumerate() {
-        // TODO: highlight selected title
-        let rows = List::new(rows).block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(Span::styled(" Repo Status ", Style::default())),
-        );
-        let rows = match app.state.state.selected() {
-            Some(1) => rows.highlight_style(
-                Style::default()
-                    .fg(Color::Yellow)
-                    .add_modifier(Modifier::BOLD),
-            ),
-            _ => rows,
+        let style = match app.state.state.selected() {
+            Some(1) => Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+            _ => Style::default().fg(Color::White),
         };
+        let rows = List::new(rows)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(style)
+                    .title(Span::styled(" Repo Status ", Style::default())),
+            )
+            .highlight_style(style);
 
         // share our state selector across columns
         let mut local_state: &mut ListState = &mut (&*app.repos.all.state).clone();
