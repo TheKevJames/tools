@@ -10,7 +10,7 @@ ddtui = "ddtui.app:cli"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-aiohttp = "^3.7.4"
+aiohttp = "3.8.0"
 
 [tool.poetry.dev-dependencies]
 
