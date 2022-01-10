@@ -25,7 +25,7 @@ impl App {
             notifs: NotifsPoller::new(settings),
             repos: ReposPoller::new(settings),
             state: state,
-            visible_notifs: 5,
+            visible_notifs: settings.layout.visible_notifs,
         }
     }
 
@@ -48,7 +48,6 @@ impl App {
     }
 
     fn resize(&mut self, c: char) {
-        // TODO: allow configuration of default sizes in config file
         self.visible_notifs = match c {
             'J' => min(self.visible_notifs + 1, 9999), // TODO: max based on screen size to prevent panic
             'K' => max(self.visible_notifs - 1, 1),
