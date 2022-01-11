@@ -49,7 +49,7 @@ jobs:
   # TODO: this should be doable with curl or python...
   docker-readme-push:
     docker:
-      - image: node:17.3.0-alpine
+      - image: node:17.3.1-alpine
     parameters:
       ident:
         type: string
