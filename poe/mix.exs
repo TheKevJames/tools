@@ -32,7 +32,7 @@ defmodule Poe.MixProject do
       {:jason, "== 1.3.0"},
       {:phoenix, "== 1.6.6"},
       {:phoenix_html, "== 3.2.0"},
-      {:phoenix_live_dashboard, "== 0.6.2"},
+      {:phoenix_live_dashboard, "== 0.6.4"},
       {:phoenix_live_reload, "== 1.3.3", only: :dev},
       {:plug_cowboy, "== 2.5.2"},
       {:telemetry_metrics, "== 0.6.1"},
