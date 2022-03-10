@@ -142,28 +142,25 @@ pub struct Settings {
 
 impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
-        let mut s = Config::new();
-
-        s.set_default("layout.visible_notifs", 5);
-
         let dirs = BaseDirectories::with_prefix("cctui").unwrap();
-
-        let logfile = dirs
-            .place_data_file("cctui.log")
-            .expect("cannot create data directory");
-        s.set_default("logging.file", logfile.to_str())?;
-        s.set_default("logging.level", "INFO")?;
-
         let configfile = dirs
             .place_config_file("config.yml")
             .expect("cannot create configuration directory");
-        s.merge(File::from(configfile))?;
+        let logfile = dirs
+            .place_data_file("cctui.log")
+            .expect("cannot create data directory");
 
-        s.merge(Environment::with_prefix("cctui"))?;
-
+        let builder = Config::builder()
+            .set_default("layout.visible_notifs", 5)?
+            .set_default("logging.file", logfile.to_str())?
+            .set_default("logging.level", "INFO")?
+            .add_source(File::from(configfile))
+            .add_source(Environment::with_prefix("cctui"));
         // TODO: merge cli flags
         // https://github.com/mehcode/config-rs/issues/64
-
-        s.try_into()
+        match builder.build() {
+            Ok(config) => config.try_deserialize(),
+            Err(e) => Err(e)
+        }
     }
 }
