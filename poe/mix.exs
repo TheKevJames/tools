@@ -26,13 +26,13 @@ defmodule Poe.MixProject do
 
   defp deps do
     [
-      {:esbuild, "== 0.3.3", runtime: Mix.env() == :dev},
-      {:gettext, "0.18.2"},
+      {:esbuild, "== 0.4.0", runtime: Mix.env() == :dev},
+      {:gettext, "== 0.19.1"},
       {:httpoison, "1.8.0"},
-      {:jason, "1.2.2"},
-      {:phoenix, "== 1.6.2"},
-      {:phoenix_html, "== 3.1.0"},
-      {:phoenix_live_dashboard, "== 0.6.1"},
+      {:jason, "== 1.3.0"},
+      {:phoenix, "== 1.6.6"},
+      {:phoenix_html, "== 3.2.0"},
+      {:phoenix_live_dashboard, "== 0.6.5"},
       {:phoenix_live_reload, "== 1.3.3", only: :dev},
       {:plug_cowboy, "== 2.5.2"},
       {:telemetry_metrics, "== 0.6.1"},

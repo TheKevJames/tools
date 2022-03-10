@@ -56,6 +56,9 @@ need to edit ``~/.config/cctui/config.yml``:
 
 .. code-block:: yaml
 
+    layout:
+      visible_notifs: 5  # default: 5
+
     notifs:
     - service: Github
       token: qwerasdfzxcv12345678910
