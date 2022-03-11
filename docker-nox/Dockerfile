@@ -32,15 +32,18 @@ RUN apt-get update -qy && \
         python3.10-dev \
         python3.10-distutils \
         python3-pip && \
-    curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output /tmp/get-pip.py && \
-    python2.7 /tmp/get-pip.py && \
-    rm /tmp/get-pip.py && \
+    curl -fsS https://bootstrap.pypa.io/pip/2.7/get-pip.py --output /tmp/get-pip-2.7.py && \
+    python2.7 /tmp/get-pip-2.7.py && \
+    rm /tmp/get-pip-2.7.py && \
     python2.7 -m pip install --upgrade pip && \
     python3.5 -m pip install --upgrade pip && \
     python3.6 -m pip install --upgrade pip && \
     python3.7 -m pip install --upgrade pip && \
     python3.8 -m pip install --upgrade pip && \
     python3.9 -m pip install --upgrade pip && \
+    curl -fsS https://bootstrap.pypa.io/get-pip.py --output /tmp/get-pip.py && \
+    python3.10 /tmp/get-pip.py && \
+    rm /tmp/get-pip.py && \
     python3.10 -m pip install --upgrade pip && \
     python3 -m pip install 'nox==2022.1.7' && \
     rm -rf /var/cache/apt/lists
