@@ -4,14 +4,17 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/GMT
 # https://devguide.python.org/#status-of-python-branches
 RUN apt-get update -qy && \
-    apt-get install -qy ca-certificates curl gnupg2 && \
+    apt-get install -qy --no-install-recommends \
+        ca-certificates \
+        curl \
+        gnupg2 && \
     . /etc/os-release && \
     echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu ${UBUNTU_CODENAME} main" > /etc/apt/sources.list.d/deadsnakes.list && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys F23C5A6CF475977595C89F51BA6932366A755776 && \
     apt-get update -qy && \
-    apt-get install -qy \
-        openssh-client \
+    apt-get install -qy --no-install-recommends \
         git \
+        openssh-client \
         python2.7 \
         python2.7-dev \
         python3.5 \
