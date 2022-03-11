@@ -8,7 +8,7 @@ orbs:
 jobs:
   docker-publish:
     docker:
-      - image: docker:20.10.12-git
+      - image: docker:20.10.13-git
     parameters:
       ident:
         type: string
