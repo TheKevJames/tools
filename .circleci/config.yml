@@ -3,7 +3,7 @@ version: 2.1
 orbs:
   docker: talkiq/docker@2
   gcloud: talkiq/gcloud@7
-  linter: talkiq/linter@1
+  linter: talkiq/linter@2
 
 jobs:
   docker-publish:
