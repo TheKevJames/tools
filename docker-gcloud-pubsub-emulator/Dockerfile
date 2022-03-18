@@ -7,13 +7,15 @@ RUN apk update && \
 RUN curl -s https://raw.githubusercontent.com/eficode/wait-for/master/wait-for -o /usr/bin/wait-for
 RUN chmod +x /usr/bin/wait-for
 
-RUN go get github.com/prep/pubsubc
+COPY ./pubsubc /src
+WORKDIR /src
+RUN go build
 
 
 FROM google/cloud-sdk:alpine
 
 COPY --from=builder /usr/bin/wait-for /usr/bin
-COPY --from=builder /go/bin/pubsubc /usr/bin
+COPY --from=builder /src/pubsubc /usr/bin
 COPY run.sh /run.sh
 
 RUN apk add --no-cache --update \
