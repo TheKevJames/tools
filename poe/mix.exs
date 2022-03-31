@@ -28,7 +28,7 @@ defmodule Poe.MixProject do
     [
       {:esbuild, "== 0.4.0", runtime: Mix.env() == :dev},
       {:gettext, "== 0.19.1"},
-      {:httpoison, "1.8.0"},
+      {:httpoison, "== 1.8.1"},
       {:jason, "== 1.3.0"},
       {:phoenix, "== 1.6.6"},
       {:phoenix_html, "== 3.2.0"},
