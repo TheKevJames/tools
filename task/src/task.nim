@@ -3,73 +3,71 @@ import std/options
 import std/os
 import std/sequtils
 import std/strutils
-import std/streams
 
 import cligen
 
-from task/cmd import nil
 import task/types
-
-const
-  src = "~/Dropbox/vimwiki/todos.wiki"
+from task/cmd import nil
+from task/config import nil
 
 proc load(filename: string): seq[Task] =
-  var file: FileStream
-
-  try:
-    file = openFileStream(filename.expandTilde().absolutePath(), fmRead)
-  except:
-    stderr.writeLine getCurrentExceptionMsg()
-    quit("cannot open the file " & filename)
-
-  defer: file.close()
-
   var
     level: int
-    line: string
+    title: string
     tag: Tag
 
-  for lineno, line in enumerate(file.lines):
-    if line.startsWith("=="):
+  for lineno, line in enumerate(filename.lines):
+    if line.startsWith("= TODOs"):
+      title = line.splitWhitespace()[2]
+    elif line.startsWith("=="):
       level = line.splitWhitespace(maxsplit = 1)[0].len - 2
       tag[level] = line
       for x in level+1..<maxTags:
         tag[x] = ""
     elif line.startsWith("* "):
-      result.add(line[2..line.high].parseTask(lineno, tag))
+      result.add(line[2..line.high].parseTask(title, filename, lineno, tag))
 
-proc done(source: string = src, ids: seq[int]) =
-  let tasks = cmd.list(load(source), "", 365, -1).filter(proc(x: Task): bool = x.id in ids)
+proc load(): seq[Task] =
+  let conf = config.load()
+  for idx, src in conf.srcs:
+    result = result & load(src)
+
+proc done(ids: seq[string]) =
+  let tasks = cmd.list(load(), "", 365, -1).filter(proc(x: Task): bool = $x.link in ids)
   for task in tasks:
     let completed = task.complete()
     if completed.isSome():
-      source.expandTilde().absolutePath().writeFile(
-        source.expandTilde().absolutePath().readFile.replace(task.raw(),
-            completed.get().raw()))
+      task.link.fname.writeFile(
+        task.link.fname.readFile.replace(task.raw(), completed.get().raw()))
     else:
-      var xs = source.expandTilde().absolutePath().readFile().splitLines(keepEol = true)
-      xs.delete(task.id)
-      source.expandTilde().absolutePath().writeFile(xs.join())
+      var xs = task.link.fname.readFile().splitLines(keepEol = true)
+      xs.delete(task.link.lineno)
+      task.link.fname.writeFile(xs.join())
 
-proc due(source: string = src, includeFutureOffset: int = 3) =
-  for task in cmd.list(load(source), "", includeFutureOffset, -1):
+proc due(includeFutureOffset: int = 3) =
+  for task in cmd.list(load(), "", includeFutureOffset, -1):
     if task.details.next.isSome():
       echo task
 
-proc edit(source: string = src) =
-  discard execShellCmd("$EDITOR " & source)
+proc edit(idxs: seq[int]) =
+  let conf = config.load()
+  if idxs.len == 0:
+    for idx, src in conf.srcs:
+      echo $idx & "\t" & src
+  else:
+    for idx in idxs:
+      discard execShellCmd("$EDITOR " & conf.srcs[idx])
 
-proc highpri(source: string = src) =
-  for task in cmd.list(load(source), "tag=highpri", 0, -1):
+proc highpri() =
+  for task in cmd.list(load(), "tag=highpri", 0, -1):
     echo task
 
-proc list(source: string = src, filter: string = "",
-    includeFutureOffset: int = 7, limit: int = -1) =
-  for task in cmd.list(load(source), filter, includeFutureOffset, limit):
+proc list(filter: string = "", includeFutureOffset: int = 7, limit: int = -1) =
+  for task in cmd.list(load(), filter, includeFutureOffset, limit):
     echo task
 
-proc triage(source: string = src) =
-  for task in cmd.list(load(source), "tag=triage", 365, -1):
+proc triage() =
+  for task in cmd.list(load(), "tag=triage", 365, -1):
     echo task
 
 when isMainModule:

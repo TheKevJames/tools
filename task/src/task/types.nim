@@ -19,6 +19,7 @@ type
     target: FilterTarget
 
   FilterTarget* = enum
+    # TODO: ftSrc = "src"
     ftSummary = "summary"
     ftTag = "tag"
 
@@ -26,9 +27,14 @@ type
 
   Task* = tuple
     details: Details
-    id: int
+    link: TaskLink
     summary: string
     tag: Tag
+
+  TaskLink* = tuple
+    fname: string
+    ftitle: string
+    lineno: int
 
 func `$`*(d: Details): string =
   if d.next.isSome():
@@ -43,6 +49,8 @@ func `$`*(d: Details): string =
     else:
       result = result & " since last deadline"
 
+func `$`*(l: TaskLink): string = l.ftitle[0].toLowerAscii & $l.lineno
+
 func `$`*(t: Tag): string =
   result = t[0][3..t[0].high-3]
   for i in 1..<maxTags:
@@ -50,7 +58,7 @@ func `$`*(t: Tag): string =
       result = result & " > " & t[i][i+3..t[i].high-i-3]
 
 func `$`*(t: Task): string =
-  result = $t.tag & "\t" & $t.id & ": " & t.summary
+  result = $t.tag & "\t" & $t.link & ": " & t.summary
   if t.details.next.isSome():
     result = result & "\n\t" & $t.details
 
@@ -132,11 +140,11 @@ proc parseFilter*(filter: string): Option[Filter] =
     stderr.writeLine getCurrentExceptionMsg()
     quit("filter must be foo=bar where foo is a valid field name")
 
-proc parseTask*(data: string, id: int, tag: Tag): Task =
+proc parseTask*(data: string, filetitle: string, filename: string, lineno: int, tag: Tag): Task =
   var summary, detailStr: string
   let details = if scanf(data, "$+ {$+}", summary, detailStr):
     parseDetails(detailStr)
   else:
     parseDetails("")
 
-  (details: details, id: id, summary: summary, tag: tag)
+  (details: details, link: (fname: filename, ftitle: filetitle, lineno: lineno), summary: summary, tag: tag)
