@@ -3,6 +3,7 @@ import std/options
 import std/os
 import std/sequtils
 import std/strutils
+import std/times
 
 import cligen
 
@@ -37,9 +38,14 @@ proc done(ids: seq[string]) =
   for task in tasks:
     let completed = task.complete()
     if completed.isSome():
+      echo "completed recurring task, next occurrence: " &
+        completed.get().details.next.get().format("yyyy-MM-dd")
+
       task.link.fname.writeFile(
         task.link.fname.readFile.replace(task.raw(), completed.get().raw()))
     else:
+      echo "completed task"
+
       var xs = task.link.fname.readFile().splitLines(keepEol = true)
       xs.delete(task.link.lineno)
       task.link.fname.writeFile(xs.join())

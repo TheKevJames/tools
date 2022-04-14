@@ -10,12 +10,12 @@ proc filter(tasks: seq[Task], filter: Option[Filter]): seq[Task] =
     return tasks
 
   case filter.get().target:
+  of ftSrc:
+    result = tasks.filter(proc(x: Task): bool = ($x.link.ftitle).toLowerAscii.contains(filter.get().data))
   of ftSummary:
-    result = tasks.filter(proc(x: Task): bool = (
-        $x.summary).toLowerAscii.contains(filter.get().data))
+    result = tasks.filter(proc(x: Task): bool = ($x.summary).toLowerAscii.contains(filter.get().data))
   of ftTag:
-    result = tasks.filter(proc(x: Task): bool = ($x.tag).toLowerAscii.contains(
-        filter.get().data))
+    result = tasks.filter(proc(x: Task): bool = ($x.tag).toLowerAscii.contains(filter.get().data))
 
 proc list*(tasks: seq[Task], filter: string, includeFutureOffset: int, limit: int): seq[Task] =
   for i, task in tasks.filter(parseFilter(filter)):

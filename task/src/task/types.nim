@@ -19,7 +19,7 @@ type
     target: FilterTarget
 
   FilterTarget* = enum
-    # TODO: ftSrc = "src"
+    ftSrc = "src"
     ftSummary = "summary"
     ftTag = "tag"
 
@@ -62,6 +62,7 @@ func `$`*(t: Task): string =
   if t.details.next.isSome():
     result = result & "\n\t" & $t.details
 
+# TODO: why is this not able to be func'd?
 proc complete*(task: Task): Option[Task] =
   if task.details.next.isSome() and task.details.interval != 0.days:
     var newTask = deepCopy(task)
@@ -69,15 +70,12 @@ proc complete*(task: Task): Option[Task] =
       some(now() + task.details.interval)
     else:
       var next = task.details.next.get() + task.details.interval
-      while next < now():
+      while next <= now():
         next += task.details.interval
       some(next)
 
-    echo "completed recurring task, next occurrence: " &
-        newTask.details.next.get().format("yyyy-MM-dd")
     some(newTask)
   else:
-    echo "completed task"
     none(Task)
 
 func raw*(task: Task): string =
@@ -122,7 +120,7 @@ proc parseDetails(details: string): Details =
         of "weekly":
           7.days
         else:
-          quit("interval must be numeric or 'monthly'")
+          quit("interval must be numeric or 'monthly'/'weekly'")
   else:
     0.days
 
