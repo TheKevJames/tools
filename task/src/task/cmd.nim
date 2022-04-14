@@ -7,7 +7,7 @@ proc list*(tasks: seq[Task], filter: string, includeFutureOffset: int, limit: in
     if limit >= 0 and i > limit:
       break
 
-    if task.details.next.isSome():
+    if includeFutureOffset >= 0 and task.details.next.isSome():
       if task.details.next.get() > now() + includeFutureOffset.days:
         continue
 

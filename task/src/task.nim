@@ -1,12 +1,5 @@
-import std/enumerate
-import std/options
-import std/os
-import std/sequtils
-import std/strutils
-import std/times
-
+import std/[enumerate, options, os, sequtils, strutils, times]
 import cligen
-
 import task/types
 from task/cmd import nil
 from task/config import nil
@@ -50,9 +43,14 @@ proc done(ids: seq[string]) =
       xs.delete(task.link.lineno)
       task.link.fname.writeFile(xs.join())
 
-proc due(filter: string = "", includeFutureOffset: int = 3) =
+proc due(filter: string = "", includeFutureOffset: int = 3, limit: int = -1) =
+  var i = 0
   for task in cmd.list(load(), filter, includeFutureOffset, -1):
     if task.details.next.isSome():
+      i += 1
+      if limit >= 0 and i > limit:
+        break
+
       echo task
 
 proc edit(idxs: seq[int]) =
@@ -64,16 +62,16 @@ proc edit(idxs: seq[int]) =
     for idx in idxs:
       discard execShellCmd("$EDITOR " & conf.srcs[idx])
 
-proc highpri(filter: string = "") =
-  for task in cmd.list(load(), filter & ",tag=highpri", 0, -1):
+proc highpri(filter: string = "", includeFutureOffset: int = -1, limit: int = -1) =
+  for task in cmd.list(load(), filter & ",tag=highpri", includeFutureOffset, limit):
     echo task
 
 proc list(filter: string = "", includeFutureOffset: int = 7, limit: int = -1) =
   for task in cmd.list(load(), filter, includeFutureOffset, limit):
     echo task
 
-proc triage(filter: string = "") =
-  for task in cmd.list(load(), filter & ",tag=triage", 365, -1):
+proc triage(filter: string = "", includeFutureOffset: int = -1, limit: int = -1) =
+  for task in cmd.list(load(), filter & ",tag=triage", includeFutureOffset, limit):
     echo task
 
 when isMainModule:
@@ -84,9 +82,11 @@ when isMainModule:
       "includeFutureOffset": "include future tasks within n days"}],
     [edit],
     [highpri, help = {
-      "filter": "foo=bar,baz=buuq,..."}],
+      "filter": "foo=bar,baz=buuq,...",
+      "includeFutureOffset": "include future tasks within n days"}],
     [list, help = {
       "filter": "foo=bar,baz=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}],
     [triage, help = {
-      "filter": "foo=bar,baz=buuq,..."}])
+      "filter": "foo=bar,baz=buuq,...",
+      "includeFutureOffset": "include future tasks within n days"}])
