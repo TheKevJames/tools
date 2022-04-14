@@ -50,8 +50,8 @@ proc done(ids: seq[string]) =
       xs.delete(task.link.lineno)
       task.link.fname.writeFile(xs.join())
 
-proc due(includeFutureOffset: int = 3) =
-  for task in cmd.list(load(), "", includeFutureOffset, -1):
+proc due(filter: string = "", includeFutureOffset: int = 3) =
+  for task in cmd.list(load(), filter, includeFutureOffset, -1):
     if task.details.next.isSome():
       echo task
 
@@ -64,26 +64,29 @@ proc edit(idxs: seq[int]) =
     for idx in idxs:
       discard execShellCmd("$EDITOR " & conf.srcs[idx])
 
-proc highpri() =
-  for task in cmd.list(load(), "tag=highpri", 0, -1):
+proc highpri(filter: string = "") =
+  for task in cmd.list(load(), filter & ",tag=highpri", 0, -1):
     echo task
 
 proc list(filter: string = "", includeFutureOffset: int = 7, limit: int = -1) =
   for task in cmd.list(load(), filter, includeFutureOffset, limit):
     echo task
 
-proc triage() =
-  for task in cmd.list(load(), "tag=triage", 365, -1):
+proc triage(filter: string = "") =
+  for task in cmd.list(load(), filter & ",tag=triage", 365, -1):
     echo task
 
 when isMainModule:
   dispatchMulti(
     [done],
     [due, help = {
+      "filter": "foo=bar,baz=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}],
     [edit],
-    [highpri],
+    [highpri, help = {
+      "filter": "foo=bar,baz=buuq,..."}],
     [list, help = {
       "filter": "foo=bar,baz=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}],
-    [triage])
+    [triage, help = {
+      "filter": "foo=bar,baz=buuq,..."}])

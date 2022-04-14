@@ -1,9 +1,4 @@
-import std/options
-import std/sequtils
-import std/strscans
-import std/strutils
-import std/tables
-import std/times
+import std/[options, sequtils, strscans, strutils, tables, times]
 
 const
   maxTags* = 3
@@ -29,12 +24,14 @@ type
 
 func `$`*(d: Details): string =
   if d.next.isSome():
-    result = "Next: " & d.next.get().format("yyyy-MM-dd")
+    result = "Due: " & d.next.get().format("yyyy-MM-dd")
+
   if d.interval != 0.days:
     if d.interval == 1.months:
       result = result & ", " & "repeats monthly"
     else:
       result = result & ", " & "repeats " & $d.interval.days & " days"
+
     if d.shift:
       result = result & " after completion"
     else:
@@ -92,18 +89,15 @@ proc parseDetails(details: string): Details =
     return (interval: 0.days, next: none(DateTime), shift: false)
 
   let xs = details.split(", ").map(read).toTable()
-  let shift = if xs.getOrDefault("shift").isSome():
-    xs.getOrDefault("shift").get() == "true"
-  else:
-    false
+  let shift = xs.getOrDefault("shift").get("false") == "true"
   let next = if xs.getOrDefault("next").isSome():
     some(parse(xs.getOrDefault("next").get(), "yyyy-MM-dd"))
   else:
     none(DateTime)
+
   let interval = if xs.getOrDefault("interval").isSome():
     try:
-      let days = xs.getOrDefault("interval").get().parseInt()
-      days.days
+      xs.getOrDefault("interval").get().parseInt().days
     except ValueError:
       case xs.getOrDefault("interval").get():
         of "monthly":
@@ -115,14 +109,21 @@ proc parseDetails(details: string): Details =
   else:
     0.days
 
-  # TODO: validation: if interval or shift is set without next, break
+  if next.isNone:
+    assert shift == false, "shift cannot be set when next is null"
+    assert interval == 0.days, "interval cannot be set when next is null"
+
   (interval: interval, next: next, shift: shift)
 
-proc parseTask*(data: string, filetitle: string, filename: string, lineno: int, tag: Tag): Task =
+proc parseTask*(data: string, filetitle: string, filename: string, lineno: int,
+                tag: Tag): Task =
   var summary, detailStr: string
   let details = if scanf(data, "$+ {$+}", summary, detailStr):
     parseDetails(detailStr)
   else:
     parseDetails("")
 
-  (details: details, link: (fname: filename, ftitle: filetitle, lineno: lineno), summary: summary, tag: tag)
+  (details: details,
+   link: (fname: filename, ftitle: filetitle, lineno: lineno),
+   summary: summary,
+   tag: tag)
