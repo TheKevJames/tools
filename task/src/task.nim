@@ -21,7 +21,7 @@ proc load(filename: string): seq[Task] =
     if line.startsWith("= TODOs"):
       title = line.splitWhitespace()[2]
     elif line.startsWith("=="):
-      level = line.splitWhitespace(maxsplit = 1)[0].len - 2
+      level = line.splitWhitespace(maxsplit=1)[0].len - 2
       tag[level] = line
       for x in level+1..<maxTags:
         tag[x] = ""
@@ -79,10 +79,11 @@ proc triage() =
 when isMainModule:
   dispatchMulti(
     [done],
-    [due],
+    [due, help = {
+      "includeFutureOffset": "include future tasks within n days"}],
     [edit],
     [highpri],
     [list, help = {
-      "filter": "foo=bar",
+      "filter": "foo=bar,baz=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}],
     [triage])

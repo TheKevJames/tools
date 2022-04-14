@@ -127,16 +127,18 @@ proc parseDetails(details: string): Details =
   # TODO: validation: if interval or shift is set without next, break
   (interval: interval, next: next, shift: shift)
 
-proc parseFilter*(filter: string): Option[Filter] =
-  if filter.isEmptyOrWhitespace():
-    return none(Filter)
+proc parseFilter*(filters: string): seq[Filter] =
+  for filter in filters.split(","):
+    if filter.isEmptyOrWhitespace:
+      continue
 
-  let split = filter.split("=")
-  try:
-    some((data: split[1], target: parseEnum[FilterTarget](split[0])))
-  except ValueError:
-    stderr.writeLine getCurrentExceptionMsg()
-    quit("filter must be foo=bar where foo is a valid field name")
+    let split = filter.split("=")
+
+    try:
+      result.add((data: split[1], target: parseEnum[FilterTarget](split[0])))
+    except ValueError:
+      stderr.writeLine getCurrentExceptionMsg()
+      quit("filter must be foo=bar where foo is a valid field name")
 
 proc parseTask*(data: string, filetitle: string, filename: string, lineno: int, tag: Tag): Task =
   var summary, detailStr: string
