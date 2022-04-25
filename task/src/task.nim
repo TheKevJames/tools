@@ -75,6 +75,7 @@ proc triage(filter: string = "", includeFutureOffset: int = -1, limit: int = -1)
     echo task
 
 when isMainModule:
+  # TODO: delay <task> --offset 3days
   dispatchMulti(
     [done],
     [due, help = {
