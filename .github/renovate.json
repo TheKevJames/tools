@@ -1,7 +1,7 @@
 {
   "extends": ["github>thekevjames/tools:personal"],
   "packageRules": [{
-    "paths": ["poe/assets/package.json"],
+    "paths": ["gcp-image-from-docker/Dockerfile", "poe/assets/package.json"],
     "enabled": false
   }, {
     "packageNames": ["phoenix_html", "phoenix_live_view", "phoenix_live_dashboard"],
