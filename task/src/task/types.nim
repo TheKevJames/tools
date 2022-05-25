@@ -81,6 +81,10 @@ func raw*(task: Task): string =
       result = result & ", shift: " & $task.details.shift
     result = result & "}"
 
+func raw*(tag: Tag): string =
+  var xs = tag.filterIt(it.len > 0)
+  xs[xs.high]
+
 proc parseDetails(details: string): Details =
   func read(x: string): (string, Option[string]) =
     let pair = x.split(": ")

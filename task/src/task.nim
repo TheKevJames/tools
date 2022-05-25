@@ -1,4 +1,4 @@
-import std/[enumerate, options, os, sequtils, strutils, times]
+import std/[enumerate, options, os, sequtils, sets, strutils, times]
 import cligen
 import task/types
 from task/cmd import nil
@@ -25,6 +25,29 @@ proc load(): seq[Task] =
   let conf = config.load()
   for idx, src in conf.srcs:
     result = result & load(src)
+
+proc save(tasks: seq[Task]) =
+  for fname in tasks.mapIt(it.link.fname).deduplicate:
+    echo "Writing to " & fname
+    var xs = tasks.filterIt(it.link.fname == fname)
+
+    var f = open(fname, fmWrite)
+    f.writeLine("= TODOs: " & xs[0].link.ftitle & " =")
+
+    var lasttag: Tag
+    for task in xs:
+      if lasttag != task.tag:
+        # always keep a triage section at the top
+        if lasttag.countIt(it.len > 0) == 0:
+          if $task.tag != "Triage":
+            f.writeLine("")
+            f.writeLine("== Triage ==")
+
+        f.writeLine("")
+        f.writeLine(task.tag.raw())
+        lasttag = task.tag
+
+      f.writeLine("* " & task.raw())
 
 proc done(ids: seq[string]) =
   let tasks = cmd.list(load(), "", 365, -1).filter(proc(x: Task): bool = $x.link in ids)
@@ -70,6 +93,10 @@ proc list(filter: string = "", includeFutureOffset: int = 7, limit: int = -1) =
   for task in cmd.list(load(), filter, includeFutureOffset, limit):
     echo task
 
+proc rewrite() =
+  let tasks = cmd.list(load(), "", -1, -1)
+  save(tasks)
+
 proc triage(filter: string = "", includeFutureOffset: int = -1, limit: int = -1) =
   for task in cmd.list(load(), filter & ",tag=triage", includeFutureOffset, limit):
     echo task
@@ -88,6 +115,7 @@ when isMainModule:
     [list, help = {
       "filter": "foo=bar,baz=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}],
+    [rewrite],
     [triage, help = {
       "filter": "foo=bar,baz=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}])
