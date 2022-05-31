@@ -31,7 +31,6 @@ Kevin has done anywhere" config with:
 
 .. _32-bit Ubuntu Docker Images: https://github.com/TheKevJames/tools/tree/master/docker-ubuntu32
 .. _CCTUI: https://github.com/TheKevJames/tools/tree/master/cctui
-.. _DDTUI: https://github.com/TheKevJames/tools/tree/master/ddtui
 .. _Dockerized gcloud Pubsub Emulator: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator
 .. _Dockerized Minify: https://github.com/TheKevJames/tools/tree/master/docker-minify
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
