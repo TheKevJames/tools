@@ -78,9 +78,6 @@ workflows:
     jobs:
       - linter/pre-commit:
           python_version: 3.7.12
-          pre-steps:
-            - run: apt-get update
-            - run: apt-get install -qy shellcheck
           filters:
             tags:
               only: /.*/
