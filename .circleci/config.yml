@@ -3,7 +3,6 @@ version: 2.1
 orbs:
   docker: talkiq/docker@2
   gcloud: talkiq/gcloud@7
-  linter: talkiq/linter@2
 
 jobs:
   docker-publish:
@@ -76,12 +75,6 @@ jobs:
 workflows:
   run-jobs:
     jobs:
-      - linter/pre-commit:
-          python_version: 3.7.12
-          filters:
-            tags:
-              only: /.*/
-
       - docker-readme-build:
           name: docker-readme-build-<<matrix.ident>>
           matrix:
@@ -97,8 +90,6 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
-          requires:
-            - linter/pre-commit
       - docker-readme-build:
           name: docker-readme-build-poe
           ident: poe
@@ -108,8 +99,6 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
-          requires:
-            - linter/pre-commit
       - docker-readme-push:
           name: docker-readme-push-<<matrix.ident>>
           matrix:
@@ -198,8 +187,6 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
-          requires:
-            - linter/pre-commit
       - update-poe-container:
           name: deploy-poe
           filters:
