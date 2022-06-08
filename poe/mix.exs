@@ -26,7 +26,7 @@ defmodule Poe.MixProject do
 
   defp deps do
     [
-      {:esbuild, "== 0.4.0", runtime: Mix.env() == :dev},
+      {:esbuild, "== 0.5.0", runtime: Mix.env() == :dev},
       {:gettext, "== 0.19.1"},
       {:httpoison, "== 1.8.1"},
       {:jason, "== 1.3.0"},
