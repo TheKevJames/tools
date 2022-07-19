@@ -49,10 +49,10 @@ proc save(tasks: seq[Task]) =
 
       f.writeLine("* " & task.raw())
 
-proc done(ids: seq[string]) =
+proc done(ids: seq[string], ago: int = 0) =
   let tasks = cmd.list(load(), "", 365, -1).filter(proc(x: Task): bool = $x.link in ids)
   for task in tasks:
-    let completed = task.complete()
+    let completed = task.complete(ago)
     if completed.isSome():
       echo "completed recurring task, next occurrence: " &
         completed.get().details.next.get().format("yyyy-MM-dd")
@@ -104,7 +104,8 @@ proc triage(filter: string = "", includeFutureOffset: int = -1, limit: int = -1)
 when isMainModule:
   # TODO: delay <task> --offset 3days
   dispatchMulti(
-    [done],
+    [done, help = {
+      "ago": "mark task as completed n days ago"}],
     [due, help = {
       "filter": "foo=bar,baz=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}],

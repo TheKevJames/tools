@@ -51,12 +51,12 @@ func `$`*(t: Task): string =
     result = result & "\n\t" & $t.details
 
 # TODO: why is this not able to be func'd?
-proc complete*(task: Task): Option[Task] =
+proc complete*(task: Task, ago: int): Option[Task] =
   # TODO: provide offset (eg. "task completed yesterday")
   if task.details.next.isSome() and task.details.interval != 0.days:
     var newTask = deepCopy(task)
     newTask.details.next = if task.details.shift:
-      some(now() + task.details.interval)
+      some(now() - ago.days + task.details.interval)
     else:
       var next = task.details.next.get() + task.details.interval
       while next <= now():
