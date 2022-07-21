@@ -1,6 +1,6 @@
 module thekev.in/pubsubc
 
-go 1.18
+go 1.18.4
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
