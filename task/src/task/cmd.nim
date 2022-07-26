@@ -12,3 +12,13 @@ proc list*(tasks: seq[Task], filter: string, includeFutureOffset: int, limit: in
         continue
 
     result.add(task)
+
+proc listWithNext*(tasks: seq[Task], filter: string, includeFutureOffset: int, limit: int): seq[Task] =
+  var i = 0
+  for task in list(tasks, filter, includeFutureOffset, limit):
+    if task.details.next.isSome():
+      i += 1
+      if limit >= 0 and i > limit:
+        break
+
+      result.add(task)

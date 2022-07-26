@@ -66,15 +66,9 @@ proc done(ids: seq[string], ago: int = 0) =
       xs.delete(task.link.lineno)
       task.link.fname.writeFile(xs.join())
 
-proc due(filter: string = "", includeFutureOffset: int = 3, limit: int = -1) =
-  var i = 0
-  for task in cmd.list(load(), filter, includeFutureOffset, -1):
-    if task.details.next.isSome():
-      i += 1
-      if limit >= 0 and i > limit:
-        break
-
-      echo task
+proc due(filter: string = "", limit: int = -1) =
+  for task in cmd.listWithNext(load(), filter, 0, limit):
+    echo task
 
 proc edit(idxs: seq[int]) =
   let conf = config.load()
@@ -97,6 +91,10 @@ proc rewrite() =
   let tasks = cmd.list(load(), "", -1, -1)
   save(tasks)
 
+proc soon(filter: string = "", includeFutureOffset: int = 3, limit: int = -1) =
+  for task in cmd.listWithNext(load(), filter, includeFutureOffset, limit):
+    echo task
+
 proc triage(filter: string = "", includeFutureOffset: int = -1, limit: int = -1) =
   for task in cmd.list(load(), filter & ",tag=triage", includeFutureOffset, limit):
     echo task
@@ -107,8 +105,7 @@ when isMainModule:
     [done, help = {
       "ago": "mark task as completed n days ago"}],
     [due, help = {
-      "filter": "foo=bar,baz=buuq,...",
-      "includeFutureOffset": "include future tasks within n days"}],
+      "filter": "foo=bar,baz=buuq,..."}],
     [edit],
     [highpri, help = {
       "filter": "foo=bar,baz=buuq,...",
@@ -117,6 +114,9 @@ when isMainModule:
       "filter": "foo=bar,baz=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}],
     [rewrite],
+    [soon, help = {
+      "filter": "foo=bar,baz=buuq,...",
+      "includeFutureOffset": "include future tasks within n days"}],
     [triage, help = {
       "filter": "foo=bar,baz=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}])
