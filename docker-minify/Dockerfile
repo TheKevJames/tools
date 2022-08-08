@@ -1,4 +1,4 @@
-FROM golang:1.18.5-alpine
+FROM golang:1.19.0-alpine
 
 # TODO: versioning?
 RUN apk add --no-cache --no-progress ca-certificates git && \
