@@ -45,5 +45,5 @@ RUN apt-get update -qy && \
     python3.10 /tmp/get-pip.py && \
     rm /tmp/get-pip.py && \
     python3.10 -m pip install --no-cache-dir --upgrade pip && \
-    python3 -m pip install --no-cache-dir 'nox==2022.1.7' && \
+    python3 -m pip install --no-cache-dir 'nox==2022.8.7' && \
     rm -rf /var/cache/apt/lists
