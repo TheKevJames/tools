@@ -106,12 +106,12 @@ repos:
     hooks:
     -   id: flake8
         additional_dependencies:
-        - flake8-2020==1.6.1
-        - flake8-broken-line==0.4.0
+        - flake8-2020==1.7.0
+        - flake8-broken-line==0.5.0
         - flake8-builtins==1.5.3
         - flake8-commas==2.1.0
         - flake8-comprehensions==3.10.0
-        - flake8-typing-imports==1.12.0
+        - flake8-typing-imports==1.13.0
         args:
         - --ignore=E501,W503,F401,F811
 -   repo: local
