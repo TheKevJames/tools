@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  docker: talkiq/docker@2
+  docker: talkiq/docker@3
   gcloud: talkiq/gcloud@8
 
 jobs:
