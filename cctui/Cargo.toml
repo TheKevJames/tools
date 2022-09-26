@@ -25,5 +25,5 @@ serde_json = "1.0"
 serde-xml-rs = "0.5.1"
 termion = "1.5"
 # TODO: consider migrating to crossterm (https://github.com/fdehau/tui-rs/blob/master/CHANGELOG.md#new-default-backend-and-consolidated-backend-options-553)
-tui = { version = "0.18", default-features = false, features = ["termion"] }
+tui = { version = "0.19", default-features = false, features = ["termion"] }
 xdg = "2.4"
