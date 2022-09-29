@@ -21,29 +21,42 @@ RUN apt-get update -qy && \
         python3.5-dev \
         python3.6 \
         python3.6-dev \
+        python3.6-distutils \
         python3.7 \
         python3.7-dev \
+        python3.7-distutils \
         python3.8 \
         python3.8-dev \
+        python3.8-distutils \
         python3.9 \
         python3.9-dev \
-        python3.9-distutils \
         python3.10 \
         python3.10-dev \
-        python3.10-distutils \
-        python3-pip && \
-    curl -fsS https://bootstrap.pypa.io/pip/2.7/get-pip.py --output /tmp/get-pip-2.7.py && \
+        python3.11 \
+        python3.11-dev && \
+    curl -fsSo /tmp/get-pip-2.7.py https://bootstrap.pypa.io/pip/2.7/get-pip.py && \
+    curl -fsSo /tmp/get-pip-3.5.py https://bootstrap.pypa.io/pip/3.5/get-pip.py && \
+    curl -fsSo /tmp/get-pip-3.6.py https://bootstrap.pypa.io/pip/3.6/get-pip.py && \
+    curl -fsSo /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
     python2.7 /tmp/get-pip-2.7.py && \
-    rm /tmp/get-pip-2.7.py && \
     python2.7 -m pip install --no-cache-dir --upgrade pip && \
+    python3.5 /tmp/get-pip-3.5.py && \
     python3.5 -m pip install --no-cache-dir --upgrade pip && \
+    python3.6 /tmp/get-pip-3.6.py && \
     python3.6 -m pip install --no-cache-dir --upgrade pip && \
+    python3.7 /tmp/get-pip.py && \
     python3.7 -m pip install --no-cache-dir --upgrade pip && \
+    python3.8 /tmp/get-pip.py && \
     python3.8 -m pip install --no-cache-dir --upgrade pip && \
+    python3.9 /tmp/get-pip.py && \
     python3.9 -m pip install --no-cache-dir --upgrade pip && \
-    curl -fsS https://bootstrap.pypa.io/get-pip.py --output /tmp/get-pip.py && \
     python3.10 /tmp/get-pip.py && \
-    rm /tmp/get-pip.py && \
     python3.10 -m pip install --no-cache-dir --upgrade pip && \
+    python3.11 /tmp/get-pip.py && \
+    python3.11 -m pip install --no-cache-dir --upgrade pip && \
+    rm /tmp/get-pip-2.7.py && \
+    rm /tmp/get-pip-3.5.py && \
+    rm /tmp/get-pip-3.6.py && \
+    rm /tmp/get-pip.py && \
     python3 -m pip install --no-cache-dir 'nox==2022.8.7' && \
     rm -rf /var/cache/apt/lists
