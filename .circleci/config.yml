@@ -81,7 +81,6 @@ workflows:
             parameters:
               ident:
                 - gcloud-pubsub-emulator
-                - minify
                 - mysqltuner
                 - nox
                 - tuning-primer
@@ -105,7 +104,6 @@ workflows:
             parameters:
               ident:
                 - gcloud-pubsub-emulator
-                - minify
                 - mysqltuner
                 - nox
                 - poe
@@ -139,17 +137,6 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
-
-      # DOCKER: minify
-      - docker-publish:
-          name: docker-publish-minify
-          ident: minify
-          tag: "${CIRCLE_TAG:14}"
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^docker-minify-.*/
 
       # DOCKER: mysqltuner
       - docker-publish:

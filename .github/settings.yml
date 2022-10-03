@@ -1,7 +1,7 @@
 repository:
   name: tools
   description: collection of tools too small to deserve their own repo
-  topics: circleci, circleci-orb, docker, minify, mysql, renovate, slack, ubuntu
+  topics: circleci, circleci-orb, docker, mysql, renovate, slack, ubuntu
   private: false
 
   has_issues: true
