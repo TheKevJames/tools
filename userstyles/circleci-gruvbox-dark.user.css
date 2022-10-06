@@ -1,0 +1,475 @@
+/* ==UserStyle==
+@name           CircleCI Gruvbox Dark
+@namespace      github.com/openstyles/stylus
+@version        1.0.0
+@description    Simple color swap to Gruvbox Dark
+@author         TheKevJames
+
+@preprocessor   less
+
+// https://github.com/morhetz/gruvbox
+@var color bg0h "Background 0h" #1d2021
+@var color bg0s "Background 0s" #32302f
+@var color bg0  "Background 0" #282828
+@var color bg1  "Background 1" #3c3836
+@var color bg2  "Background 2" #504945
+@var color bg3  "Background 3" #665c54
+@var color bg4  "Background 4" #7c6f64
+
+@var color fg0    "Foreground 0" #fbf1c7
+@var color fg1    "Foreground 1" #ebdbb2
+@var color fg2    "Foreground 2" #d5c4a1
+@var color fg3    "Foreground 3" #bdae93
+@var color fg4    "Foreground 4" #a899a4
+
+@var color gray "Gray" #928374
+
+@var color red0    "Red 0"        #cc241d
+@var color red1    "Red 1"        #fb4934
+@var color green0  "Green 0"      #98971a
+@var color green1  "Green 1"      #b8bb26
+@var color yellow0 "Yellow 0"     #d79921
+@var color yellow1 "Yellow 1"     #fabd24
+@var color blue0   "Blue 0"       #458588
+@var color blue1   "Blue 1"       #83a598
+@var color purple0 "Purple 0"     #b16286
+@var color purple1 "Purple 1"     #d3869b
+@var color aqua0   "Aqua 0"       #689d6a
+@var color aqua1   "Aqua 1"       #8ec07c
+@var color orange0 "Orange 0"     #d65d0e
+@var color orange1 "Orange 1"     #fe8019
+==/UserStyle== */
+
+@-moz-document domain("app.circleci.com") {
+    // defaults
+    body {
+        background-color: @bg0;
+        color: @fg3;
+    }
+    h1, h2, h3 {
+        color: @fg2 !important;
+    }
+    p {
+        color: @fg3 !important;
+    }
+    h4 {
+        color: @fg4 !important;
+    }
+    a {
+        color: @blue0;
+    }
+    a:hover {
+        color: @blue1;
+    }
+    button {
+        background-color: @bg3;
+        color: @fg2;
+    }
+    button:hover, button:hover:enabled {
+        background-color: @bg4;
+        color: @fg0
+    }
+
+    // sidebar>backgrounds
+    .css-h8x255, .css-2w0klf, .css-16nzmci, .css-pg9xy8, .css-ge53n5 {
+        background-color: @bg0h;
+    }
+    .css-1p71cwa, .css-1kde7nz, .css-q5ep7y, .css-gxh9qg, .css-13yr2s4, .css-1bfdof4 {
+        background-color: @bg0;
+    }
+    .css-i3329 {
+        background-color: @bg0s;
+    }
+    .css-o0fkwo {
+        background-color: @bg1;
+    }
+    .css-9n5p6s {
+        background-color: @bg2;
+    }
+    .css-1jokiij {
+        background-color: @green0;
+    }
+    // sidebar>controls
+    .css-1b0hfz7:hover, .css-1dhf353:hover, .css-1pu9hl8:hover {
+        background-color: @bg3;
+    }
+    // sidebar>text>headers
+    .css-atc7s6, .css-fhb5z4, .css-16t9vem, .css-qnwbyh {
+        color: @fg2;
+    }
+    // sidebar>text>body
+    .css-liiv0k, .css-11b5hsp, .css-6gxsh7, .css-yknylw, .css-63odjp, .css-1ykbciu {
+        color: @fg3;
+    }
+    // sidebar>text>body>links
+    .css-ydpnxx {
+        color: @blue0;
+    }
+    .css-ydpnxx:hover {
+        color: @blue1;
+    }
+    // sidebar>text>body>images
+    .css-syag5g {
+        color: @fg1;
+    }
+
+    // dashboard>backgrounds
+    .css-dez2rm {
+        background-color: @bg0s;
+    }
+    .css-mdb45b, .css-o3hy58, .css-9bg0jz, .css-1pup791 {
+        background-color: @bg0;
+    }
+    // dashboard>controls
+    .css-z7kxnz, .css-1yoybs8 {
+        border-color: @fg4;
+    }
+    .css-z7kxnz:hover {
+        border-color: @fg3;
+    }
+    .css-1yoybs8:hover {
+        border-color: @fg3 !important;
+    }
+    .css-z7kxnz, .css-1yoybs8, .css-1y2x1jl, .css-4xex2x, .css-2n7nab, .css-s3f9ot, .css-1dhr9ju {
+        background-color: @bg0;
+        color: @fg3
+    }
+    .css-4xex2x:hover, .css-z7kxnz:focus {
+        background-color: @bg0s;
+    }
+    .css-1yoybs8:focus {
+        background-color: @bg0s !important;
+    }
+    .css-dpbnc1 li#AllProjects-0, .css-2n5uvr li:first-child {
+        border-bottom-color: @bg2;
+    }
+    li.css-1flnwbh:hover {
+        background-color: @bg1 !important;
+    }
+    .css-1h369b, .css-1dy48rz {
+        color: @fg3;
+    }
+    .css-1h369b:hover, .css-1dy48rz:hover {
+        color: @fg3;
+        background-color: @bg1;
+    }
+    .css-1dhr9ju a {
+        color: @blue0;
+    }
+    // dashboard>controls>buttons
+    .css-1u7cwjg, .css-11j3t3v {
+        background-color: @bg3;
+        color: @fg2;
+    }
+    .css-16r7kwb, .css-1fcahlh {
+        background-color: @bg4;
+        color: @fg2;
+    }
+    .css-16r7kwb:hover, .css-1fcahlh:hover:enabled {
+        background-color: @bg4;
+        color: @fg0;
+    }
+    .css-19wtgi5 {
+        color: @fg1;
+    }
+    .css-19wtgi5:hover, .css-19wtgi5:focus {
+        color: @fg1;
+        background-color: @bg2;
+    }
+    .css-1u7cwjg:hover:enabled {
+        background-color: @bg4;
+        color: @fg1;
+    }
+    // dashboard>text>headers
+    .css-99zg73, .css-gwiobt, .css-yx00b3 {
+        color: @fg2;
+    }
+    .css-99zg73:hover, .css-yx00b3:hover {
+        color: @fg3;
+    }
+    .css-1y11cha, .css-1y11cha:hover {
+        color: @blue0;
+    }
+    // dashboard>text>body
+    .css-1et4yxl, .css-2ka2ld, .css-1i5dvk4, .css-pd01ta, .css-p1syl1, .css-1kacri {
+        color: @fg3;
+    }
+    .css-1xj9goc {
+        color: @blue0;
+    }
+    a.css-1c67k4p, .css-79g8k4 {
+        color: @blue0;
+    }
+    a.css-1c67k4p:hover, .css-79g8k4:hover {
+        color: @blue1;
+    }
+    .css-1922tkm:hover, .css-21l0tk:hover {
+        background-color: @bg1;
+    }
+    .css-zwm2lv {
+        color: @green1;
+    }
+    .css-ktgk5a {
+        color: @red1;
+    }
+    // dashboard>text>tooltips
+    .css-1xz2zn8, .css-1uc69qm, .css-d1xu4b, .css-8j0pea, .css-1l88zv2, .css-nomsyy, .css-19r93ch, .css-ojddw3, .css-x7uicv, .css-ofr4gb, .css-1rgixav, .css-d5qdj, .css-1s2e36s, .css-1or75eu {
+        color: @fg4;
+    }
+    .css-7ecqen {
+        background-color: @fg4;
+        border-color: @fg3;
+    }
+    .css-1vk6niu, .css-1s9yl24 {
+        background-color: @bg2;
+        color: @fg2;
+    }
+    .css-3nqsyk a:hover, .css-3nqsyk button:hover {
+        background-color: @bg3;
+        color: @fg1;
+    }
+    // dashboard>text>icons
+    .css-t4mprq {
+        background-color: @green0;
+        color: @fg0;
+    }
+    .css-ze2tr {
+        color: @green0;
+    }
+    .css-1aso7w4 {
+        background-color: @red0;
+        color: @fg0;
+    }
+    .css-bdhvpn {
+        color: @red0;
+    }
+    .css-14act6w {
+        background-color: @blue0;
+        color: @fg0;
+    }
+    .css-1mrkhwq {
+        background-color: @gray;
+        color: @fg0;
+    }
+    .css-j2kpd3 {
+        color: @gray;
+    }
+    .css-utlgz3 {
+        color: @fg2;
+    }
+
+    // job>backgrounds
+    .css-qemf89, .css-1pfbiwg {
+        background-color: @bg0s;
+        border-color: @fg4;
+    }
+    .css-19q903i, .css-sdzrdt {
+        background-color: @bg0;
+    }
+    .css-1krqn3b, .css-1krqn3b:hover, .css-msguye {
+        background-color: @bg0s;
+    }
+    .css-227iwg, .css-1q2xawn {
+        background-color: @bg1;
+        border-color: @fg4;
+    }
+    .css-vawumd, .css-1ep8bia, .css-1rextz8, .css-9fmc7e, .css-1ufzcj5, .css-q7pef3, .css-11ito4k, .css-16kt0dw {
+        background-color: @bg1;
+    }
+    // job>text>headers
+    .css-23u81u, .css-1y8bts0, .css-15ptnyb, .css-166jpda, .css-1038kmh, .css-do3bls, .css-0 {
+        color: @fg2;
+    }
+    // job>text>body
+    .css-1038kmh, .css-1cip4y2, .css-19w47nt, .css-y4r76o, .css-svkhhe, .css-l784un, .css-4pq4xr, .css-hv9sku, .css-6satsm, .css-lmsji2, .css-18su9bk, .css-9fmc7e, .css-1ufzcj5, .css-l4a0v5 {
+        color: @fg3;
+    }
+    .css-1ws00ao, .css-bnomal, .css-d8x164, .css-1r3zbj0, .css-o2j9ze, .css-1qkv3lc, .css-18kydn2, .css-1o2bffr {
+        color: @fg4;
+    }
+    .recharts-surface text {
+        fill: @fg4;
+    }
+    .css-1w3z58m, .css-1yhvcjb, .css-1aqqaqk, .css-131rtqr, .css-lwpf90, .css-d95pa1 {
+        color: @blue0;
+    }
+    .css-1w3z58m:hover, .css-1yhvcjb:hover, .css-1aqqaqk:hover, .css-lwpf90:hover, .css-d95pa1:hover {
+        color: @blue1;
+    }
+    // job>text>icons
+    .css-36lt6r {
+        background-color: @green0;
+    }
+    .css-ze2tr {
+        color: @green0;
+    }
+    // job>controls
+    .css-1oz6z1b {
+        background-color: @bg3;
+        border-color: @bg3;
+        color: @fg2;
+    }
+    .css-1m89sun {
+        background-color: @bg2;
+        color: @fg2;
+    }
+    .css-1oz6z1b:hover, .css-1m89sun:hover {
+        background-color: @bg4;
+        border-color: @bg4;
+        color: @fg1;
+    }
+    // job>controls>buttons
+    .css-1lq19sw, .css-7lgdri, .css-mexut9, .css-409jmb {
+        background-color: @bg3;
+        color: @fg2;
+    }
+    .css-1lq19sw:hover, .css-7lgdri:hover:enabled, .css-7lgdri:focus, .css-mexut9:hover:enabled, .css-409jmb:hover {
+        background-color: @bg4;
+        color: @fg0
+    }
+
+    // projects>backgrounds
+    .css-zzgq2a, .css-1mjc6e7 {
+        background-color: @bg0s;
+    }
+    .css-k8wlxv, .css-iakciv, .css-1s9h2d5 {
+        background-color: @bg0;
+    }
+    .css-iakciv {
+        border-bottom-color: @bg1;
+    }
+    // projects>controls
+    .css-2rvuin, .css-2rvuin:hover:enabled {
+        background-color: @bg1;
+        color: @fg4;
+    }
+    .css-1b7k2kw {
+        background-color: @bg1;
+    }
+    .css-c45yii {
+        color: @fg3;
+    }
+    .css-127rltx a:hover, .css-127rltx button:hover {
+        background-color: @bg2;
+        color: @fg2;
+    }
+    // projects>controls>buttons
+    .css-16k7myj, .css-1qmanjs {
+        background-color: @bg2;
+        color: @fg2;
+    }
+    .css-16k7myj:hover:enabled, .css-1qmanjs:hover:enabled {
+        background-color: @bg3;
+        color: @fg1;
+    }
+    .css-85w52l {
+        background-color: @blue0;
+    }
+    // projects>text>headers
+    .css-yo16xa, .css-so60d8 {
+        color: @fg2;
+    }
+    // projects>text>body
+    .css-1c1tyii {
+        color: @fg3;
+    }
+    .css-1e30yve {
+        color: @blue0;
+    }
+    .css-1e30yve:hover {
+        color: @blue1;
+    }
+    // projects>text>icons
+    .css-1bf6sed {
+        border-left-color: @blue0;
+    }
+    .css-15qiqgw {
+        color: @blue0;
+    }
+
+    // project settings>backgrounds
+    .css-jdukv3 {
+        background-color: @bg0s;
+    }
+    .css-xzg4u6 {
+        background-color: @bg0;
+        border-color: @fg4;
+    }
+    .css-howj5h {
+        background-color: @bg0s
+    }
+    .css-howj5h:hover, .css-fro66o:hover {
+        background-color: @bg1;
+    }
+    // project settings>text>headers
+    .css-1w14nha, .css-dlgbax {
+        color: @fg1;
+    }
+    .css-dqpre1, .css-1cp804z, .css-dd29o8, .css-1r3maf4, .css-c857s1 {
+        color: @fg2;
+    }
+    // project settings>text>body
+    .css-ei7ndx, .css-zwll95 {
+        color: @fg3;
+    }
+    .css-14k9l0h {
+        color:@fg4;
+    }
+    .css-s8x4pl {
+        color: @blue0;
+    }
+    .css-s8x4pl:hover {
+        color: @blue1;
+    }
+    // project settings>controls>buttons
+    .css-1jexpce {
+        background-color: @bg3;
+        color: @fg2;
+    }
+    .css-1jexpce:hover {
+        background-color: @bg4;
+        color: @fg0
+    }
+    .css-13flx1n {
+        background-color: @red0;
+    }
+
+    // organization settings>backgrounds
+    .css-2m7jpk {
+        background-color: @bg0;
+    }
+    .css-xc6cn0 {
+        background-color: @bg2;
+    }
+    .css-1w1j1ee, .css-fivdeo {
+        background-color: @bg1;
+    }
+    .css-1w1j1ee:hover, .css-xc6cn0:hover {
+        background-color: @bg3;
+    }
+    // organization settings>controls>buttons
+    .css-ykkbmw {
+        background-color: @blue0;
+        color: @fg3;
+    }
+    .css-85w52l:hover:enabled, .css-ykkbmw:hover:enabled {
+        background-color: @blue1;
+        color: @fg2;
+    }
+    // organization settings>text>body
+    .css-7vec0e, .css-uhyp7r, .css-1kmqpnu {
+        color: @fg2;
+    }
+    .css-1763ajo, .css-1r7vo4, .css-2e5ed3, .css-1i9rw84, .css-13xxwik {
+        color: @fg3;
+    }
+    .css-pfxc71 {
+        color: @fg4;
+    }
+    .css-14g82kz, .css-11p1tpu a, .css-15gilzl {
+        color: @blue0;
+    }
+    .css-14g82kz:hover, .css-11p1tpu a:hover, .css-15gilzl:hover {
+        color: @blue1;
+    }
+}

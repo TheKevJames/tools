@@ -8,6 +8,7 @@ completely forgotten about.
 
 - `32-bit Ubuntu Docker Images`_
 - `CCTUI`_
+- `CSS UserStyles`_
 - `DDTUI`_
 - `Dockerized gcloud Pubsub Emulator`_
 - `Dockerized MySQLTuner`_
@@ -30,10 +31,12 @@ Kevin has done anywhere" config with:
 
 .. _32-bit Ubuntu Docker Images: https://github.com/TheKevJames/tools/tree/master/docker-ubuntu32
 .. _CCTUI: https://github.com/TheKevJames/tools/tree/master/cctui
-.. _Dockerized gcloud Pubsub Emulator: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator
+.. _CSS UserStyles: https://github.com/TheKevJames/tools/tree/master/userstyles
+.. _DDTUI: https://github.com/TheKevJames/tools/tree/master/ddtui
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
 .. _Dockerized Nox: https://github.com/TheKevJames/tools/tree/master/docker-nox
 .. _Dockerized Tuning-Primer: https://github.com/TheKevJames/tools/tree/master/docker-tuning-primer
+.. _Dockerized gcloud Pubsub Emulator: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator
 .. _Renovate: https://renovatebot.com/
 .. _Slack Notifier: https://github.com/TheKevJames/tools/tree/master/slack-notifier
 .. _experiment: https://github.com/TheKevJames/experiments
