@@ -341,11 +341,26 @@
         }
     }
     // job>text>icons
-    .css-36lt6r {
-        background-color: @green0;
+    .css-26aoo8 {
+        background-color: @bg1;
+        border-color: @fg4;
     }
-    .css-ze2tr {
-        color: @green0;
+    .css-1st39nb {
+        background-color: @red0;
+        border-color: @red0;
+    }
+    .css-36lt6r, .css-g89j1z {
+        background-color: @green0;
+        border-color: @green0;
+    }
+    .css-1moc2t0, .css-2ka2ld {
+        color: @fg0;
+    }
+    .css-1rri2o0 {
+        color: @red1;
+    }
+    .css-ze2tr, .css-clwkge {
+        color: @green1;
     }
     // job>controls
     .css-1oz6z1b {
