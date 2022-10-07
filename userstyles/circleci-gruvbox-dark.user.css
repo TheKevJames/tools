@@ -69,10 +69,10 @@
     button {
         background-color: @bg3;
         color: @fg2;
-    }
-    button:hover, button:hover:enabled {
-        background-color: @bg4;
-        color: @fg0
+        &:hover, &:hover:enabled {
+            background-color: @bg4;
+            color: @fg0
+        }
     }
 
     // sidebar>backgrounds
@@ -109,9 +109,9 @@
     // sidebar>text>body>links
     .css-ydpnxx {
         color: @blue0;
-    }
-    .css-ydpnxx:hover {
-        color: @blue1;
+        &:hover {
+            color: @blue1;
+        }
     }
     // sidebar>text>body>images
     .css-syag5g {
@@ -128,12 +128,9 @@
     // dashboard>controls
     .css-z7kxnz, .css-1yoybs8 {
         border-color: @fg4;
-    }
-    .css-z7kxnz:hover {
-        border-color: @fg3;
-    }
-    .css-1yoybs8:hover {
-        border-color: @fg3 !important;
+        &:hover {
+            border-color: @fg3 !important;
+        }
     }
     .css-z7kxnz, .css-1yoybs8, .css-1y2x1jl, .css-4xex2x, .css-2n7nab, .css-s3f9ot, .css-1dhr9ju {
         background-color: @bg0;
@@ -153,10 +150,10 @@
     }
     .css-1h369b, .css-1dy48rz {
         color: @fg3;
-    }
-    .css-1h369b:hover, .css-1dy48rz:hover {
-        color: @fg3;
-        background-color: @bg1;
+        &:hover {
+            color: @fg3;
+            background-color: @bg1;
+        }
     }
     .css-1dhr9ju a {
         color: @blue0;
@@ -169,17 +166,17 @@
     .css-16r7kwb, .css-1fcahlh {
         background-color: @bg4;
         color: @fg2;
-    }
-    .css-16r7kwb:hover, .css-1fcahlh:hover:enabled {
-        background-color: @bg4;
-        color: @fg0;
+        &:hover, &:hover:enabled {
+            background-color: @bg4;
+            color: @fg0;
+        }
     }
     .css-19wtgi5 {
         color: @fg1;
-    }
-    .css-19wtgi5:hover, .css-19wtgi5:focus {
-        color: @fg1;
-        background-color: @bg2;
+        &:hover, &:focus {
+            color: @fg1;
+            background-color: @bg2;
+        }
     }
     .css-1u7cwjg:hover:enabled {
         background-color: @bg4;
@@ -188,12 +185,15 @@
     // dashboard>text>headers
     .css-99zg73, .css-gwiobt, .css-yx00b3 {
         color: @fg2;
+        &:hover {
+            color: @fg3;
+        }
     }
-    .css-99zg73:hover, .css-yx00b3:hover {
-        color: @fg3;
-    }
-    .css-1y11cha, .css-1y11cha:hover {
+    .css-1y11cha {
         color: @blue0;
+        &:hover {
+            color: @blue1;
+        }
     }
     // dashboard>text>body
     .css-1et4yxl, .css-2ka2ld, .css-1i5dvk4, .css-pd01ta, .css-p1syl1, .css-1kacri {
@@ -204,9 +204,9 @@
     }
     a.css-1c67k4p, .css-79g8k4, .css-u5jio5 {
         color: @blue0;
-    }
-    a.css-1c67k4p:hover, .css-79g8k4:hover, .css-u5jio5:hover {
-        color: @blue1;
+        &:hover {
+            color: @blue1;
+        }
     }
     .css-1922tkm:hover, .css-21l0tk:hover {
         background-color: @bg1;
@@ -264,9 +264,9 @@
     }
     .css-1h5x3dy path {
         fill: @blue0;
-    }
-    .css-1h5x3dy path:hover {
-        fill: @blue1;
+        &:hover {
+            fill: @blue1;
+        }
     }
 
     // workflows>backgrounds
@@ -280,10 +280,10 @@
     .css-1531qan, .css-1l6rht7, .css-b7l5xy {
         background-color: @bg3;
         color: @fg2;
-    }
-    .css-1531qan:hover:enabled, .css-1l6rht7:hover, .css-1l6rht7:hover:enabled, .css-b7l5xy:hover:enabled {
-        background-color: @bg4;
-        color: @fg0
+        &:hover, &:hover:enabled {
+            background-color: @bg4;
+            color: @fg0
+        }
     }
     // workflows>controls
     .css-18vf4hr:hover:enabled, .css-1ym1aaa:hover:enabled, .css-ti0j09 a:hover {
@@ -336,9 +336,9 @@
     }
     .css-1w3z58m, .css-1yhvcjb, .css-1aqqaqk, .css-131rtqr, .css-lwpf90, .css-d95pa1 {
         color: @blue0;
-    }
-    .css-1w3z58m:hover, .css-1yhvcjb:hover, .css-1aqqaqk:hover, .css-lwpf90:hover, .css-d95pa1:hover {
-        color: @blue1;
+        &:hover {
+            color: @blue1;
+        }
     }
     // job>text>icons
     .css-36lt6r {
@@ -366,10 +366,10 @@
     .css-1lq19sw, .css-7lgdri, .css-mexut9, .css-409jmb {
         background-color: @bg3;
         color: @fg2;
-    }
-    .css-1lq19sw:hover, .css-7lgdri:hover:enabled, .css-7lgdri:focus, .css-mexut9:hover:enabled, .css-409jmb:hover {
-        background-color: @bg4;
-        color: @fg0
+        &:hover, &:hover:enabled, &:focus {
+            background-color: @bg4;
+            color: @fg0
+        }
     }
 
     // projects>backgrounds
@@ -401,10 +401,10 @@
     .css-16k7myj, .css-1qmanjs {
         background-color: @bg2;
         color: @fg2;
-    }
-    .css-16k7myj:hover:enabled, .css-1qmanjs:hover:enabled {
-        background-color: @bg3;
-        color: @fg1;
+        &:hover:enabled {
+            background-color: @bg3;
+            color: @fg1;
+        }
     }
     .css-85w52l {
         background-color: @blue0;
@@ -419,9 +419,9 @@
     }
     .css-1e30yve {
         color: @blue0;
-    }
-    .css-1e30yve:hover {
-        color: @blue1;
+        &:hover {
+            color: @blue1;
+        }
     }
     // projects>text>icons
     .css-1bf6sed {
@@ -461,18 +461,18 @@
     }
     .css-s8x4pl {
         color: @blue0;
-    }
-    .css-s8x4pl:hover {
-        color: @blue1;
+        &:hover {
+            color: @blue1;
+        }
     }
     // project settings>controls>buttons
     .css-1jexpce {
         background-color: @bg3;
         color: @fg2;
-    }
-    .css-1jexpce:hover {
-        background-color: @bg4;
-        color: @fg0
+        &:hover {
+            background-color: @bg4;
+            color: @fg0
+        }
     }
     .css-13flx1n {
         background-color: @red0;
@@ -512,8 +512,8 @@
     }
     .css-14g82kz, .css-11p1tpu a, .css-15gilzl {
         color: @blue0;
-    }
-    .css-14g82kz:hover, .css-11p1tpu a:hover, .css-15gilzl:hover {
-        color: @blue1;
+        &:hover {
+            color: @blue1;
+        }
     }
 }
