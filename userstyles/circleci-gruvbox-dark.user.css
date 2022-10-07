@@ -1,9 +1,14 @@
 /* ==UserStyle==
 @name           CircleCI Gruvbox Dark
 @namespace      github.com/openstyles/stylus
-@version        1.0.0
+@version        1.0.1
 @description    Simple color swap to Gruvbox Dark
 @author         TheKevJames
+@license        MIT
+
+@homepageURL    https://github.com/TheKevJames/tools/tree/master/userstyles
+@supportURL     https://github.com/TheKevJames/tools/issues
+@updateURL      https://raw.githubusercontent.com/TheKevJames/tools/master/userstyles/circleci-gruvbox-dark.user.css
 
 @preprocessor   less
 
@@ -258,6 +263,36 @@
         color: @fg2;
     }
 
+    // workflows>backgrounds
+    .css-brkvkb, .css-18fpe5j {
+        background-color: @bg0;
+    }
+    .css-brkvkb div {
+        background-color: @bg1;
+    }
+    // workflows>controls>buttons
+    .css-1531qan, .css-1l6rht7, .css-b7l5xy {
+        background-color: @bg3;
+        color: @fg2;
+    }
+    .css-1531qan:hover:enabled, .css-1l6rht7:hover, .css-1l6rht7:hover:enabled, .css-b7l5xy:hover:enabled {
+        background-color: @bg4;
+        color: @fg0
+    }
+    // workflows>controls
+    .css-18vf4hr:hover:enabled, .css-1ym1aaa:hover:enabled, .css-ti0j09 a:hover {
+        background-color: @bg2;
+    }
+    // workflows>tooltips
+    .css-l6uz6m, .css-hjg6u8 {
+        background-color: @bg1;
+        color: @fg3;
+    }
+    // workflows>text>body
+    .css-18vf4hr, .css-19wtgi5, .css-l6uz6m li button, .css-ti0j09 a {
+        color: @fg3;
+    }
+
     // job>backgrounds
     .css-qemf89, .css-1pfbiwg {
         background-color: @bg0s;
@@ -272,6 +307,9 @@
     .css-227iwg, .css-1q2xawn {
         background-color: @bg1;
         border-color: @fg4;
+    }
+    .css-qkgf8a {
+        background-color: @orange0;
     }
     .css-vawumd, .css-1ep8bia, .css-1rextz8, .css-9fmc7e, .css-1ufzcj5, .css-q7pef3, .css-11ito4k, .css-16kt0dw {
         background-color: @bg1;
