@@ -202,10 +202,10 @@
     .css-1xj9goc {
         color: @blue0;
     }
-    a.css-1c67k4p, .css-79g8k4 {
+    a.css-1c67k4p, .css-79g8k4, .css-u5jio5 {
         color: @blue0;
     }
-    a.css-1c67k4p:hover, .css-79g8k4:hover {
+    a.css-1c67k4p:hover, .css-79g8k4:hover, .css-u5jio5:hover {
         color: @blue1;
     }
     .css-1922tkm:hover, .css-21l0tk:hover {
@@ -261,6 +261,12 @@
     }
     .css-utlgz3 {
         color: @fg2;
+    }
+    .css-1h5x3dy path {
+        fill: @blue0;
+    }
+    .css-1h5x3dy path:hover {
+        fill: @blue1;
     }
 
     // workflows>backgrounds
