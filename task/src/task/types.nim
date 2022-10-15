@@ -52,7 +52,6 @@ func `$`*(t: Task): string =
 
 # TODO: why is this not able to be func'd?
 proc complete*(task: Task, ago: int): Option[Task] =
-  # TODO: provide offset (eg. "task completed yesterday")
   if task.details.next.isSome() and task.details.interval != 0.days:
     var newTask = deepCopy(task)
     newTask.details.next = if task.details.shift:
