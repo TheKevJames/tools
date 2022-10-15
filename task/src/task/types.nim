@@ -39,13 +39,13 @@ func `$`*(d: Details): string =
 
 func `$`*(l: TaskLink): string = l.ftitle[0].toLowerAscii & $l.lineno
 
-func `$`*(t: Tag): string =
-  result = t[0][3..t[0].high-3]
+proc `$`*(t: Tag): string =
+  result = t[0][3..^1]
   for i in 1..<maxTags:
     if t[i].len > 0:
-      result = result & " > " & t[i][i+3..t[i].high-i-3]
+      result = result & " > " & t[i][i+3..^1]
 
-func `$`*(t: Task): string =
+proc `$`*(t: Task): string =
   result = $t.tag & "\t" & $t.link & ": " & t.summary
   if t.details.next.isSome():
     result = result & "\n\t" & $t.details

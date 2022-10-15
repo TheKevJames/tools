@@ -17,6 +17,6 @@ proc load*(): Config =
     .filter(proc(x: string): bool = x.startsWith("[{'path"))[0]
     .replace("'", "\"").parseJson().getElems()
     .map(proc(x: JsonNode): string = x{"path"}.getStr())
-    .map(proc(x: string): string = x.expandTilde().absolutePath() & "/todos.wiki")
+    .map(proc(x: string): string = x.expandTilde().absolutePath() & "/todos.md")
 
   Config(srcs: srcs)

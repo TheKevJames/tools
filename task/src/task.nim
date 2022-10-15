@@ -11,9 +11,9 @@ proc load(filename: string): seq[Task] =
     tag: Tag
 
   for lineno, line in enumerate(filename.lines):
-    if line.startsWith("= TODOs"):
+    if line.startsWith("# TODOs"):
       title = line.splitWhitespace()[2]
-    elif line.startsWith("=="):
+    elif line.startsWith("##"):
       level = line.splitWhitespace(maxsplit=1)[0].len - 2
       tag[level] = line
       for x in level+1..<maxTags:
@@ -32,7 +32,7 @@ proc save(tasks: seq[Task]) =
     var xs = tasks.filterIt(it.link.fname == fname)
 
     var f = open(fname, fmWrite)
-    f.writeLine("= TODOs: " & xs[0].link.ftitle & " =")
+    f.writeLine("# TODOs: " & xs[0].link.ftitle)
 
     var lasttag: Tag
     for task in xs:
@@ -41,7 +41,7 @@ proc save(tasks: seq[Task]) =
         if lasttag.countIt(it.len > 0) == 0:
           if $task.tag != "Triage":
             f.writeLine("")
-            f.writeLine("== Triage ==")
+            f.writeLine("## Triage")
 
         f.writeLine("")
         f.writeLine(task.tag.raw())

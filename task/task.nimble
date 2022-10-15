@@ -1,5 +1,5 @@
 # Package
-version       = "0.3.0"
+version       = "0.4.0"
 author        = "Kevin James"
 description   = "Simple personal task manager"
 license       = "MIT"
