@@ -13,11 +13,16 @@ can be used to initialize various topics/subscriptions on startup.
 
 You can find the source code in `this Github repo`_.
 
+Tag description:
+
+* ``latest``: whatever is the most recent build on master
+* ``\d+.\d+.\d+``: the latest build for a given gcloud version
+* in addition, each commit has its commit hash user as a docker tag
+
 .. warning::
 
     I received a bunch of reports of the emulator behaving weirdly as of gcloud
-    version 407+. This project is temporarily pinned to v406 until we can
-    figure out what Google changed.
+    version 407+. If :latest isn't working for you, try out the :406.0.0 tag!
 
 Usage
 -----

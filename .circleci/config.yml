@@ -127,11 +127,16 @@ workflows:
               ignore: /.*/
             tags:
               only: /^docker-gcloud-pubsub-emulator-.*/
-      # TODO: nuke once we can trigger tags from gcloud version bumps
       - docker-publish:
           name: docker-publish-gcloud-pubsub-emulator-master
           ident: gcloud-pubsub-emulator
           tag: "${CIRCLE_SHA1:0:10}"
+          # TODO: get renovate to automerge these once v407+ is less broken
+          post-steps:
+            - run: |
+                export GCLOUD_VERSION=$(awk -F':|-' '/cloud-sdk/ {print $3}' docker-gcloud-pubsub-emulator/Dockerfile)
+                docker tag "gcloud-pubsub-emulator:latest" "thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
+                docker push "thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
           filters:
             branches:
               only: /master/
