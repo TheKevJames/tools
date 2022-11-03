@@ -12,7 +12,7 @@ WORKDIR /src
 RUN go build
 
 
-FROM google/cloud-sdk:alpine
+FROM google/cloud-sdk:406.0.0-alpine
 
 COPY --from=builder /usr/bin/wait-for /usr/bin
 COPY --from=builder /src/pubsubc /usr/bin
@@ -21,8 +21,7 @@ COPY run.sh /run.sh
 RUN apk add --no-cache --update \
         netcat-openbsd \
         openjdk8-jre && \
-    gcloud components install beta pubsub-emulator \
-    gcloud components update --version 406.0.0
+    gcloud components install beta pubsub-emulator
 
 EXPOSE 8681
 
