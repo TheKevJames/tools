@@ -135,7 +135,7 @@ workflows:
           post-steps:
             - run: |
                 export GCLOUD_VERSION=$(awk -F':|-' '/cloud-sdk/ {print $3}' docker-gcloud-pubsub-emulator/Dockerfile)
-                docker tag "gcloud-pubsub-emulator:latest" "thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
+                docker tag "thekevjames/gcloud-pubsub-emulator:latest" "thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
                 docker push "thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
           filters:
             branches:
