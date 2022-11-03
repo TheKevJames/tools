@@ -3,10 +3,15 @@ gcloud-pubsub-emulator
 
 |dockerpulls|
 
+Description
+-----------
+
 This image is a clone of `marcelcorso/gcloud-pubsub-emulator`_, updated to
 auto-build off of every new ``gcloud`` release. It basically amounts to a
 dockerized form of the emulator itself as well as the `pubsubc`_ tool, which
 can be used to initialize various topics/subscriptions on startup.
+
+You can find the source code in `this Github repo`_.
 
 Usage
 -----
@@ -90,8 +95,9 @@ will work. Some examples include:
 
 .. _marcelcorso/gcloud-pubsub-emulator: https://github.com/marcelcorso/gcloud-pubsub-emulator
 .. _pubsubc: https://github.com/prep/pubsubc
-.. _wait-for: https://github.com/eficode/wait-for
+.. _this Github repo: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator
 .. _wait-for-it: https://github.com/vishnubob/wait-for-it
+.. _wait-for: https://github.com/eficode/wait-for
 
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/gcloud-pubsub-emulator.svg?style=flat-square
     :alt: Docker Pulls

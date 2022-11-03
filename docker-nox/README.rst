@@ -17,6 +17,8 @@ tags of this image exist which reference `nox-automation`_ releases rather than
 Note as well that I am not the maintainer of ``nox`` itself; please report any
 issues with the tool `upstream`_.
 
+You can find the source code in `this Github repo`_.
+
 Usage
 -----
 
@@ -51,6 +53,7 @@ For full usage information, see the `nox`_ documentation.
 .. _currently supported versions of Python: https://devguide.python.org/#status-of-python-branches
 .. _nox-automation: https://pypi.org/project/nox-automation
 .. _nox: http://nox.thea.codes/en/stable/
+.. _this Github repo: https://github.com/TheKevJames/tools/tree/master/docker-nox
 .. _upstream: https://github.com/theacodes/nox
 
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/nox.svg?style=flat-square

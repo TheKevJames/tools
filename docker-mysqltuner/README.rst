@@ -12,6 +12,8 @@ on Alpine Linux, so it should be obnoxiously small.
 Note that I am not the maintainer of ``mysqltuner`` itself; please report any
 issues with the tool `upstream`_.
 
+You can find the source code in `this Github repo`_.
+
 Usage
 -----
 
@@ -37,6 +39,7 @@ accordingly:
     $ done
 
 .. _MySQLTuner Homepage: http://mysqltuner.pl/
+.. _this Github repo: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
 .. _upstream: https://github.com/major/MySQLTuner-perl
 
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/mysqltuner.svg?style=flat-square
