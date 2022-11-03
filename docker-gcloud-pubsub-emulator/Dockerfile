@@ -21,7 +21,8 @@ COPY run.sh /run.sh
 RUN apk add --no-cache --update \
         netcat-openbsd \
         openjdk8-jre && \
-    gcloud components install beta pubsub-emulator
+    gcloud components install beta pubsub-emulator \
+    gcloud components update --version 406.0.0
 
 EXPOSE 8681
 

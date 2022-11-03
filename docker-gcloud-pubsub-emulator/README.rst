@@ -13,6 +13,12 @@ can be used to initialize various topics/subscriptions on startup.
 
 You can find the source code in `this Github repo`_.
 
+.. warning::
+
+    I received a bunch of reports of the emulator behaving weirdly as of gcloud
+    version 407+. This project is temporarily pinned to v406 until we can
+    figure out what Google changed.
+
 Usage
 -----
 
