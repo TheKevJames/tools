@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
   docker: talkiq/docker@3
-  gcloud: talkiq/gcloud@8
 
 jobs:
   docker-publish:
@@ -60,18 +59,6 @@ jobs:
           at: /meta
       - run: node ./docker-update-readme.js thekevjames <<parameters.ident>> /meta/README.md
 
-  update-poe-container:
-    docker:
-      - image: google/cloud-sdk:alpine
-    resource_class: small
-    steps:
-      - gcloud/auth:
-          project: thekevjames-175823
-      - run: |
-          gcloud compute instances update-container poe \
-            --zone=us-west1-a \
-            --container-image=thekevjames/poe:${CIRCLE_SHA1:0:10}
-
 workflows:
   run-jobs:
     jobs:
@@ -89,15 +76,6 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
-      - docker-readme-build:
-          name: docker-readme-build-poe
-          ident: poe
-          prefix: ''  # TODO: sigh, fixme
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
       - docker-readme-push:
           name: docker-readme-push-<<matrix.ident>>
           matrix:
@@ -106,7 +84,6 @@ workflows:
                 - gcloud-pubsub-emulator
                 - mysqltuner
                 - nox
-                - poe
                 - tuning-primer
           filters:
             branches:
@@ -164,30 +141,6 @@ workflows:
               ignore: /.*/
             tags:
               only: /^docker-nox-.*/
-
-      # DOCKER: poe
-      - docker/publish:
-          name: build-docker-poe
-          image: thekevjames/poe
-          path: poe
-          pre-steps:
-            - setup_remote_docker:
-                version: 19.03.12
-            - run: echo "$DOCKER_PASS" | docker login --username "$DOCKER_USER" --password-stdin
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-      - update-poe-container:
-          name: deploy-poe
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-          requires:
-            - build-docker-poe
 
       # DOCKER: tuning-primer
       - docker-publish:
