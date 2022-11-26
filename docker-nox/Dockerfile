@@ -58,5 +58,5 @@ RUN apt-get update -qy && \
     rm /tmp/get-pip-3.5.py && \
     rm /tmp/get-pip-3.6.py && \
     rm /tmp/get-pip.py && \
-    python3 -m pip install --no-cache-dir 'nox==2022.8.7' && \
+    python3 -m pip install --no-cache-dir 'nox==2022.11.21' && \
     rm -rf /var/cache/apt/lists
