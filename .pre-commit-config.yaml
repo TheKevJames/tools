@@ -2,6 +2,9 @@ ci:
     autofix_commit_msg: 'refactor(lint): apply automatic lint fixes'
     autoupdate_commit_msg: 'chore(deps): bump pre-commit linter versions'
 
+default_language_version:
+    python: python3.11
+
 exclude: '^docker-tuning-primer/root/.*.sh$'
 
 repos:
@@ -67,12 +70,12 @@ repos:
     rev: v3.9.0
     hooks:
     -   id: reorder-python-imports
-        args: [--py37-plus]
+        args: [--py39-plus]
 -   repo: https://github.com/asottile/pyupgrade
     rev: v3.3.0
     hooks:
     -   id: pyupgrade
-        args: [--py37-plus]
+        args: [--py311-plus]
 -   repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.991
     hooks:
@@ -106,11 +109,11 @@ repos:
     -   id: flake8
         additional_dependencies:
         - flake8-2020==1.7.0
-        - flake8-broken-line==0.5.0
-        - flake8-builtins==1.5.3
+          # - flake8-broken-line==0.6.0  # TODO: enable when they support flake6
+        - flake8-builtins==2.0.1
         - flake8-commas==2.1.0
-        - flake8-comprehensions==3.10.0
-        - flake8-typing-imports==1.13.0
+        - flake8-comprehensions==3.10.1
+        - flake8-typing-imports==1.14.0
         args:
         - --ignore=E501,W503,F401,F811
 -   repo: local
