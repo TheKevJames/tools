@@ -108,7 +108,6 @@ workflows:
           name: docker-publish-gcloud-pubsub-emulator-master
           ident: gcloud-pubsub-emulator
           tag: "${CIRCLE_SHA1:0:10}"
-          # TODO: get renovate to automerge these once v407+ is less broken
           post-steps:
             - run: |
                 export GCLOUD_VERSION=$(awk -F':|-' '/cloud-sdk/ {print $3}' docker-gcloud-pubsub-emulator/Dockerfile)
