@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name           CircleCI Gruvbox Dark
 @namespace      github.com/openstyles/stylus
-@version        1.0.2
+@version        1.1.0
 @description    Simple color swap to Gruvbox Dark
 @author         TheKevJames
 @license        MIT
@@ -85,25 +85,25 @@
     .css-i3329 {
         background-color: @bg0s;
     }
-    .css-o0fkwo {
+    .css-o0fkwo, .css-1qkzb2c {
         background-color: @bg1;
     }
-    .css-9n5p6s {
+    .css-9n5p6s, .css-1fe3hod {
         background-color: @bg2;
     }
     .css-1jokiij {
         background-color: @green0;
     }
     // sidebar>controls
-    .css-1b0hfz7:hover, .css-1dhf353:hover, .css-1pu9hl8:hover {
+    .css-1b0hfz7:hover, .css-1dhf353:hover, .css-1pu9hl8:hover, .css-1qkzb2c:hover, .css-1fe3hod:hover {
         background-color: @bg3;
     }
     // sidebar>text>headers
-    .css-atc7s6, .css-fhb5z4, .css-16t9vem, .css-qnwbyh {
+    .css-atc7s6, .css-fhb5z4, .css-16t9vem, .css-qnwbyh, .css-1qkzb2c, .css-1fe3hod {
         color: @fg2;
     }
     // sidebar>text>body
-    .css-liiv0k, .css-11b5hsp, .css-6gxsh7, .css-yknylw, .css-63odjp, .css-1ykbciu {
+    .css-liiv0k, .css-11b5hsp, .css-6gxsh7, .css-yknylw, .css-63odjp, .css-1ykbciu, .css-h51pp3 {
         color: @fg3;
     }
     // sidebar>text>body>links
@@ -276,6 +276,14 @@
     .css-brkvkb div {
         background-color: @bg1;
     }
+    .css-nbfzsc, .css-hfp4ut {
+        background-color: @bg1;
+        border-color: @bg2;
+    }
+    .css-govxcl, .css-btmbkn {
+        background-color: @bg2;
+        border-color: @bg2;
+    }
     // workflows>controls>buttons
     .css-1531qan, .css-1l6rht7, .css-b7l5xy {
         background-color: @bg3;
@@ -297,6 +305,9 @@
     // workflows>text>body
     .css-18vf4hr, .css-19wtgi5, .css-l6uz6m li button, .css-ti0j09 a {
         color: @fg3;
+    }
+    .css-1ssa46x, .css-1yqs9k4 {
+        color: @fg4;
     }
 
     // job>backgrounds
@@ -468,17 +479,30 @@
         color: @fg2;
     }
     // project settings>text>body
-    .css-ei7ndx, .css-zwll95 {
+    .css-ei7ndx, .css-zwll95, .css-3m76ux {
         color: @fg3;
     }
     .css-14k9l0h {
-        color:@fg4;
+        color: @fg4;
     }
     .css-s8x4pl {
         color: @blue0;
         &:hover {
             color: @blue1;
         }
+    }
+    // project settings>controls
+    .css-1m79yrn {
+        background-color: @bg0s;
+    }
+    .css-js042 {
+        background-color: @bg0;
+        &:focus, &:hover, &:hover:enabled, &:not(:placeholder-shown) {
+            background-color: @bg0;
+        }
+    }   
+    .css-fviq9m label, .css-js042 {
+        color: @fg4;
     }
     // project settings>controls>buttons
     .css-1jexpce {
@@ -497,7 +521,7 @@
     .css-2m7jpk {
         background-color: @bg0;
     }
-    .css-xc6cn0 {
+    .css-xc6cn0, .css-13t53og {
         background-color: @bg2;
     }
     .css-1w1j1ee, .css-fivdeo {
@@ -519,7 +543,7 @@
     .css-7vec0e, .css-uhyp7r, .css-1kmqpnu {
         color: @fg2;
     }
-    .css-1763ajo, .css-1r7vo4, .css-2e5ed3, .css-1i9rw84, .css-13xxwik {
+    .css-1763ajo, .css-1r7vo4, .css-2e5ed3, .css-1i9rw84, .css-13xxwik, .css-8lprzr > label, .css-dpd5j9 > div {
         color: @fg3;
     }
     .css-pfxc71 {
@@ -527,6 +551,37 @@
     }
     .css-14g82kz, .css-11p1tpu a, .css-15gilzl {
         color: @blue0;
+        &:hover {
+            color: @blue1;
+        }
+    }
+
+    // user settings>text>headers
+    .css-18v3rgq {
+        color: @fg1;
+    }
+    // user settings>text>body
+    .css-k0mmy, .css-10tj4k5, .css-15y4ldn, .css-1twlfi2 {
+        color: @fg3;
+    }
+    .css-pqatcu {
+        color: @fg4;
+    }
+    // user settings>controls
+    .css-1imf424 {
+        background-color: @bg0s;
+    }
+    // user settings>controls>buttons
+    .css-e0d9w9 {
+        background-color: @gray;
+        color: @fg1;
+        &:hover:enabled {
+            background-color: @fg4;
+        }
+    }
+    .css-85w52l {
+        background-color: @blue0;
+        color: @fg1;
         &:hover {
             color: @blue1;
         }
