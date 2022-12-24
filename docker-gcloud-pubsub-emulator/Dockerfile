@@ -12,7 +12,7 @@ WORKDIR /src
 RUN go build
 
 
-FROM google/cloud-sdk:411.0.0-alpine
+FROM google/cloud-sdk:412.0.0-alpine
 
 COPY --from=builder /usr/bin/wait-for /usr/bin
 COPY --from=builder /src/pubsubc /usr/bin
