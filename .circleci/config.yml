@@ -170,4 +170,3 @@ workflows:
               ignore: /.*/
           requires:
             - docker-readme-build-<<matrix.ident>>
-            - docker-autopublish-gcloud-pubsub-emulator

@@ -500,7 +500,7 @@
         &:focus, &:hover, &:hover:enabled, &:not(:placeholder-shown) {
             background-color: @bg0;
         }
-    }   
+    }
     .css-fviq9m label, .css-js042 {
         color: @fg4;
     }
