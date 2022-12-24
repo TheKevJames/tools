@@ -49,6 +49,20 @@ proc save(tasks: seq[Task]) =
 
       f.writeLine("* " & task.raw())
 
+proc delay(ids: seq[string], days: int = 0) =
+  let tasks = cmd.list(load(), "", 365, -1).filter(proc(x: Task): bool = $x.link in ids)
+  for task in tasks:
+    let delayed = task.postpone(days)
+    if delayed.isSome():
+      echo "delayed task, next occurrence: " &
+        delayed.get().details.next.get().format("yyyy-MM-dd")
+
+      task.link.fname.writeFile(
+        task.link.fname.readFile.replace(task.raw(), delayed.get().raw()))
+    else:
+      echo "cannot delay task: " & $task.link
+      echo "periodic tasks with shift=false cannot be delayed"
+
 proc done(ids: seq[string], ago: int = 0) =
   let tasks = cmd.list(load(), "", 365, -1).filter(proc(x: Task): bool = $x.link in ids)
   for task in tasks:
@@ -100,8 +114,9 @@ proc triage(filter: string = "", includeFutureOffset: int = -1, limit: int = -1)
     echo task
 
 when isMainModule:
-  # TODO: delay <task> --offset 3days
   dispatchMulti(
+    [delay, help = {
+      "days": "delay task by n days"}],
     [done, help = {
       "ago": "mark task as completed n days ago"}],
     [due, help = {

@@ -50,7 +50,6 @@ proc `$`*(t: Task): string =
   if t.details.next.isSome():
     result = result & "\n\t" & $t.details
 
-# TODO: why is this not able to be func'd?
 proc complete*(task: Task, ago: int): Option[Task] =
   if task.details.next.isSome() and task.details.interval != 0.days:
     var newTask = deepCopy(task)
@@ -65,6 +64,14 @@ proc complete*(task: Task, ago: int): Option[Task] =
     some(newTask)
   else:
     none(Task)
+
+proc postpone*(task: Task, days: int): Option[Task] =
+  if task.details.next.isSome() and task.details.interval != 0.days and not task.details.shift:
+    none(Task)
+  else:
+    var newTask = deepCopy(task)
+    newTask.details.next = some(now() + days.days)
+    some(newTask)
 
 func raw*(task: Task): string =
   result = task.summary
