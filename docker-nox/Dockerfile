@@ -2,6 +2,7 @@ FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/GMT
+COPY requirements.txt /
 # https://devguide.python.org/#status-of-python-branches
 RUN apt-get update -qy && \
     apt-get install -qy --no-install-recommends \
@@ -58,5 +59,5 @@ RUN apt-get update -qy && \
     rm /tmp/get-pip-3.5.py && \
     rm /tmp/get-pip-3.6.py && \
     rm /tmp/get-pip.py && \
-    python3 -m pip install --no-cache-dir 'nox==2022.11.21' && \
+    python3 -m pip install --no-cache-dir -r /requirements.txt && \
     rm -rf /var/cache/apt/lists

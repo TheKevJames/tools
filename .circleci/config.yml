@@ -125,6 +125,20 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
+      - docker-publish:
+          name: docker-autopublish-nox
+          ident: nox
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export NOX_VERSION=$(awk -F'=' '/nox/ {print $3}' docker-nox/requirements.txt)
+                docker tag "thekevjames/nox:latest" "thekevjames/nox:${NOX_VERSION}"
+                docker push "thekevjames/nox:${NOX_VERSION}"
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
 
       - docker-readme-build:
           name: docker-readme-build-<<matrix.ident>>
