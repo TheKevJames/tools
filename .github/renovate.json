@@ -4,5 +4,9 @@
     "managers": ["docker"],
     "packageNames": ["google/cloud-sdk"],
     "automerge": true
+  }, {
+    "managers": ["pip_requirements"],
+    "packageNames": ["nox"],
+    "automerge": true
   }]
 }
