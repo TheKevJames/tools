@@ -3,6 +3,7 @@ import cligen
 import task/types
 from task/cmd import nil
 from task/config import nil
+from task/filter import nil
 
 proc load(filename: string): seq[Task] =
   var
@@ -109,6 +110,11 @@ proc soon(filter: string = "", includeFutureOffset: int = 3, limit: int = -1) =
   for task in cmd.listWithNext(load(), filter, includeFutureOffset, limit):
     echo task
 
+proc filters() =
+  echo "Filters:"
+  for ft in filter.FilterTarget:
+    echo "* " & $ft
+
 proc triage(filter: string = "", includeFutureOffset: int = -1, limit: int = -1) =
   for task in cmd.list(load(), filter & ",tag=triage", includeFutureOffset, limit):
     echo task
@@ -122,6 +128,7 @@ when isMainModule:
     [due, help = {
       "filter": "foo=bar,baz=buuq,..."}],
     [edit],
+    [filters],
     [highpri, help = {
       "filter": "foo=bar,baz=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}],
