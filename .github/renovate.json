@@ -1,7 +1,7 @@
 {
   "extends": ["github>thekevjames/tools:personal"],
   "packageRules": [{
-    "managers": ["docker"],
+    "managers": ["dockerfile"],
     "packageNames": ["google/cloud-sdk"],
     "automerge": true
   }, {
