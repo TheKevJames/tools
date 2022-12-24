@@ -60,8 +60,72 @@ jobs:
       - run: node ./docker-update-readme.js thekevjames <<parameters.ident>> /meta/README.md
 
 workflows:
+  manual-publish:
+    jobs:
+      - docker-publish:
+          name: docker-publish-<<matrix.ident>>
+          tag: "${CIRCLE_TAG/docker-<<matrix.ident>>-/}"
+          matrix:
+            parameters:
+              ident:
+                - gcloud-pubsub-emulator
+                - mysqltuner
+                - nox
+                - tuning-primer
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^docker-<<matrix.ident>>-.*/
+      - docker-readme-build:
+          name: docker-readme-build-<<matrix.ident>>
+          matrix:
+            parameters:
+              ident:
+                - gcloud-pubsub-emulator
+                - mysqltuner
+                - nox
+                - tuning-primer
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^docker-<<matrix.ident>>-.*/
+      - docker-readme-push:
+          name: docker-readme-push-<<matrix.ident>>
+          matrix:
+            parameters:
+              ident:
+                - gcloud-pubsub-emulator
+                - mysqltuner
+                - nox
+                - tuning-primer
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^docker-<<matrix.ident>>-.*/
+          requires:
+            - docker-readme-build-<<matrix.ident>>
+            - docker-publish-<<matrix.ident>>
+
   run-jobs:
     jobs:
+      - docker-publish:
+          name: docker-autopublish-gcloud-pubsub-emulator
+          ident: gcloud-pubsub-emulator
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export GCLOUD_VERSION=$(awk -F':|-' '/cloud-sdk/ {print $3}' docker-gcloud-pubsub-emulator/Dockerfile)
+                docker tag "thekevjames/gcloud-pubsub-emulator:latest" "thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
+                docker push "thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+
       - docker-readme-build:
           name: docker-readme-build-<<matrix.ident>>
           matrix:
@@ -92,62 +156,4 @@ workflows:
               ignore: /.*/
           requires:
             - docker-readme-build-<<matrix.ident>>
-
-      # DOCKER: gcloud-pubsub-emulator
-      - docker-publish:
-          name: docker-publish-gcloud-pubsub-emulator
-          ident: gcloud-pubsub-emulator
-          # TODO: build tag automagically from ident, then use a matrix?
-          tag: "${CIRCLE_TAG:30}"
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^docker-gcloud-pubsub-emulator-.*/
-      - docker-publish:
-          name: docker-publish-gcloud-pubsub-emulator-master
-          ident: gcloud-pubsub-emulator
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export GCLOUD_VERSION=$(awk -F':|-' '/cloud-sdk/ {print $3}' docker-gcloud-pubsub-emulator/Dockerfile)
-                docker tag "thekevjames/gcloud-pubsub-emulator:latest" "thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
-                docker push "thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-
-      # DOCKER: mysqltuner
-      - docker-publish:
-          name: docker-publish-mysqltuner
-          ident: mysqltuner
-          tag: "${CIRCLE_TAG:18}"
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^docker-mysqltuner-.*/
-
-      # DOCKER: nox
-      - docker-publish:
-          name: docker-publish-nox
-          ident: nox
-          tag: "${CIRCLE_TAG:11}"
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^docker-nox-.*/
-
-      # DOCKER: tuning-primer
-      - docker-publish:
-          name: docker-publish-tuning-primer
-          ident: tuning-primer
-          tag: "${CIRCLE_TAG:21}"
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^docker-tuning-primer-.*/
+            - docker-autopublish-gcloud-pubsub-emulator
