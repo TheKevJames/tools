@@ -46,7 +46,7 @@
 ==/UserStyle== */
 
 @-moz-document domain("app.circleci.com") {
-    // defaults
+    /* defaults */
     body {
         background-color: @bg0;
         color: @fg3;

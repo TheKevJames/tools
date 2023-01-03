@@ -1,0 +1,260 @@
+/* ==UserStyle==
+@name           Dialpad Meetings Gruvbox Dark Modern
+@namespace      github.com/openstyles/stylus
+@version        1.0.0
+@description    Simple color swap to Gruvbox Dark with design modernization
+@author         TheKevJames
+@license        MIT
+
+@homepageURL    https://github.com/TheKevJames/tools/tree/master/userstyles
+@supportURL     https://github.com/TheKevJames/tools/issues
+@updateURL      https://raw.githubusercontent.com/TheKevJames/tools/master/userstyles/dialpad-meetings-gruvbox-dark-modern.user.css
+
+@preprocessor   less
+
+// https://github.com/morhetz/gruvbox
+@var color bg0h "Background 0h" #1d2021
+@var color bg0s "Background 0s" #32302f
+@var color bg0  "Background 0" #282828
+@var color bg1  "Background 1" #3c3836
+@var color bg2  "Background 2" #504945
+@var color bg3  "Background 3" #665c54
+@var color bg4  "Background 4" #7c6f64
+
+@var color fg0    "Foreground 0" #fbf1c7
+@var color fg1    "Foreground 1" #ebdbb2
+@var color fg2    "Foreground 2" #d5c4a1
+@var color fg3    "Foreground 3" #bdae93
+@var color fg4    "Foreground 4" #a899a4
+
+@var color gray "Gray" #928374
+
+@var color red0    "Red 0"        #cc241d
+@var color red1    "Red 1"        #fb4934
+@var color green0  "Green 0"      #98971a
+@var color green1  "Green 1"      #b8bb26
+@var color yellow0 "Yellow 0"     #d79921
+@var color yellow1 "Yellow 1"     #fabd24
+@var color blue0   "Blue 0"       #458588
+@var color blue1   "Blue 1"       #83a598
+@var color purple0 "Purple 0"     #b16286
+@var color purple1 "Purple 1"     #d3869b
+@var color aqua0   "Aqua 0"       #689d6a
+@var color aqua1   "Aqua 1"       #8ec07c
+@var color orange0 "Orange 0"     #d65d0e
+@var color orange1 "Orange 1"     #fe8019
+==/UserStyle== */
+@-moz-document domain("meetings.dialpad.com") {
+    /* avoid rounded corners */
+    *,
+    .person-card__header .person-card__avatar-wrapper::after,
+    .person-card__header .person-card__video-wrapper::after {
+        border-radius: 0 !important;
+    }
+
+    /* reduce active speaker highlight width */
+    .person-card.person-card--active-speaker {
+        box-shadow: 0 0 0 0.2rem rgba(0, 25, 245, .65) !important;
+    }
+
+    /* hide active speaker icon */
+    .active-speaker-icon {
+        display: none;
+    }
+
+    /* hide company names */
+    .person-card__content-row {
+        opacity: 65%;
+    }
+    .person-card__subtitle {
+        display: none;
+    }
+
+    /* smaller cards */
+    .person-card {
+        width: 100%;
+    }
+    .conference--video-widescreen .conference-layout-grid__cards {
+        grid-template-columns: repeat(auto-fit, [card] 13rem);
+        max-width: 100%
+    }
+
+    /* TODO: label these */
+    .action-item-interactive-panel__add-btn {
+        left: 0;
+        height: 5.2rem;
+        width: 5.2rem;
+    }
+    .card-controls {
+        margin-left: 0;
+    }
+    .person-card__actions-row {
+        padding-top: 0;
+    }
+    .person-card__footer {
+        padding-bottom: 0;
+    }
+
+    /* conference view */
+    body,
+    .conference--light-background,
+    .person-card {
+        background-color: @bg0s;
+    }
+    .uc-light-background {
+        background: linear-gradient(180deg, @bg0s 0, rgba(242, 242, 246, .25) 100%), @bg1;
+    }
+    .meeting-actions,
+    .uc-bbar-button {
+        background-color: @bg1;
+    }
+    .transcript-enabled-cta,
+    .change-layout .menu-button__popup,
+    .popup-window,
+    .popup-window__header,
+    .popup-window__content,
+    .conference-panel,
+    .conference-panel__footer,
+    .conference-panel__footer-overlay,
+    .uc-bbar-composite-button-wrapper .menu-button__popup,
+    .emoji-picker__emoji-list,
+    .emoji-launcher__hover-list,
+    .more-button .menu-button__popup {
+        background-color: @bg2;
+    }
+    .d-bgc-white,
+    .f\:d-bgc-white:focus,
+    .h\:d-bgc-white:hover {
+        background-color: @bg2 !important;
+    }
+    .uc-bbar-button:focus-visible,
+    .uc-bbar-button:hover,
+    .change-layout__option:focus-visible,
+    .change-layout__option:hover,
+    .chat-block:hover,
+    .d-tab:hover,
+    .media-config-option:focus-visible,
+    .media-config-option:hover,
+    .more-button__menu-item:focus-visible,
+    .more-button__menu-item:hover {
+        background-color: @bg3;
+    }
+    .background-replacement-options__effect {
+        background-color: @bg4;
+    }
+    .uc-bbar-button[disabled] .d-svg,
+    .uc-button[disabled],
+    .uc-button[disabled] .d-svg,
+    .uc-bbar-button[disabled],
+    .d-btn[disabled],
+    .invite-others__send-btn[disabled] {
+        background-color: @gray;
+    }
+    .change-layout__popup-title,
+    .meeting-title__editable,
+    .meeting-title__readonly,
+    .room-info__title,
+    .meeting-shot-clock-panel__title,
+    .conference-panel__header-content,
+    .person-item__title,
+    .invite-others__title,
+    .chat-block__label,
+    .background-replacement-options span {
+        color: @fg1;
+    }
+    .d-fc-purple,
+    .d-fc-purple-500,
+    .f\:d-fc-purple-500:focus,
+    .f\:d-fc-purple:focus,
+    .f\:d-fc-purple:focus-within,
+    .fv\:d-fc-purple:focus-visible,
+    .h\:d-fc-purple-500:hover,
+    .h\:d-fc-purple:hover {
+        color: @fg1 !important;
+    }
+    .chat-block__message,
+    .d-tablist,
+    .activity-message__copy,
+    .core-meeting-actions__participants-btn--active .core-meeting-actions__participants,
+    .pip-size-control__btn svg,
+    .media-config {
+        color: @fg2;
+    }
+    .uc-bbar-button,
+    .uc-bbar-button[disabled],
+    .d-btn[disabled],
+    .invite-others__send-btn[disabled],
+    .conference--grid .uc-status-panel-btn,
+    .conference--tv-remote .uc-status-panel-btn,
+    .change-layout__option,
+    .meeting-info-panel__duration,
+    .room-info__item-icon {
+        color: @fg2 !important;
+    }
+    body,
+    .transcript-enabled-cta__description,
+    .meeting-info-panel__start-time,
+    .room-info__item-text,
+    .conference-panel .btn-panel-close,
+    .person-item__subtitle,
+    .call-out__legal,
+    .chat-block__time,
+    .activity-message__time {
+        color: @fg3;
+    }
+    .d-fc-black-600,
+    .d-fc-lighter,
+    .f\:d-fc-black-600:focus,
+    .f\:d-fc-lighter:focus,
+    .f\:d-fc-lighter:focus-within,
+    .fv\:d-fc-lighter:focus-visible,
+    .h\:d-fc-black-600:hover,
+    .h\:d-fc-lighter:hover {
+        color: @fg3 !important;
+    }
+    .d-tab:hover {
+        --tab--fc: @fg3;
+    }
+    .room-info__domain-name {
+        color: @fg4;
+    }
+    .d-btn,
+    .invite-others__cancel-btn {
+        color: @blue0;
+    }
+    .d-tab--selected {
+        --tab--fc: @blue1;
+    }
+    .core-meeting-actions__chat-btn--active .d-svg,
+    .core-meeting-actions__participants-btn--active .d-svg,
+    .host-controls-button .menu-button[aria-expanded] .d-svg {
+        color: @blue1;
+    }
+    .d-btn--primary,
+    .invite-others__send-btn {
+        color: @fg1;
+        background-color: @blue0;
+    }
+    .end-call-button {
+        background-color: @red0;
+        color: @fg1;
+    }
+    .contact-tag__a2p-message,
+    .background-replacement-options__remove-circle {
+        color: @red1;
+    }
+    .background-replacement-options__blur-icon {
+        color: @bg1;
+    }
+    .surprise-me__icon {
+        color: @yellow1;
+    }
+    .d-fc-green-500,
+    .f\:d-fc-green-500:focus,
+    .h\:d-fc-green-500:hover {
+        color: @green1 !important;
+    }
+    .emoji-picker__emoji-list {
+        border-top-color: @fg4;
+    }
+}

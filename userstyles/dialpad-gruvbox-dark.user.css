@@ -1,0 +1,765 @@
+/* ==UserStyle==
+@name           Dialpad Gruvbox Dark
+@namespace      github.com/openstyles/stylus
+@version        1.0.0
+@description    Simple color swap to Gruvbox Dark
+@author         TheKevJames
+@license        MIT
+
+@homepageURL    https://github.com/TheKevJames/tools/tree/master/userstyles
+@supportURL     https://github.com/TheKevJames/tools/issues
+@updateURL      https://raw.githubusercontent.com/TheKevJames/tools/master/userstyles/dialpad-gruvbox-dark.user.css
+
+@preprocessor   less
+
+// https://github.com/morhetz/gruvbox
+@var color bg0h "Background 0h" #1d2021
+@var color bg0s "Background 0s" #32302f
+@var color bg0  "Background 0" #282828
+@var color bg1  "Background 1" #3c3836
+@var color bg2  "Background 2" #504945
+@var color bg3  "Background 3" #665c54
+@var color bg4  "Background 4" #7c6f64
+
+@var color fg0    "Foreground 0" #fbf1c7
+@var color fg1    "Foreground 1" #ebdbb2
+@var color fg2    "Foreground 2" #d5c4a1
+@var color fg3    "Foreground 3" #bdae93
+@var color fg4    "Foreground 4" #a899a4
+
+@var color gray "Gray" #928374
+
+@var color red0    "Red 0"        #cc241d
+@var color red1    "Red 1"        #fb4934
+@var color green0  "Green 0"      #98971a
+@var color green1  "Green 1"      #b8bb26
+@var color yellow0 "Yellow 0"     #d79921
+@var color yellow1 "Yellow 1"     #fabd24
+@var color blue0   "Blue 0"       #458588
+@var color blue1   "Blue 1"       #83a598
+@var color purple0 "Purple 0"     #b16286
+@var color purple1 "Purple 1"     #d3869b
+@var color aqua0   "Aqua 0"       #689d6a
+@var color aqua1   "Aqua 1"       #8ec07c
+@var color orange0 "Orange 0"     #d65d0e
+@var color orange1 "Orange 1"     #fe8019
+==/UserStyle== */
+
+@-moz-document url("https://dialpad.com/app") {
+    /* defaults */
+    body {
+        background-color: @bg0;
+        color: @fg1;
+    }
+    .header-3,
+    .header-4 {
+        color: @fg1;
+    }
+    .link {
+        color: @blue0;
+    }
+
+    /* loading */
+    .scroll-man-loading .table-loading {
+        background-image: url(/static/img/app/black_paging.gif) !important;
+    }
+
+    /* headers/settings */
+    .wn-row-seen {
+        background-color: @bg0;
+    }
+    .leftbar-section-item:hover,
+    .leftbar-section-item--selected,
+    .leftbar-section-item--selected:hover {
+        background-color: @bg1;
+    }
+    #app-settings,
+    #sm-container,
+    #header-bar,
+    #app-version-container,
+    .dt-list-item--highlighted {
+        background-color: @bg2 !important;
+    }
+    .d-popover__dialog {
+        background-color: @bg4;
+    }
+    .d-bgc-white,
+    .f\:d-bgc-white:focus,
+    .h\:d-bgc-white:hover {
+        background-color: @fg3 !important;
+    }
+    .d-fc-black-900,
+    .d-fc-primary,
+    .f\:d-fc-black-900:focus,
+    .f\:d-fc-primary:focus,
+    .f\:d-fc-primary:focus-within,
+    .fv\:d-fc-primary:focus-visible,
+    .h\:d-fc-black-900:hover,
+    .h\:d-fc-primary:hover {
+        color: @fg0 !important;
+    }
+    .d-svg.d-svg--system,
+    .app-settings-action,
+    .wn-row-description {
+        color: @fg1;
+    }
+    .d-fc-black-700,
+    .d-fc-secondary,
+    .f\:d-fc-black-700:focus,
+    .f\:d-fc-secondary:focus,
+    .f\:d-fc-secondary:focus-within,
+    .fv\:d-fc-secondary:focus-visible,
+    .h\:d-fc-black-700:hover,
+    .h\:d-fc-secondary:hover {
+        color: @fg1 !important;
+    }
+    .d-theme-topbar-fc {
+        color: @fg2 !important;
+    }
+    .d-fc-black-600,
+    .d-fc-tertiary,
+    .f\:d-fc-black-600:focus,
+    .f\:d-fc-tertiary:focus,
+    .f\:d-fc-tertiary:focus-within,
+    .fv\:d-fc-tertiary:focus-visible,
+    .h\:d-fc-black-600:hover,
+    .h\:d-fc-tertiary:hover {
+        color: @fg2 !important;
+    }
+    .body-copy-4,
+    .wn-row-date {
+        color: @fg4;
+    }
+    .wn-row-title,
+    .wn-row-link a,
+    .wn-log-link a {
+        color: @blue0;
+    }
+    .status-menu-timer div,
+    .status-menu__save {
+        color: @blue0 !important;
+    }
+    .header-search-button__button:hover {
+        border: 1px solid @blue0;
+    }
+    .app-settings-btn {
+        border: 1px solid @fg1;
+    }
+    .app-settings-btn:hover {
+        background-color: hsla(0, 0%, 84.7%, .3);
+        border: 1px solid @fg1;
+        color: @fg1;
+    }
+    .status-menu,
+    .d-input--sm {
+        background-color: @bg0;
+        border: 1px solid hsla(0, 0%, 84.7%, .3);
+        color: @fg1;
+    }
+    .status-menu__save:hover {
+        text-decoration: none;
+    }
+    .settings-link:hover,
+    .sm-suggested-status:hover {
+        background-color: hsla(0, 0%, 84.7%, .3);
+    }
+    .wn-header,
+    .wn-log-link {
+        border-top: 1px solid @bg2;
+    }
+    .wn-row {
+        background-color: @bg1;
+        border-bottom: 1px solid @bg2;
+    }
+
+    /* alerts */
+    .body-copy-20, .body-copy-24, .body-copy-26 {
+        color: @red1;
+    }
+    #harness-warning,
+    .whats-new-alert-icon__container,
+    #alertbar .alert2 {
+        background-color: @red1;
+    }
+    #harness-download {
+        color: @fg1;
+        background-color: @bg2;
+    }
+    #alertbar-table > tbody > tr > td,
+    .alertbar-external-link {
+        color: @fg1;
+    }
+    svg.icon-dnd_off-inv,
+    svg.icon-dropdown-inv,
+    svg.icon-emoji-inv,
+    svg.icon-error-inv,
+    svg.icon-error_smallx,
+    svg.icon-plus-inv,
+    svg.icon-popup_x-inv,
+    svg.icon-sad_face-inv {
+        fill: @fg1;
+        stroke: @fg1;
+    }
+    .snooze-dropdown-title {
+        border: 1px solid @red1;
+    }
+
+    /* summary pages */
+    table.filtered.empty .filtered-transcript-table:hover,
+    table.filtered.empty > tbody > tr:hover {
+        /*
+        I wonder why this rule exists? In vanilla Dialpad, it just forces the
+        background color to be white on hover for a bunch of resources... which are
+        already white.
+         */
+        background-color: @bg0;
+    }
+    .filtered-transcript-table:hover,
+    table.filtered > tbody > tr:hover {
+        background-color: hsla(0, 0%, 84.7%, .3);
+    }
+    .filter-tabs .item:hover,
+    .filter-3 {
+        color: @fg1;
+    }
+    .subhead-3 {
+        color: @fg3;
+    }
+    .filter-4,
+    .subhead-9,
+    .subhead-12 {
+        color: @fg4;
+    }
+    #filter-icon svg {
+        fill: @fg4;
+        stroke: @fg4;
+    }
+    .tooltip-callout,
+    .tooltip-content {
+        background-color: @bg0;
+        color: @fg1;
+    }
+    .filtered-transcript-table > tr > td,
+    table.filtered > tbody > tr > td,
+    .filter-desc,
+    .tooltip-content {
+        border-bottom: 1px solid @bg1;
+    }
+    .filter-tabs {
+        border-bottom: 3px solid @bg2;
+    }
+    .filter-tabs .item.selected {
+        border-bottom: 3px solid @blue0;
+    }
+
+    .filtered-transcript-table:hover,
+    table.filtered > tbody > tr:hover {
+        /*
+        There's a bug which causes this to get applied *twice* on hover. That
+        doesn't matter when the background is white, but that doesn't work for us,
+        so we can't just do:
+
+        background-color: hsla(0, 0%, 84.7%, .3);
+
+        Fortunately, when can just pre-calculate this. Math to the rescue!
+        Convenient calculator: http://marcodiiga.github.io/rgba-to-rgb-conversion
+
+        @bg0 + hsla(0, 0%, 84.7%, .3) = #5d5d5d
+         */
+        background-color: #5d5d5d;
+    }
+    svg.contact-fav-heart {
+        fill: @fg3;
+        stroke: @fg3;
+    }
+    svg.contact-fav-heart.contact-fav-heart-filled {
+        fill: @blue0;
+        stroke: @blue0;
+    }
+
+    /* conversation view */
+    .cr-me.cr-text .cr-container {
+        /* the Gruvbox color looks too bright here */
+        /* background-color: @blue1; */
+        background-color: rgba(68, 85, 136, 0.5);
+    }
+    .feed-item-base:hover .feed-item-actions--transparent-background,
+    .feed-item-actions {
+        background-color: hsla(0, 0%, 84.7%, .3) !important;
+    }
+    .feed-item-rich-media-card {
+        background-color: hsla(0, 0%, 0%, 0) !important;
+    }
+    .message-text-container {
+        background-color: @bg0;
+    }
+    .cr-text .cr-container,
+    #conversation-progress-bar {
+        background-color: @bg1;
+    }
+    .rich-media-uc-card .rich-media-uc-card__content {
+        background-color: @bg1 !important;
+    }
+    .feed-item-text,
+    .feed-item-rich-media-inline {
+        background-color: @bg1 !important;
+        --highlight-color: @bg2 !important;
+    }
+    .feed-item-mms {
+        background-color: @bg1 !important;
+    }
+    .c-did-header {
+        background-color: @bg2;
+    }
+    .body-copy-7,
+    .body-copy-8,
+    .body-copy-9,
+    .body-copy-32,
+    .body-copy-33,
+    .stamp-2 {
+        color: @fg1 !important;
+    }
+    .stamp-3 {
+        color: @fg4;
+    }
+    .rich-media-link,
+    .rich-media-mention,
+    .feed-rich-media-mention.base-rich-media-mention {
+        color: @blue0 !important
+    }
+    .contact-blocked {
+        color: @red1;
+    }
+    #unknown-number,
+    .rate-item {
+        background-color: @blue0;
+        color: @fg1;
+    }
+    .d-btn--outlined {
+        border-color: @blue0;
+    }
+    .d-btn--primary {
+        background-color: @blue0;
+        border-color: @blue0;
+    }
+    .d-btn--primary:hover {
+        background-color: @blue1;
+    }
+    .contact-search-text {
+        color: @blue1;
+    }
+    svg.contact-search-svg {
+        fill: @blue1;
+    }
+    .c-menu-box {
+        border: 1px solid hsla(0, 0%, 84.7%, .3);
+    }
+    .c-did-list,
+    .c-did-list .selected {
+        color: @fg1;
+    }
+    .c-did-list li:hover {
+        background-color: hsla(0, 0%, 84.7%, .3);
+        color: @fg1;
+    }
+    .contact-bar-wrapper {
+        border-bottom: 1px solid @bg1;
+    }
+    .markdown-code-block,
+    .rich-media-codeblock {
+        background-color: @bg0s;
+        border: 1px solid @bg2;
+        border-radius: 0;
+    }
+    .rich-media-uc-card {
+        border: 0rem !important;
+    }
+    .feed-list__is-typing {
+        background-color: @bg2 !important;
+        color: @fg1 !important;
+        padding-left: 1rem;
+    }
+
+    .feed-item-call--incoming,
+    .feed-item-call--incoming .feed-item-call-highlights__content,
+    .feed-item-call__footer--incoming,
+    .feed-item-call__footer--incoming .feed-item-call-highlights__content,
+    .feed-item-call--cancelled,
+    .feed-item-call--cancelled .feed-item-call-highlights__content,
+    .feed-item-call--outgoing,
+    .feed-item-call--outgoing .feed-item-call-highlights__content,
+    .feed-item-call__footer--cancelled,
+    .feed-item-call__footer--cancelled .feed-item-call-highlights__content,
+    .feed-item-call__footer--outgoing,
+    .feed-item-call__footer--outgoing .feed-item-call-highlights__content {
+        background-color: @bg1;
+    }
+    .feed-item-base:hover .feed-item-call--incoming,
+    .feed-item-base:hover .feed-item-call--incoming .feed-item-call-highlights__content,
+    .feed-item-base:hover .feed-item-call__footer--incoming,
+    .feed-item-base:hover .feed-item-call__footer--incoming .feed-item-call-highlights__content,
+    .feed-item-base:hover .feed-item-call--cancelled,
+    .feed-item-base:hover .feed-item-call--cancelled .feed-item-call-highlights__content,
+    .feed-item-base:hover .feed-item-call--outgoing,
+    .feed-item-base:hover .feed-item-call--outgoing .feed-item-call-highlights__content,
+    .feed-item-base:hover .feed-item-call__footer--cancelled,
+    .feed-item-base:hover .feed-item-call__footer--cancelled .feed-item-call-highlights__content,
+    .feed-item-base:hover .feed-item-call__footer--outgoing,
+    .feed-item-base:hover .feed-item-call__footer--outgoing .feed-item-call-highlights__content {
+        background-color: hsla(0, 0%, 84.7%, .3);
+    }
+    .feed-item-base__time {
+        color: @fg1 !important;
+    }
+    .feed-item-actions-button:hover {
+        background-color: hsla(0, 0%, 84.7%, .3) !important;
+    }
+    .feed-item-actions__summary {
+        color: @blue0 !important;
+    }
+
+    /* left bar */
+    .leftbar,
+    .leftbar-cta,
+    .leftbar-section {
+        background-color: @bg2;
+    }
+    .leftbar-cta__btn {
+        background-color: @blue0;
+        border-left-color: @blue1;
+        border-right-color: @blue1;
+    }
+    #sidebar {
+        border-right-color: @bg2;
+    }
+    .leftbar-cta__btn--first {
+        border-left-width: 0;
+    }
+    .leftbar-cta__btn--last {
+        border-right-width: 0;
+    }
+    .leftbar-section__list li a:hover,
+    .leftbar-links__link:hover,
+    .leftbar-links__link--selected {
+        background-color: hsla(0, 0%, 84.7%, .3);
+    }
+    .leftbar-section-item--selected .leftbar-section-item__status {
+        color: @fg1;
+    }
+    .leftbar-section__list li a,
+    .leftbar-links__link,
+    .leftbar-section-header {
+        color: @fg1 !important;
+    }
+    .leftbar-section-item__status {
+        color: @fg4;
+    }
+    .leftbar-section-item:active {
+        background-color: @bg2;
+        border-color: @bg2;
+    }
+    .leftbar-recents__show-all {
+        color: @blue0;
+    }
+    .leftbar-cta__btn:hover {
+        background-color: @blue1;
+    }
+
+    /* right bar */
+    #rightbar {
+        background-color: @bg0;
+        border-left-color: @bg2 !important;
+    }
+    .subhead-4 {
+        color: @fg1;
+    }
+    .header-v2-5 {
+        color: @fg4;
+    }
+    .contact-info-divider {
+        border-top: 1px solid @bg1;
+    }
+
+    svg.icon-add-contact,
+    svg.icon-add-field,
+    svg.icon-new-tab,
+    .hide-button svg,
+    .remove-row svg,
+    .contact-info-left-column .iblock svg.icon-contact-info {
+        stroke: @blue1;
+        fill: @blue1;
+    }
+    .subhead-2 {
+        color: @blue1;
+    }
+
+    /* TODO: scrollbar colors? */
+    .nav-divider {
+        border-color: @bg1;
+    }
+    .body-copy-v2-1,
+    .header-v2-11,
+    .header-v2-12 {
+        color: @fg1;
+    }
+    .contact-group-contact-row:hover {
+        background-color: hsla(0, 0%, 84.7%, .3);
+    }
+    .wlink,
+    a.wlink,
+    .contact-label__add-or-edit,
+    .contact-label__save {
+        color: @blue0;
+    }
+
+    /* tooltips */
+    .c-menu-box {
+        background-color: @bg0;
+    }
+    .c-menu .c-menu-item .c-menu-item-a:focus,
+    .c-menu .c-menu-item .c-menu-item-a:hover {
+        background-color: rgba(68, 85, 136, 0.5);
+        color: @fg4;
+    }
+    .c-menu .c-menu-item .c-menu-item-a {
+        color: @fg4;
+    }
+
+    /* new message */
+    /* TODO font*/
+    #new-message-search-overlay {
+        background-color: @bg0;
+    }
+    .target-menu-single-item {
+        color: @blue0;
+    }
+    #new-message-search-view .search-overlay #search-input::-webkit-input-placeholder,
+    #search-input[contentEditable=true]:empty:before {
+        color: @fg1;
+    }
+    .header-7,
+    .header-8,
+    .header-9 {
+        color: @fg1;
+    }
+    #search-input:focus {
+        outline: none;
+    }
+    .stamp-4 {
+        color: @fg1;
+    }
+
+    /* search */
+    .search-overlay {
+        background-color: @bg0;
+    }
+    .search-overlay input#search-input {
+        color: @fg1;
+    }
+    .search-overlay input#search-input::placeholder {
+        color: @fg1;
+        opacity: 50%;
+    }
+    #multi-column-container {
+        background-color: @bg1;
+    }
+    .filtered-transcript-table:hover,
+    .frequent-contact-suggestions-column tr:hover,
+    table.filtered > tbody > tr:hover {
+        background-color: hsla(0, 0%, 84.7%, .3);
+    }
+
+    .search-tab__results--selected {
+        color: @fg1;
+    }
+    .search-tab__badge--selected {
+        background-color: @blue0;
+    }
+    svg.icon-contact-info {
+        fill: @blue0;
+    }
+
+    .search-overlay .selected {
+        background-color: hsla(0, 0%, 84.7%, .3);
+    }
+
+    /* shared calls */
+    .branding-background {
+        background: @blue0;
+    }
+    .branding-header-type svg.voiceai-vi-mark {
+        height: 20px !important;
+        /* not exactly "dark mode", but its nice when things are the right size... */
+    }
+    .branding-main {
+        background-color: @bg0;
+        border-radius: 0;
+    }
+
+    .cr-search__input {
+        background-color: @bg1 !important;
+        border: @bg1 !important;
+        border-radius: 0 !important;
+        color: @fg1 !important;
+    }
+    .cr-search__input::placeholder {
+        color: @fg1 !important;
+        opacity: 50%;
+    }
+    .cr-share {
+        background-color: @blue0 !important;
+        color: @fg1 !important;
+    }
+
+    .cr-nav-header {
+        background-color: @bg1;
+        color: @fg1;
+    }
+    .cr-nav-header__tooltip-icon {
+        background-color: @fg4;
+        color: @blue0;
+    }
+    .cr-nav-category__container--selected,
+    .cr-nav-category__container:active {
+        background-color: @fg4;
+    }
+    .cr-nav-category__container:hover:not(.cr-nav-category__container--selected) {
+        background-color: @fg3;
+    }
+
+    .cr-playbar-container {
+        background-color: @bg2;
+    }
+    .cr-playbar .audio-seek-bar-clickable {
+        background-color: @fg0;
+    }
+    .base-call-recording-controls__play-button .base-audio-icon-container {
+        background-color: @blue0;
+        color: @fg1;
+    }
+    svg.base-audio-icon {
+        fill: @fg1;
+    }
+    .cr-playbar__recording-handle {
+        background-color: @fg2;
+    }
+    .cr-playbar__recording-handle::before {
+        color: @blue0;
+    }
+    .base-media-dropdown-speed-control__select-button {
+        color: @blue0 !important;
+    }
+    .cr-playbar__show-caller-button {
+        color: @blue0;
+        border-color: @fg4 !important;
+    }
+    .dropdown-menu-callout {
+        background-color: @bg2;
+        border-color: @bg4;
+        border-radius: 0;
+    }
+    .dropdown-menu-item {
+        color: @fg1;
+    }
+    .dropdown-menu-item--highlight,
+    .dropdown-menu-item:hover {
+        background-color: hsla(0, 0%, 84.7%, .3);
+        border-radius: 0;
+    }
+
+    .cr-tab-active {
+        border-bottom-color: @fg1 !important;
+    }
+    .cr-participant-filter__text,
+    .cr-participant-filter__text:hover {
+        color: @blue0;
+    }
+    .vue-checkbox__input:checked {
+        background-color: @blue0;
+        border-color: @blue0;
+    }
+
+    .cr-nav-header__tooltip {
+        border-radius: 0;
+        background-color: @bg2;
+        border-color: @bg4;
+        color: @fg1;
+    }
+    .cr-nav-header__tooltip-link {
+        color: @blue0 !important;
+    }
+
+    .cr-row-controls-wrapper--highlight,
+    .cr-row-controls-wrapper--highlight:hover {
+        background-color: @bg2 !important;
+    }
+    .cr-row-controls-wrapper:hover {
+        background-color: @bg4;
+    }
+
+    .cr-excerpts-section-item {
+        background-color: @bg2;
+    }
+    .cr-excerpts-section-item__header {
+        color: @fg1;
+    }
+    .cr-excerpts-section-header:hover {
+        background-color: @bg4 !important;
+    }
+    .cr-excerpts-section-item__timestamp {
+        color: @fg4;
+    }
+    .cr-excerpts-section-item:hover {
+        background-color: @bg4;
+    }
+    .cr-excerpts-section-item--selected {
+        background-color: @bg3 !important;
+    }
+    .pageable-list-default-button {
+        background-color: @bg4 !important;
+        color: @fg1 !important;
+    }
+    .cr-excerpts-section-header,
+    .cr-excerpts-section-item {
+        border-radius: 0 !important;
+    }
+    .cr-excerpts-section-item__text .highlight,
+    .cr-transcript-row-text .cr-transcript-row-text__text span.highlight {
+        border-radius: 0;
+        background-color: @gray!important;
+        padding: 1px;
+        /* readability */
+    }
+
+    .cr-ch-login-button {
+        background-color: @blue0 !important;
+        color: @fg1 !important;
+    }
+    .call-review-rightbar-transcript {
+        background-color: @bg2;
+    }
+    .cr-rightbar-transcript__close-button {
+        right: 1.8rem;
+        /* someone forgot about scrollbars */
+    }
+
+    .branding-footer-item-button {
+        color: @blue0 !important;
+    }
+
+    /* fix CSR */
+    /* "body" is not full size */
+    #csr-main {
+        background-color: @bg0;
+    }
+    /* colors */
+    tr.external {
+        background-color: @bg2;
+    }
+    .header-2.table-title {
+        color: @fg1;
+    }
+    .link {
+        color: @blue0;
+    }
+}
