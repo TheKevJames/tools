@@ -29,15 +29,6 @@
     "packagePatterns": ["^grpcio"],
     "groupName": "grpcio"
   }, {
-    "datasources": ["pypi"],
-    "packageNames": ["hypothesis", "pytest", "pytest-asyncio", "pytest-cases", "pytest-cov", "pytest-datadir", "pytest-mock"],
-    "updateTypes": ["minor", "patch", "pin", "digest"],
-    "automerge": true
-  }, {
-    "managers": ["pre-commit"],
-    "updateTypes": ["patch", "pin", "digest"],
-    "automerge": true
-  }, {
     "managers": ["poetry"],
     "versioning": "poetry"
   }, {

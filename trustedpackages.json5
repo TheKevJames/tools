@@ -1,0 +1,28 @@
+{
+  "extends": ["github>thekevjames/tools"],
+  "packageRules": [
+    {
+      "datasources": ["docker"],
+      "packageNames": [
+        "hashicorp/terraform",
+      ],
+      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true,
+    },
+    {
+      "datasources": ["pypi"],
+      "packageNames": [
+        "hypothesis",
+        "pygments",
+        "pytest",
+        "pytest-asyncio",
+        "pytest-cases",
+        "pytest-cov",
+        "pytest-datadir",
+        "pytest-mock",
+      ],
+      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true,
+    },
+  ],
+}

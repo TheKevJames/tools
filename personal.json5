@@ -1,0 +1,5 @@
+{
+  "extends": ["github>thekevjames/tools>trustedpackages"],
+  "labels": ["task"],
+  "automergeType": "branch",
+}
