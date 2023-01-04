@@ -4,8 +4,23 @@
     {
       "datasources": ["docker"],
       "packageNames": [
+        "busybox",
         "hashicorp/terraform",
       ],
+      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true,
+    },
+    {
+      "datasources": ["docker"],
+      "packageNames": [
+        "python",
+      ],
+      "updateTypes": ["patch", "pin", "digest"],
+      "automerge": true,
+    },
+    {
+      "datasources": ["pypi"],
+      "packagePatterns": ["^coveralls$", "^gcloud-aio", "^gcloud-rest"],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true,
     },
@@ -22,6 +37,14 @@
         "pytest-mock",
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true,
+    },
+    {
+      "datasources": ["pypi"],
+      "packageNames": [
+        "httpx",
+      ],
+      "updateTypes": ["patch", "pin", "digest"],
       "automerge": true,
     },
   ],
