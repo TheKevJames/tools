@@ -119,7 +119,8 @@
     .uc-bbar-composite-button-wrapper .menu-button__popup,
     .emoji-picker__emoji-list,
     .emoji-launcher__hover-list,
-    .more-button .menu-button__popup {
+    .more-button .menu-button__popup,
+    .join-flow-widget {
         background-color: @bg2;
     }
     .d-bgc-white,
