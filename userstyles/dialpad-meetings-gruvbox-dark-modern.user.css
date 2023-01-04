@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name           Dialpad Meetings Gruvbox Dark Modern
 @namespace      github.com/openstyles/stylus
-@version        1.0.0
+@version        1.1.0
 @description    Simple color swap to Gruvbox Dark with design modernization
 @author         TheKevJames
 @license        MIT
@@ -48,7 +48,8 @@
     /* avoid rounded corners */
     *,
     .person-card__header .person-card__avatar-wrapper::after,
-    .person-card__header .person-card__video-wrapper::after {
+    .person-card__header .person-card__video-wrapper::after,
+    .d-brr12 {
         border-radius: 0 !important;
     }
 
@@ -79,6 +80,11 @@
         max-width: 100%
     }
 
+    /* hide angled slash on video-disabled users */
+    .person-card__footer::before {
+        display: none;
+    }
+
     /* TODO: label these */
     .action-item-interactive-panel__add-btn {
         left: 0;
@@ -98,15 +104,20 @@
     /* conference view */
     body,
     .conference--light-background,
-    .person-card {
+    .person-card,
+    .sidebar--mini {
         background-color: @bg0s;
     }
     .uc-light-background {
         background: linear-gradient(180deg, @bg0s 0, rgba(242, 242, 246, .25) 100%), @bg1;
     }
     .meeting-actions,
-    .uc-bbar-button {
+    .uc-bbar-button,
+    .notes-panel-add-action-item-btn {
         background-color: @bg1;
+    }
+    .uc-sidebar {
+        background-color: @bg1 !important;
     }
     .transcript-enabled-cta,
     .change-layout .menu-button__popup,
@@ -140,6 +151,12 @@
     .more-button__menu-item:hover {
         background-color: @bg3;
     }
+    .moment-list-down__clickable-title:hover,
+    .d-bgc-black-050,
+    .f\:d-bgc-black-050:focus,
+    .h\:d-bgc-black-050:hover {
+        background-color: @bg3 !important;
+    }
     .background-replacement-options__effect {
         background-color: @bg4;
     }
@@ -160,7 +177,8 @@
     .person-item__title,
     .invite-others__title,
     .chat-block__label,
-    .background-replacement-options span {
+    .background-replacement-options span,
+    .transcript-bubble__name {
         color: @fg1;
     }
     .d-fc-purple,
@@ -170,7 +188,21 @@
     .f\:d-fc-purple:focus-within,
     .fv\:d-fc-purple:focus-visible,
     .h\:d-fc-purple-500:hover,
-    .h\:d-fc-purple:hover {
+    .h\:d-fc-purple:hover,
+    .d-fc-black-900,
+    .d-fc-dark,
+    .f\:d-fc-black-900:focus,
+    .f\:d-fc-dark:focus,
+    .f\:d-fc-dark:focus-within,
+    .fv\:d-fc-dark:focus-visible,
+    .h\:d-fc-black-900:hover,
+    .h\:d-fc-dark:hover,
+    .handraise-notice__invert-color,
+    .handraise-notice__invert-color .handraise-notice__close,
+    .handraise-notice__invert-color .handraise-notice__lower-hand,
+    .screenshare-notice__invert-color,
+    .screenshare-notice__invert-color .screenshare-notice__change-layout,
+    .screenshare-notice__invert-color .screenshare-notice__close {
         color: @fg1 !important;
     }
     .chat-block__message,
@@ -200,7 +232,12 @@
     .person-item__subtitle,
     .call-out__legal,
     .chat-block__time,
-    .activity-message__time {
+    .activity-message__time,
+    .transcript-bubble__continued-speech,
+    .transcript-bubble__speech,
+    .question-moment-row__text,
+    .summary-participant-list-item__content--call-duration,
+    .summary-participant-list-item__content--phone-number {
         color: @fg3;
     }
     .d-fc-black-600,
@@ -210,7 +247,10 @@
     .f\:d-fc-lighter:focus-within,
     .fv\:d-fc-lighter:focus-visible,
     .h\:d-fc-black-600:hover,
-    .h\:d-fc-lighter:hover {
+    .h\:d-fc-lighter:hover,
+    .d-fc-black-500,
+    .f\:d-fc-black-500:focus,
+    .h\:d-fc-black-500:hover {
         color: @fg3 !important;
     }
     .d-tab:hover {
@@ -220,7 +260,8 @@
         color: @fg4;
     }
     .d-btn,
-    .invite-others__cancel-btn {
+    .invite-others__cancel-btn,
+    a.d-ml4 {
         color: @blue0;
     }
     .d-tab--selected {
@@ -240,8 +281,14 @@
         background-color: @red0;
         color: @fg1;
     }
+    .d-bgc-purple-100,
+    .f\:d-bgc-purple-100:focus,
+    .h\:d-bgc-purple-100:hover {
+        background-color: @bg0s !important;
+    }
     .contact-tag__a2p-message,
-    .background-replacement-options__remove-circle {
+    .background-replacement-options__remove-circle,
+    .btn-panel-close {
         color: @red1;
     }
     .background-replacement-options__blur-icon {
