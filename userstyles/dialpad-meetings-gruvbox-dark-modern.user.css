@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name           Dialpad Meetings Gruvbox Dark Modern
 @namespace      github.com/openstyles/stylus
-@version        1.1.0
+@version        1.2.0
 @description    Simple color swap to Gruvbox Dark with design modernization
 @author         TheKevJames
 @license        MIT
@@ -178,7 +178,9 @@
     .invite-others__title,
     .chat-block__label,
     .background-replacement-options span,
-    .transcript-bubble__name {
+    .transcript-bubble__name,
+    .conference-panel-profile-title,
+    .sf-connect__header-txt {
         color: @fg1;
     }
     .d-fc-purple,
@@ -237,7 +239,8 @@
     .transcript-bubble__speech,
     .question-moment-row__text,
     .summary-participant-list-item__content--call-duration,
-    .summary-participant-list-item__content--phone-number {
+    .summary-participant-list-item__content--phone-number,
+    .sf-connect__msg {
         color: @fg3;
     }
     .d-fc-black-600,
@@ -261,7 +264,9 @@
     }
     .d-btn,
     .invite-others__cancel-btn,
-    a.d-ml4 {
+    a.d-ml4,
+    .conference-panel-profile__linkedin-btn,
+    .sf-connect__help {
         color: @blue0;
     }
     .d-tab--selected {
@@ -273,7 +278,8 @@
         color: @blue1;
     }
     .d-btn--primary,
-    .invite-others__send-btn {
+    .invite-others__send-btn,
+    .sf-connect__btn {
         color: @fg1;
         background-color: @blue0;
     }
