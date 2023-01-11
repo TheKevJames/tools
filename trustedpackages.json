@@ -47,7 +47,8 @@
       "datasources": ["pypi"],
       "packageNames": [
         "fastapi",
-        "httpx"
+        "httpx",
+        "uvicorn"
       ],
       "updateTypes": ["patch", "pin", "digest"],
       "automerge": true
