@@ -20,7 +20,11 @@
     },
     {
       "datasources": ["pypi"],
-      "packagePatterns": ["^coveralls$", "^gcloud-aio", "^gcloud-rest"],
+      "packagePatterns": [
+        "^coveralls$",
+        "^gcloud-aio",
+        "^gcloud-rest"
+      ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
     },
@@ -42,6 +46,7 @@
     {
       "datasources": ["pypi"],
       "packageNames": [
+        "fastapi",
         "httpx"
       ],
       "updateTypes": ["patch", "pin", "digest"],
