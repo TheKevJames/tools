@@ -10,7 +10,7 @@ PREVIOUS="unknown"
 USER="${CIRCLE_USERNAME:-}"
 VERSION="${CIRCLE_SHA1:-}"
 # grab from env
-WEBHOOK="${SLACK_DEPLOYBOT_WEBHOOK}"
+WEBHOOK="${SLACK_DEPLOYBOT_WEBHOOK:-}"
 
 # grab from CLI
 while getopts 'c:d:e:n:p:u:v:w:' flag; do
