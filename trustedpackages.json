@@ -4,7 +4,8 @@
     {
       "datasources": ["terraform"],
       "packageNames": [
-        "cloudflare"
+        "cloudflare",
+        "google"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
