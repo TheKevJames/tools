@@ -2,6 +2,14 @@
   "extends": ["github>thekevjames/tools"],
   "packageRules": [
     {
+      "datasources": ["terraform"],
+      "packageNames": [
+        "cloudflare"
+      ],
+      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
       "datasources": ["docker"],
       "packageNames": [
         "busybox",
@@ -38,7 +46,8 @@
         "pytest-cases",
         "pytest-cov",
         "pytest-datadir",
-        "pytest-mock"
+        "pytest-mock",
+        "requests"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
