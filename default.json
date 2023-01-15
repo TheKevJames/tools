@@ -45,6 +45,9 @@
   }, {
     "packageNames": ["sanic", "sanic-testing"],
     "groupName": "sanic"
+  }, {
+    "packagePatterns": ["torch", "torchaudio"],
+    "groupName": "pytorch packages"
   }],
   "prConcurrentLimit": 0,
   "prCreation": "immediate",
