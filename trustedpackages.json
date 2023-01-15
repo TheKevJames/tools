@@ -1,5 +1,4 @@
 {
-  "extends": ["github>thekevjames/tools"],
   "packageRules": [
     {
       "datasources": ["terraform"],
