@@ -4,6 +4,7 @@
       "datasources": ["terraform"],
       "packageNames": [
         "cloudflare",
+        "confluent",
         "google"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
