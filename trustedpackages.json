@@ -58,6 +58,7 @@
       "datasources": ["pypi"],
       "packageNames": [
         "fastapi",
+        "google-auth",
         "httpx",
         "uvicorn"
       ],
