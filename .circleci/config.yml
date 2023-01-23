@@ -27,7 +27,7 @@ jobs:
 
   docker-readme-build:
     docker:
-      - image: pandoc/core:2.19.2
+      - image: pandoc/core:3.0.0
     parameters:
       ident:
         type: string
