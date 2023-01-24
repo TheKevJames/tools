@@ -60,6 +60,7 @@
         "fastapi",
         "google-auth",
         "httpx",
+        "prometheus-client",
         "uvicorn"
       ],
       "updateTypes": ["patch", "pin", "digest"],
