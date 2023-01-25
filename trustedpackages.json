@@ -1,11 +1,11 @@
 {
   "packageRules": [
     {
-      "datasources": ["terraform"],
+      "datasources": ["terraform-provider"],
       "packageNames": [
-        "cloudflare",
         "confluent",
-        "hashicorp/terraform-provider-google"
+        "hashicorp/cloudflare",
+        "hashicorp/google"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
