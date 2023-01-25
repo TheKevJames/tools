@@ -15,6 +15,7 @@
       "packageNames": [
         "busybox",
         "docker",
+        "node",
         "hashicorp/terraform"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
