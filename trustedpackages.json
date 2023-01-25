@@ -3,9 +3,12 @@
     {
       "datasources": ["terraform-provider"],
       "packageNames": [
-        "confluent",
-        "hashicorp/cloudflare",
-        "hashicorp/google"
+        "cloudflare/cloudflare",
+        "confluentinc/confluent",
+        "hashicorp/google",
+        "hashicorp/grafana",
+        "hashicorp/kubernetes",
+        "integrations/github"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
