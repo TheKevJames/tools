@@ -63,6 +63,7 @@
       "packageNames": [
         "fastapi",
         "google-auth",
+        "google-cloud-bigquery",
         "httpx",
         "prometheus-client",
         "uvicorn"
