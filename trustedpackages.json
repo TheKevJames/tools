@@ -19,7 +19,8 @@
         "busybox",
         "docker",
         "node",
-        "hashicorp/terraform"
+        "hashicorp/terraform",
+        "pandoc/core"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
