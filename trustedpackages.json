@@ -30,7 +30,8 @@
       "datasources": ["docker"],
       "packageNames": [
         "python",
-        "quay.io/prometheus/prometheus"
+        "quay.io/prometheus/prometheus",
+        "quay.io/prometheus/pushgateway"
       ],
       "updateTypes": ["patch", "pin", "digest"],
       "automerge": true
