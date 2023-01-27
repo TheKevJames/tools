@@ -18,8 +18,9 @@
       "packageNames": [
         "busybox",
         "docker",
-        "node",
         "hashicorp/terraform",
+        "node",
+        "nodejs/node",
         "pandoc/core"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
