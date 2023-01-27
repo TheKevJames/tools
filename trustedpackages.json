@@ -28,7 +28,8 @@
     {
       "datasources": ["docker"],
       "packageNames": [
-        "python"
+        "python",
+        "quay.io/prometheus/prometheus"
       ],
       "updateTypes": ["patch", "pin", "digest"],
       "automerge": true
