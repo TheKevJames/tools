@@ -61,7 +61,7 @@ repos:
         - -d ungrouped-imports  # conflicts with reorder-python-imports
         - -d wrong-import-order  # conflicts with reorder-python-imports
 -   repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.4.1
+    rev: v1.4.2
     hooks:
     -   id: remove-crlf
     -   id: remove-tabs
