@@ -1,7 +1,7 @@
 {
   "packageRules": [
     {
-      "datasources": ["terraform-provider"],
+      "datasources": ["terraform-module", "terraform-provider"],
       "packageNames": [
         "cloudflare/cloudflare",
         "confluentinc/confluent",
