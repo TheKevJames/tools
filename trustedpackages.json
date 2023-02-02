@@ -49,6 +49,7 @@
     {
       "datasources": ["pypi"],
       "packageNames": [
+        "hiredis",
         "hypothesis",
         "pygments",
         "pytest",
