@@ -3,8 +3,8 @@
     {
       "datasources": ["terraform-module", "terraform-provider"],
       "packageNames": [
-        "cloudflare/cloudflare",
         "confluentinc/confluent",
+        "hashicorp/cloudflare",
         "hashicorp/google",
         "hashicorp/grafana",
         "hashicorp/kubernetes",
