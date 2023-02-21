@@ -49,6 +49,7 @@
     {
       "datasources": ["pypi"],
       "packageNames": [
+        "google-api-python-client",
         "hiredis",
         "hypothesis",
         "pygments",
