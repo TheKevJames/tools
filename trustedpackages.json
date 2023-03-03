@@ -2,7 +2,7 @@
   "packageRules": [
     {
       "datasources": ["terraform-module", "terraform-provider"],
-      "packageNames": [
+      "matchPackageNames": [
         "cloudflare",
         "confluent",
         "confluentinc/confluent",
@@ -21,7 +21,7 @@
     },
     {
       "datasources": ["docker"],
-      "packageNames": [
+      "matchPackageNames": [
         "busybox",
         "docker",
         "hashicorp/terraform",
@@ -34,7 +34,7 @@
     },
     {
       "datasources": ["docker"],
-      "packageNames": [
+      "matchPackageNames": [
         "python",
         "quay.io/prometheus/prometheus",
         "quay.io/prometheus/pushgateway"
@@ -54,7 +54,7 @@
     },
     {
       "datasources": ["pypi"],
-      "packageNames": [
+      "matchPackageNames": [
         "google-api-python-client",
         "hiredis",
         "hypothesis",
@@ -72,7 +72,7 @@
     },
     {
       "datasources": ["pypi"],
-      "packageNames": [
+      "matchPackageNames": [
         "fastapi",
         "google-auth",
         "google-cloud-bigquery",
