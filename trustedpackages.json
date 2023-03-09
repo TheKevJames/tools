@@ -21,6 +21,14 @@
     },
     {
       "datasources": ["docker"],
+      "packagePatterns": [
+        "^thekevjames/gcloud-pubsub-emulator$"
+      ],
+      "updateTypes": ["major", "minor", "patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "datasources": ["docker"],
       "matchPackageNames": [
         "busybox",
         "docker",
