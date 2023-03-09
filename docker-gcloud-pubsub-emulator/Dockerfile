@@ -7,7 +7,7 @@ RUN chmod +x /tmp/wait-for
 
 
 # N.B. match to the python3 version in the gcloud image
-FROM python:3.9.16 AS builder
+FROM python:3.9.2 AS builder
 
 RUN python3 -m venv /opt/poetry
 ARG PIP_VERSION=23.0.1
