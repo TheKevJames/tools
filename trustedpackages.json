@@ -73,7 +73,8 @@
         "pytest-cov",
         "pytest-datadir",
         "pytest-mock",
-        "requests"
+        "requests",
+        "tqdm"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
