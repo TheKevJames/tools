@@ -33,6 +33,12 @@ You can run this image via:
 
     $ docker run --rm -it -p 8681:8681 thekevjames/gcloud-pubsub-emulator:latest
 
+or via `quay.io`_:
+
+.. code-block:: console
+
+    $ docker run --rm -it -p 8681:8681 quay.io/thekevjames/gcloud-pubsub-emulator:latest
+
 If you plan to create topics/subscriptions automatically on startup (see
 `Automatic Topic and Subscription Creation`_ below), you may also want to
 epose port 8682 for liveness probes. See the section on `Liveness Probes`_ for
@@ -107,6 +113,7 @@ will work. Some examples include:
 .. _marcelcorso/gcloud-pubsub-emulator: https://github.com/marcelcorso/gcloud-pubsub-emulator
 .. _pubsubc: https://github.com/prep/pubsubc
 .. _this Github repo: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator
+.. _quay.io: https://quay.io/repository/thekevjames/tuning-primer
 .. _wait-for-it: https://github.com/vishnubob/wait-for-it
 .. _wait-for: https://github.com/eficode/wait-for
 

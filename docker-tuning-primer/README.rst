@@ -23,10 +23,17 @@ Treat this image as if it were the tuning-primer binary. So
 
     $ docker run --rm -it --link my-mysql-container:mysql thekevjames/tuning-primer all
 
+or via `quay.io`_:
+
+.. code-block:: console
+
+    $ docker run --rm -it --link my-mysql-container:mysql quay.io/thekevjames/tuning-primer all
+
 For full usage information, see the `Tuning-Primer Homepage`_.
 
 .. _Tuning-Primer Homepage: https://launchpad.net/mysql-tuning-primer
 .. _this Github repo: https://github.com/TheKevJames/tools/tree/master/docker-tuning-primer
+.. _quay.io: https://quay.io/repository/thekevjames/tuning-primer
 .. _upstream: https://launchpad.net/mysql-tuning-primer
 
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/tuning-primer.svg?style=flat-square

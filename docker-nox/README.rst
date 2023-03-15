@@ -40,6 +40,12 @@ To run your tests locally, you could do:
 
     docker run --rm -it -v $(pwd):/src thekevjames/nox:2018.10.9 nox -f src/noxfile.py
 
+or via `quay.io`_:
+
+.. code-block:: console
+
+    docker run --rm -it -v $(pwd):/src quay.io/thekevjames/nox:2018.10.9 nox -f src/noxfile.py
+
 Or, to maintain your nox cache between runs:
 
 .. code-block:: console
@@ -54,6 +60,7 @@ For full usage information, see the `nox`_ documentation.
 .. _nox-automation: https://pypi.org/project/nox-automation
 .. _nox: http://nox.thea.codes/en/stable/
 .. _this Github repo: https://github.com/TheKevJames/tools/tree/master/docker-nox
+.. _quay.io: https://quay.io/repository/thekevjames/nox
 .. _upstream: https://github.com/theacodes/nox
 
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/nox.svg?style=flat-square
