@@ -1,20 +1,9 @@
 {
   "packageRules": [
     {
-      "datasources": ["terraform-module", "terraform-provider"],
+      "datasources": ["crate"],
       "matchPackageNames": [
-        "cloudflare",
-        "confluent",
-        "confluentinc/confluent",
-        "github",
-        "google",
-        "grafana",
-        "hashicorp/cloudflare",
-        "hashicorp/google",
-        "hashicorp/grafana",
-        "hashicorp/kubernetes",
-        "integrations/github",
-        "kubernetes"
+        "serde"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
@@ -90,6 +79,25 @@
         "uvicorn"
       ],
       "updateTypes": ["patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "datasources": ["terraform-module", "terraform-provider"],
+      "matchPackageNames": [
+        "cloudflare",
+        "confluent",
+        "confluentinc/confluent",
+        "github",
+        "google",
+        "grafana",
+        "hashicorp/cloudflare",
+        "hashicorp/google",
+        "hashicorp/grafana",
+        "hashicorp/kubernetes",
+        "integrations/github",
+        "kubernetes"
+      ],
+      "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
     }
   ]
