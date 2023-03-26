@@ -126,19 +126,19 @@ when isMainModule:
     [done, help = {
       "ago": "mark task as completed n days ago"}],
     [due, help = {
-      "filter": "foo=bar,baz=buuq,..."}],
+      "filter": "foo=bar,baz!=buuq,..."}],
     [edit],
     [filters],
     [highpri, help = {
-      "filter": "foo=bar,baz=buuq,...",
+      "filter": "foo=bar,baz!=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}],
     [list, help = {
-      "filter": "foo=bar,baz=buuq,...",
+      "filter": "foo=bar,baz!=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}],
     [rewrite],
     [soon, help = {
-      "filter": "foo=bar,baz=buuq,...",
+      "filter": "foo=bar,baz!=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}],
     [triage, help = {
-      "filter": "foo=bar,baz=buuq,...",
+      "filter": "foo=bar,baz!=buuq,...",
       "includeFutureOffset": "include future tasks within n days"}])
