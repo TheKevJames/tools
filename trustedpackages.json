@@ -9,6 +9,14 @@
       "automerge": true
     },
     {
+      "datasources": ["crate"],
+      "matchPackageNames": [
+        "fern"
+      ],
+      "updateTypes": ["patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
       "datasources": ["docker"],
       "packagePatterns": [
         "^thekevjames/gcloud-pubsub-emulator$"
@@ -24,7 +32,8 @@
         "hashicorp/terraform",
         "node",
         "nodejs/node",
-        "pandoc/core"
+        "pandoc/core",
+        "quay.io/prometheus/prometheus"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
@@ -53,8 +62,10 @@
       "datasources": ["pypi"],
       "matchPackageNames": [
         "google-api-python-client",
+        "google-auth",
         "hiredis",
         "hypothesis",
+        "prometheus-fastapi-instrumentator",
         "pygments",
         "pytest",
         "pytest-asyncio",
@@ -72,8 +83,8 @@
       "datasources": ["pypi"],
       "matchPackageNames": [
         "fastapi",
-        "google-auth",
         "google-cloud-bigquery",
+        "google-cloud-pubsub",
         "httpx",
         "prometheus-client",
         "uvicorn"
