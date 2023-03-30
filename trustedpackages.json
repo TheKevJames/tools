@@ -3,7 +3,8 @@
     {
       "datasources": ["crate"],
       "matchPackageNames": [
-        "serde"
+        "serde",
+        "serde_json"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
@@ -11,7 +12,8 @@
     {
       "datasources": ["crate"],
       "matchPackageNames": [
-        "fern"
+        "fern",
+        "reqwest"
       ],
       "updateTypes": ["patch", "pin", "digest"],
       "automerge": true
