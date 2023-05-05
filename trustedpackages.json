@@ -4,7 +4,8 @@
       "datasources": ["crate"],
       "matchPackageNames": [
         "serde",
-        "serde_json"
+        "serde_json",
+        "xdg"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
