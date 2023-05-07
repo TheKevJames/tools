@@ -167,20 +167,20 @@ requests = ["requests (>=2.20.0,<3.0.0dev)"]
 
 [[package]]
 name = "google-cloud-pubsub"
-version = "2.16.0"
+version = "2.16.1"
 description = "Google Cloud Pub/Sub API client library"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-cloud-pubsub-2.16.0.tar.gz", hash = "sha256:587da7d535ca858ceeed7036205355e5a6dd3e44ea4abc96f4e50d1abfd8843b"},
-    {file = "google_cloud_pubsub-2.16.0-py2.py3-none-any.whl", hash = "sha256:e41ec9635cc68dbd238f572f295b3d0bae6340c66ba31a70dfb890950ab33c2b"},
+    {file = "google-cloud-pubsub-2.16.1.tar.gz", hash = "sha256:31e271be755ed7143ae0cdfed0506faf40d7504b46fa5c8b5bab4b922f6c3d3b"},
+    {file = "google_cloud_pubsub-2.16.1-py2.py3-none-any.whl", hash = "sha256:5bb4f2a6d2d0bf827d48dca1de1fb0ca12636ed75a69bbc4f89d231239b65ad9"},
 ]
 
 [package.dependencies]
 google-api-core = {version = ">=1.34.0,<2.0.0 || >=2.11.0,<3.0.0dev", extras = ["grpc"]}
 grpc-google-iam-v1 = ">=0.12.4,<1.0.0dev"
-grpcio = ">=1.38.1,<2.0dev"
+grpcio = ">=1.51.3,<2.0dev"
 grpcio-status = ">=1.33.2"
 proto-plus = [
     {version = ">=1.22.0,<2.0.0dev", markers = "python_version < \"3.11\""},
@@ -451,4 +451,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9, <4.0"
-content-hash = "c55ba53f697e212565d04b1ecaf05caeba8bef067a0c2c78b697f73b00498688"
+content-hash = "cd2a640d214ddabcf81585af8fa5c3c78c654e239b5101e796d5da19bce3d8b0"
