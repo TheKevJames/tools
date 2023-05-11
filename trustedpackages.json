@@ -66,6 +66,7 @@
       "matchPackageNames": [
         "google-api-python-client",
         "google-auth",
+        "google-cloud-bigquery",
         "hiredis",
         "hypothesis",
         "prometheus-fastapi-instrumentator",
@@ -86,7 +87,6 @@
       "datasources": ["pypi"],
       "matchPackageNames": [
         "fastapi",
-        "google-cloud-bigquery",
         "google-cloud-pubsub",
         "httpx",
         "prometheus-client",
