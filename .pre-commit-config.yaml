@@ -38,7 +38,7 @@ repos:
     -   id: name-tests-test
     -   id: requirements-txt-fixer
 -   repo: https://github.com/pycqa/pylint
-    rev: v2.17.1
+    rev: v3.0.0a6
     hooks:
     -   id: pylint
         additional_dependencies:
@@ -61,23 +61,23 @@ repos:
         - -d ungrouped-imports  # conflicts with reorder-python-imports
         - -d wrong-import-order  # conflicts with reorder-python-imports
 -   repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.4.2
+    rev: v1.5.1
     hooks:
     -   id: remove-crlf
     -   id: remove-tabs
         exclude: 'Makefile'
--   repo: https://github.com/asottile/reorder_python_imports
+-   repo: https://github.com/asottile/reorder-python-imports
     rev: v3.9.0
     hooks:
     -   id: reorder-python-imports
         args: [--py39-plus]
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.1
+    rev: v3.6.0
     hooks:
     -   id: pyupgrade
         args: [--py311-plus]
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.1.1
+    rev: v1.3.0
     hooks:
     -   id: mypy
         require_serial: True
@@ -92,7 +92,7 @@ repos:
         - --warn-unreachable
         exclude: tests/
 -   repo: https://github.com/asottile/yesqa
-    rev: v1.4.0
+    rev: v1.5.0
     hooks:
     -   id: yesqa
 -   repo: https://github.com/pre-commit/mirrors-autopep8
@@ -150,6 +150,6 @@ repos:
     hooks:
     -   id: beautysh
 -   repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.2
+    rev: v0.9.0.5
     hooks:
     -   id: shellcheck
