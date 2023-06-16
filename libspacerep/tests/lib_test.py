@@ -17,7 +17,8 @@ from libspacerep import lib  # pylint: disable=no-name-in-module
         ([0, 1, 2, 3, 2], 1.0),
         ([0, 1, 2, 3, 3, 5], 10.5955),
         ([5, 5, 5, 5, 5, 5, 5], 154.9500),
-    ])
+    ],
+)
 def test_sm2(xs, expected):
     lib.NimMain()
     val = lib.sm2(xs, len(xs), 6.0, -0.8, 0.28, 0.02, 1.3, 2.5, 0.2)
