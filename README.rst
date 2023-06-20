@@ -10,6 +10,7 @@ completely forgotten about.
 - `CCTUI`_
 - `CSS UserStyles`_
 - `DDTUI`_
+- `Dockerized caddy + caddy-security`_
 - `Dockerized gcloud Pubsub Emulator`_
 - `Dockerized MySQLTuner`_
 - `Dockerized Nox`_
@@ -36,6 +37,7 @@ Kevin has done anywhere" config with:
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
 .. _Dockerized Nox: https://github.com/TheKevJames/tools/tree/master/docker-nox
 .. _Dockerized Tuning-Primer: https://github.com/TheKevJames/tools/tree/master/docker-tuning-primer
+.. _Dockerized caddy + caddy-security: https://github.com/TheKevJames/tools/tree/master/docker-caddy-security
 .. _Dockerized gcloud Pubsub Emulator: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator
 .. _Renovate: https://renovatebot.com/
 .. _Slack Notifier: https://github.com/TheKevJames/tools/tree/master/slack-notifier

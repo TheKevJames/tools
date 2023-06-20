@@ -3,6 +3,20 @@ version: 2.1
 orbs:
   docker: talkiq/docker@3
 
+commands:
+  custom-tag:
+    parameters:
+      ident:
+        type: string
+      tag:
+        default: /tmp/custom-tag
+        type: string
+    steps:
+      - run: docker tag "thekevjames/<<parameters.ident>>:latest" "thekevjames/<<parameters.ident>>:$(cat <<parameters.tag>>)"
+      - run: docker tag "quay.io/thekevjames/<<parameters.ident>>:latest" "quay.io/thekevjames/<<parameters.ident>>:$(cat <<parameters.tag>>)"
+      - run: docker push "thekevjames/<<parameters.ident>>:$(cat <<parameters.tag>>)"
+      - run: docker push "quay.io/thekevjames/<<parameters.ident>>:$(cat <<parameters.tag>>)"
+
 jobs:
   docker-publish:
     docker:
@@ -73,6 +87,7 @@ workflows:
           matrix:
             parameters:
               ident:
+                - caddy-security
                 - gcloud-pubsub-emulator
                 - mysqltuner
                 - nox
@@ -87,6 +102,7 @@ workflows:
           matrix:
             parameters:
               ident:
+                - caddy-security
                 - gcloud-pubsub-emulator
                 - mysqltuner
                 - nox
@@ -101,6 +117,7 @@ workflows:
           matrix:
             parameters:
               ident:
+                - caddy-security
                 - gcloud-pubsub-emulator
                 - mysqltuner
                 - nox
@@ -117,16 +134,31 @@ workflows:
   run-jobs:
     jobs:
       - docker-publish:
+          name: docker-autopublish-caddy-security
+          ident: caddy-security
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export CADDY_VERSION=$(awk -F':|-' '/builder-alpine/ {print $2}' docker-caddy-security/Dockerfile)
+                export SECURITY_VERSION=$(awk -F'@v' '/caddy-security/ {print $2}' docker-caddy-security/Dockerfile)
+                echo "${CADDY_VERSION}-${SECURITY_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: caddy-security
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+      - docker-publish:
           name: docker-autopublish-gcloud-pubsub-emulator
           ident: gcloud-pubsub-emulator
           tag: "${CIRCLE_SHA1:0:10}"
           post-steps:
             - run: |
                 export GCLOUD_VERSION=$(awk -F':|-' '/cloud-sdk/ {print $3}' docker-gcloud-pubsub-emulator/Dockerfile)
-                docker tag "thekevjames/gcloud-pubsub-emulator:latest" "thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
-                docker push "thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
-                docker tag "quay.io/thekevjames/gcloud-pubsub-emulator:latest" "quay.io/thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
-                docker push "quay.io/thekevjames/gcloud-pubsub-emulator:${GCLOUD_VERSION}"
+                echo "${GCLOUD_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: gcloud-pubsub-emulator
           filters:
             branches:
               only: /master/
@@ -139,10 +171,9 @@ workflows:
           post-steps:
             - run: |
                 export NOX_VERSION=$(awk -F'=' '/nox/ {print $3}' docker-nox/requirements.txt)
-                docker tag "thekevjames/nox:latest" "thekevjames/nox:${NOX_VERSION}"
-                docker push "thekevjames/nox:${NOX_VERSION}"
-                docker tag "quay.io/thekevjames/nox:latest" "quay.io/thekevjames/nox:${NOX_VERSION}"
-                docker push "quay.io/thekevjames/nox:${NOX_VERSION}"
+                echo "${NOX_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: nox
           filters:
             branches:
               only: /master/
@@ -154,6 +185,7 @@ workflows:
           matrix:
             parameters:
               ident:
+                - caddy-security
                 - gcloud-pubsub-emulator
                 - mysqltuner
                 - nox
@@ -168,6 +200,7 @@ workflows:
           matrix:
             parameters:
               ident:
+                - caddy-security
                 - gcloud-pubsub-emulator
                 - mysqltuner
                 - nox
