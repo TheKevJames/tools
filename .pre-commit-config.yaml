@@ -37,8 +37,8 @@ repos:
     -   id: double-quote-string-fixer
     -   id: name-tests-test
     -   id: requirements-txt-fixer
--   repo: https://github.com/PyCQA/pylint
-    rev: v2.17.2
+-   repo: https://github.com/pylint-dev/pylint
+    rev: v2.17.4
     hooks:
     -   id: pylint
         additional_dependencies:
@@ -69,12 +69,12 @@ repos:
     -   id: remove-tabs
         exclude: 'Makefile'
 -   repo: https://github.com/asottile/reorder-python-imports
-    rev: v3.9.0
+    rev: v3.10.0
     hooks:
     -   id: reorder-python-imports
         args: [--py39-plus]
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.6.0
+    rev: v3.7.0
     hooks:
     -   id: pyupgrade
         args: [--py39-plus]
