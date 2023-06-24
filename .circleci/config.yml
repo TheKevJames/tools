@@ -30,7 +30,7 @@ jobs:
       - checkout
       - setup_remote_docker:
           version: 20.10.7
-      - run: echo "$DOCKER_PASS" | docker login --username "$DOCKER_USER" --password-stdin
+      - run: echo "$DOCKER_PASS" | docker login docker.io --username "$DOCKER_USER" --password-stdin
       - run: echo "$QUAY_PASS" | docker login quay.io --username "$QUAY_USER" --password-stdin
       - docker/build:
           local_image_name: "<<parameters.ident>>:${CIRCLE_SHA1:0:10}"
