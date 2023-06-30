@@ -68,6 +68,7 @@
         "google-auth",
         "google-cloud-bigquery",
         "hiredis",
+        "jira",
         "hypothesis",
         "prometheus-fastapi-instrumentator",
         "pygments",
