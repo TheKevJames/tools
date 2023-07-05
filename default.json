@@ -10,45 +10,47 @@
     "enabled": true,
     "automerge": true
   },
-  "packageRules": [{
-    "datasources": ["docker"],
-    "packageNames": ["python"],
-    "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$"
-  }, {
-    "datasources": ["orb"],
-    "rangeStrategy": "replace",
-    "patch": {
-      "enabled": false
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["python"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$"
+    }, {
+      "matchManagers": ["poetry"],
+      "versioning": "poetry"
+    }, {
+      "matchDatasources": ["orb"],
+      "rangeStrategy": "replace",
+      "patch": {
+        "enabled": false
+      }
+    }, {
+      "matchManagers": ["maven"],
+      "matchPackagePatterns": ["^com.google.auto.value"],
+      "groupName": "com.google.auto.value packages"
+    }, {
+      "matchDatasources": ["pypi"],
+      "matchPackagePatterns": ["^grpcio"],
+      "groupName": "grpcio"
+    }, {
+      "matchDatasources": ["terraform"],
+      "matchPackagePatterns": ["^google"],
+      "groupName": "google"
+    }, {
+      "matchManagers": ["terraform"],
+      "matchPackagePatterns": ["^google"],
+      "groupName": "google"
+    }, {
+      "matchPackageNames": ["hashicorp/terraform", "terraform"],
+      "groupName": "terraform"
+    }, {
+      "matchPackageNames": ["sanic", "sanic-testing"],
+      "groupName": "sanic"
+    }, {
+      "matchPackagePatterns": ["torch", "torchaudio"],
+      "groupName": "pytorch packages"
     }
-  }, {
-    "packagePatterns": ["^com.google.auto.value"],
-    "managers": ["maven"],
-    "groupName": "com.google.auto.value packages"
-  }, {
-    "datasources": ["pypi"],
-    "packagePatterns": ["^grpcio"],
-    "groupName": "grpcio"
-  }, {
-    "managers": ["poetry"],
-    "versioning": "poetry"
-  }, {
-    "datasources": ["terraform"],
-    "packagePatterns": ["^google"],
-    "groupName": "google"
-  }, {
-    "managers": ["terraform"],
-    "packagePatterns": ["^google"],
-    "groupName": "google"
-  }, {
-    "packageNames": ["hashicorp/terraform", "terraform"],
-    "groupName": "terraform"
-  }, {
-    "packageNames": ["sanic", "sanic-testing"],
-    "groupName": "sanic"
-  }, {
-    "packagePatterns": ["torch", "torchaudio"],
-    "groupName": "pytorch packages"
-  }],
+  ],
   "prConcurrentLimit": 0,
   "prCreation": "immediate",
   "prHourlyLimit": 0,

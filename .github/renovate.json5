@@ -1,0 +1,21 @@
+{
+  "extends": [
+    "github>thekevjames/tools:personal",
+  ],
+  "packageRules": [
+    {
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["google/cloud-sdk"],
+      "automerge": true,
+    }, {
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": ["python"],
+      "matchFiles": ["docker-gcloud-pubsub-emulator/Dockerfile"],
+      "allowedVersions": "3.9.2",
+    }, {
+      "matchManagers": ["pip_requirements"],
+      "matchPackageNames": ["nox"],
+      "automerge": true,
+    },
+  ]
+}
