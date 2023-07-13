@@ -21,7 +21,7 @@ fern = "=0.6.2"
 log = "=0.4.19"
 reqwest = { version = "=0.11.18", features = ["blocking", "json"] }
 serde = { version = "=1.0.171", features = ["derive"] }
-serde_json = "=1.0.100"
+serde_json = "=1.0.102"
 serde-xml-rs = "=0.6.0"
 termion = "=2.0.1"
 # TODO: consider migrating to crossterm (https://github.com/fdehau/tui-rs/blob/master/CHANGELOG.md#new-default-backend-and-consolidated-backend-options-553)
