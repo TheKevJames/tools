@@ -80,6 +80,7 @@
         "pytest-mock",
         "redis",
         "requests",
+        "sqlalchemy",
         "tqdm"
       ],
       "updateTypes": ["minor", "patch", "pin", "digest"],
