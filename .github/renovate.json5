@@ -1,7 +1,5 @@
 {
-  "extends": [
-    "github>thekevjames/tools:personal",
-  ],
+  "extends": ["github>thekevjames/tools:personal"],
   "packageRules": [
     {
       "matchManagers": ["dockerfile"],

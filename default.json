@@ -25,6 +25,9 @@
         "enabled": false
       }
     }, {
+      "depTypeList": ["devDependencies"],
+      "rangeStrategy": "pin"
+    }, {
       "matchManagers": ["maven"],
       "matchPackagePatterns": ["^com.google.auto.value"],
       "groupName": "com.google.auto.value packages"

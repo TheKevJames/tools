@@ -3,7 +3,7 @@ ci:
     autoupdate_commit_msg: 'chore(deps): bump pre-commit linter versions'
 
 default_language_version:
-    python: python3.11
+    python: python3.9
 
 exclude: '^docker-tuning-primer/root/.*.sh$'
 
@@ -37,9 +37,10 @@ repos:
     -   id: double-quote-string-fixer
     -   id: name-tests-test
     -   id: requirements-txt-fixer
--   repo: https://github.com/pylint-dev/pylint
+-   repo: https://github.com/PyCQA/pylint
     rev: v3.0.0a6
     hooks:
+    # TODO: pylint-import-modules support for pylint v3 (or alternative linter)
     -   id: pylint
         args:
         - --load-plugins=pylint.extensions.mccabe
@@ -47,11 +48,11 @@ repos:
         - --max-line-length=79
         - --max-args=10
         - --score=n
+        # TODO: narrow these down
         - -d broad-except
         - -d duplicate-code
         - -d fixme
         - -d import-error
-        - -d import-only-modules
         - -d invalid-name
         - -d locally-disabled
         - -d missing-docstring
@@ -60,7 +61,7 @@ repos:
         - -d ungrouped-imports  # conflicts with reorder-python-imports
         - -d wrong-import-order  # conflicts with reorder-python-imports
 -   repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.5.3
+    rev: v1.5.4
     hooks:
     -   id: remove-crlf
     -   id: remove-tabs
@@ -78,10 +79,11 @@ repos:
 -   repo: https://github.com/asottile/add-trailing-comma
     rev: v3.0.1
     hooks:
+    # TODO: add to global repo templates?
     -   id: add-trailing-comma
         args: [--py36-plus]
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.4.1
+    rev: v1.5.0
     hooks:
     -   id: mypy
         require_serial: True
@@ -112,7 +114,8 @@ repos:
         - flake8-broken-line==1.0.0
         - flake8-builtins==2.1.0
         - flake8-commas==2.1.0
-        - flake8-comprehensions==3.13.0
+        - flake8-comprehensions==3.14.0
+        - flake8-typing-imports==1.14.0
 -   repo: https://github.com/pre-commit/mirrors-autopep8
     rev: v2.0.2
     hooks:
@@ -132,7 +135,10 @@ repos:
         args:
         # https://www.flake8rules.com/
         # E501: Line too long. Covered by autopep8.
-        - --ignore=E501
+        # E741: Do not use variables named 'I', 'O', or 'l'.
+        # W503: Line break occurred before a binary operator. Breaks PEP8.
+        - --ignore=E501,E741,W503
+        - --min-python-version=3.11
 -   repo: local
     hooks:
     -   id: poetry-check
@@ -171,7 +177,7 @@ repos:
 
 # json
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 0.23.3
+  rev: 0.24.1
   hooks:
     - id: check-github-workflows
     - id: check-renovate
@@ -183,7 +189,7 @@ repos:
     rev: v2.0.0
     hooks:
     -   id: fixmyjs
-# TODO
+# TODO: enable me
 # -   repo: https://github.com/pre-commit/mirrors-jshint
 #     rev: v2.13.6
 #     hooks:
@@ -194,7 +200,7 @@ repos:
     rev: v6.2.1
     hooks:
     -   id: beautysh
-# TODO
+# TODO: enable me
 # -   repo: https://github.com/openstack/bashate
 #     rev: 2.1.1
 #     hooks:
@@ -204,7 +210,7 @@ repos:
     rev: v0.9.0.5
     hooks:
     -   id: shellcheck
-# TODO
+# TODO: enable me
 # -   repo: https://github.com/jumanjihouse/pre-commit-hooks
 #     rev: 3.0.0
 #     hooks:
