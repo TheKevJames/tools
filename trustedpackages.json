@@ -71,6 +71,8 @@
         "jira",
         "hypothesis",
         "prometheus-fastapi-instrumentator",
+        "pydantic",
+        "pydantic-settings",
         "pygments",
         "pytest",
         "pytest-asyncio",
