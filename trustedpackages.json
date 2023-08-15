@@ -30,6 +30,14 @@
     },
     {
       "matchDatasources": ["docker"],
+      "matchPackagePatterns": [
+        "^thekevjames/"
+      ],
+      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "matchDatasources": ["docker"],
       "matchPackageNames": [
         "busybox",
         "docker",
