@@ -3,6 +3,7 @@
     {
       "matchDatasources": ["crate"],
       "matchPackageNames": [
+        "log",
         "serde",
         "serde_json",
         "xdg"
