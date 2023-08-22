@@ -91,6 +91,7 @@
         "pytest-mock",
         "redis",
         "requests",
+        "sphinx",
         "sqlalchemy",
         "tqdm"
       ],
