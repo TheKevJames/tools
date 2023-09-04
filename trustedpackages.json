@@ -3,6 +3,7 @@
     {
       "matchDatasources": ["crate"],
       "matchPackageNames": [
+        "chrono",
         "log",
         "serde",
         "serde_json",
