@@ -19,11 +19,6 @@ Tag description:
 * ``\d+.\d+.\d+``: the latest build for a given gcloud version
 * in addition, each commit has its commit hash user as a docker tag
 
-.. warning::
-
-    I received a bunch of reports of the emulator behaving weirdly as of gcloud
-    version 407+. If :latest isn't working for you, try out the :406.0.0 tag!
-
 Usage
 -----
 
@@ -87,6 +82,27 @@ So the full command would look like:
 
 If you want to define more projects, you'd simply add a ``PUBSUB_PROJECT2``,
 ``PUBSUB_PROJECT3``, etc.
+
+Push Subscriptions
+``````````````````
+
+By default, any subscriptions specified above will be pull subscriptions. To
+declare them as push subscriptions, you can add the following extra env var:
+
+.. code-block:: console
+
+    $ PUBSUB_PUSHENDPOINT_my-push-subscription-name=http://localhost:3001/messages
+
+In this case, when we see ``my-push-subscription-name`` listed in the
+``PUBSUB_PROJECT{n}`` env vars, we'll look at this variable and create a push
+subscription instead of a pull one.
+
+To be clear, that means the above env var will have no effect unless you *also*
+have something like:
+
+.. code-block:: console
+
+    $ PUBSUB_PROJECT1=my-topic:my-pull-subscription-name:my-push-subscription-name
 
 Liveness Probes
 ~~~~~~~~~~~~~~~
