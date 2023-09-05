@@ -77,7 +77,7 @@ repos:
     -   id: pyupgrade
         args: [--py39-plus]
 -   repo: https://github.com/asottile/add-trailing-comma
-    rev: v3.0.1
+    rev: v3.1.0
     hooks:
     # TODO: add to global repo templates?
     -   id: add-trailing-comma
@@ -116,7 +116,7 @@ repos:
         - flake8-commas==2.1.0
         - flake8-comprehensions==3.14.0
         - flake8-typing-imports==1.14.0
--   repo: https://github.com/pre-commit/mirrors-autopep8
+-   repo: https://github.com/hhatto/autopep8
     rev: v2.0.4
     hooks:
     -   id: autopep8
