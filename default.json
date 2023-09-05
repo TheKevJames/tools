@@ -25,6 +25,11 @@
         "enabled": false
       }
     }, {
+      "matchManagers": ["poetry"],
+      "depTypeList": ["dependencies"],
+      "matchPackagePatterns": ["^python$"],
+      "rangeStrategy": "widen"
+    }, {
       "depTypeList": ["devDependencies"],
       "rangeStrategy": "pin"
     }, {
