@@ -35,14 +35,7 @@ Releasing
 ---------
 
 Whenever a new release of MySQLTuner is pushed, this library is updated
-accordingly:
-
-.. code-block:: console
-
-    $ local version="1.7.15"
-    $ for file in vulnerabilities.csv basic_passwords.txt mysqltuner.pl; do
-        $ wget "https://raw.githubusercontent.com/major/MySQLTuner-perl/${version}/${file}" -O "./root/${file}"
-    $ done
+accordingly (run ``make VERSION=1.2.3``).
 
 .. _MySQLTuner Homepage: http://mysqltuner.pl/
 .. _this Github repo: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
