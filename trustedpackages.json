@@ -40,6 +40,7 @@
     {
       "matchDatasources": ["docker"],
       "matchPackageNames": [
+        "bitnami/kube-state-metrics",
         "busybox",
         "docker",
         "hashicorp/terraform",
@@ -55,7 +56,6 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": [
         "python",
-        "quay.io/prometheus/prometheus",
         "quay.io/prometheus/pushgateway"
       ],
       "updateTypes": ["patch", "pin", "digest"],
