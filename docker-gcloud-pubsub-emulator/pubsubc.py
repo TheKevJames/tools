@@ -22,6 +22,7 @@ Credit:
 """
 import os
 import sys
+import json
 
 from google.cloud import pubsub_v1  # type: ignore[attr-defined]
 
@@ -59,7 +60,46 @@ def create(project: str, topics: list[str]) -> None:
             )
 
 
+def config_create(config: dict) -> None:
+    publisher = pubsub_v1.PublisherClient()
+    subscriber = pubsub_v1.SubscriberClient()
+    print(f'configuring projects: {config}')
+
+    for project in config['projects']:
+        print(f'configuring project: {project["name"]}')
+        for topic in project['topics']:
+            print(f'- creating topic: {topic["name"]}')
+            topic_name = publisher.topic_path(project['name'], topic['name'])
+            publisher.create_topic(name=topic_name)
+
+            for subscription in topic['subscriptions']:
+                print(f'  - creating subscription: {subscription["name"]}')
+                subscription_name = subscriber.subscription_path(
+                    project['name'],
+                    subscription['name'],
+                )
+
+                url = subscription['push_endpoint']
+                config = None
+                if url:
+                    print(f'    - setting push endpoint: {url}')
+                    config = pubsub_v1.types.PushConfig(push_endpoint=url)
+
+                subscriber.create_subscription(
+                    name=subscription_name,
+                    topic=topic_name,
+                    push_config=config,
+                )
+
+
 def main() -> None:
+    config_env = os.environ.get('PUBSUB_PROJECTS')
+    print(config_env)
+    if config_env:
+        config = json.loads(config_env)
+        config_create(config)
+        return
+
     i = 0
     while True:
         i += 1
