@@ -20,9 +20,9 @@ Credit:
 
     This script was originally ported from: https://github.com/prep/pubsubc
 """
-import json
 import os
 import sys
+import json
 
 from google.cloud import pubsub_v1  # type: ignore[attr-defined]
 
@@ -60,7 +60,7 @@ def create(project: str, topics: list[str]) -> None:
             )
 
 
-def config_create(config: dict) -> None:
+def config_create(config: dict[str, dict]) -> None:
     publisher = pubsub_v1.PublisherClient()
     subscriber = pubsub_v1.SubscriberClient()
     print(f'configuring projects: {config}')
