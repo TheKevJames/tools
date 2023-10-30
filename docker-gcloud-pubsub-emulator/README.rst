@@ -104,6 +104,42 @@ have something like:
 
     $ PUBSUB_PROJECT1=my-topic:my-pull-subscription-name:my-push-subscription-name
 
+JSON config
+``````````````````
+
+Alternatively, you can define a JSON config via ``PUBSUB_PROJECTS`` environment variable. The format of the JSON is as follows:
+
+.. code-block:: json
+
+    {
+        "projects": [
+            {
+                "name": "project",
+                "topics": [
+                    {
+                        "name": "my-topic",
+                        "subscriptions": [
+                            {
+                                "name":"my-subscription",
+                                "push_endpoint":"http://localhost:3001/subscription-endpoint"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+So following the real-life examples from above, the full command would look like this:
+
+.. code-block:: console
+
+    $ docker run --rm -it \
+         -p 8681:8681 \
+         -e PUBSUB_PROJECTS='{"projects":[{"name":"company-dev","topics":[{"name":"invoices","subscriptions":[{"name":"invoice-calculator"}]},{"name":"chats","subscriptions":[{"name":"slack-out","push_endpoint":"http://localhost:3001/slack-out-endpoint"},{"name":"irc-out","push_endpoint":"http://localhost:3001/irc-out-endpoint"}]},{"name":"notifications","subscriptions":[]}]}]}' \
+         thekevjames/gcloud-pubsub-emulator:latest
+
+
 Liveness Probes
 ~~~~~~~~~~~~~~~
 
