@@ -79,16 +79,16 @@ def config_create(config: dict) -> None:
                     subscription['name'],
                 )
 
-                url = subscription['push_endpoint']
-                config = None
-                if url:
+                push_config = None
+                if 'push_endpoint' in subscription:
+                    url = subscription['push_endpoint']
                     print(f'    - setting push endpoint: {url}')
-                    config = pubsub_v1.types.PushConfig(push_endpoint=url)
+                    push_config = pubsub_v1.types.PushConfig(push_endpoint=url)
 
                 subscriber.create_subscription(
                     name=subscription_name,
                     topic=topic_name,
-                    push_config=config,
+                    push_config=push_config,
                 )
 
 
