@@ -20,9 +20,9 @@ Credit:
 
     This script was originally ported from: https://github.com/prep/pubsubc
 """
+import json
 import os
 import sys
-import json
 
 from google.cloud import pubsub_v1  # type: ignore[attr-defined]
 
