@@ -62,8 +62,9 @@
       "automerge": true
     },
     {
-      "matchDatasources": ["github-tags"],
-      "updateTypes": ["digest"],
+      "matchDepTypes": ["action"],
+      "updateTypes": ["patch", "pin", "digest"],
+      "pinDigests": true,
       "automerge": true
     },
     {
