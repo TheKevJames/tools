@@ -19,11 +19,6 @@ Tag description:
 * ``\d+.\d+.\d+``: the latest build for a given gcloud version
 * in addition, each commit has its commit hash user as a docker tag
 
-.. warning::
-
-    I received a bunch of reports of the emulator behaving weirdly as of gcloud
-    version 407+. If :latest isn't working for you, try out the :406.0.0 tag!
-
 Usage
 -----
 
