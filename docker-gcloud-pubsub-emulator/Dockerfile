@@ -26,7 +26,7 @@ RUN /opt/poetry/bin/poetry export -f requirements.txt --output /tmp/requirements
 # https://github.com/firebase/firebase-tools/issues/5256#issuecomment-1383228506
 # Alternatively, switch back to slim once this is resolved:
 # https://github.com/TheKevJames/tools/issues/675
-FROM google/cloud-sdk:453.0.0
+FROM google/cloud-sdk:454.0.0
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean && \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
