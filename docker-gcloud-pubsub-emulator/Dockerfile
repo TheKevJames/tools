@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.3
+# syntax=docker/dockerfile:1.6
 FROM curlimages/curl:latest as fetcher
 
 ARG WAITFOR_VERSION=2.2.4
