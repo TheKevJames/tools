@@ -59,6 +59,14 @@
     {
       "matchDatasources": ["docker"],
       "matchPackageNames": [
+        "ghcr.io/gethomepage/homepage"
+      ],
+      "updateTypes": ["patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
         "python",
         "quay.io/prometheus/pushgateway"
       ],
