@@ -30,6 +30,10 @@
       "matchPackagePatterns": ["^python$"],
       "rangeStrategy": "widen"
     }, {
+      "matchManagers": ["poetry"],
+      "depTypeList": ["build-system.requires"],
+      "rangeStrategy": "widen"
+    }, {
       "depTypeList": ["devDependencies"],
       "rangeStrategy": "pin"
     }, {
