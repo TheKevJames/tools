@@ -92,6 +92,7 @@
     {
       "matchDatasources": ["pypi"],
       "matchPackageNames": [
+        "aiohttp",
         "google-api-python-client",
         "google-auth",
         "google-cloud-bigquery",
