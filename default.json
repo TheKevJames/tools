@@ -33,7 +33,7 @@
       "matchDepTypes": ["build-system.requires"],
       "rangeStrategy": "widen"
     }, {
-      "matchDepTypes": ["devDependencies"],
+      "matchDepTypes": ["dev", "devDependencies"],
       "rangeStrategy": "pin"
     }, {
       "matchManagers": ["maven"],
