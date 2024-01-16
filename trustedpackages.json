@@ -9,7 +9,7 @@
         "serde_json",
         "xdg"
       ],
-      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
     },
     {
@@ -18,7 +18,7 @@
         "fern",
         "reqwest"
       ],
-      "updateTypes": ["patch", "pin", "digest"],
+      "matchUpdateTypes": ["patch", "pin", "digest"],
       "automerge": true
     },
     {
@@ -26,7 +26,7 @@
       "matchPackagePatterns": [
         "^thekevjames/gcloud-pubsub-emulator$"
       ],
-      "updateTypes": ["major", "minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": ["major", "minor", "patch", "pin", "digest"],
       "automerge": true
     },
     {
@@ -34,7 +34,7 @@
       "matchPackagePatterns": [
         "^thekevjames/"
       ],
-      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
     },
     {
@@ -53,7 +53,7 @@
         "quay.io/linuxserver.io/syncthing",
         "quay.io/prometheus/prometheus"
       ],
-      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
     },
     {
@@ -61,7 +61,7 @@
       "matchPackageNames": [
         "ghcr.io/gethomepage/homepage"
       ],
-      "updateTypes": ["patch", "pin", "digest"],
+      "matchUpdateTypes": ["patch", "pin", "digest"],
       "automerge": true
     },
     {
@@ -70,12 +70,12 @@
         "python",
         "quay.io/prometheus/pushgateway"
       ],
-      "updateTypes": ["patch", "pin", "digest"],
+      "matchUpdateTypes": ["patch", "pin", "digest"],
       "automerge": true
     },
     {
       "matchDepTypes": ["action"],
-      "updateTypes": ["patch", "pin", "digest"],
+      "matchUpdateTypes": ["patch", "pin", "digest"],
       "pinDigests": true,
       "automerge": true
     },
@@ -86,7 +86,7 @@
         "^gcloud-aio",
         "^gcloud-rest"
       ],
-      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
     },
     {
@@ -116,7 +116,7 @@
         "sqlalchemy",
         "tqdm"
       ],
-      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
     },
     {
@@ -128,7 +128,7 @@
         "prometheus-client",
         "uvicorn"
       ],
-      "updateTypes": ["patch", "pin", "digest"],
+      "matchUpdateTypes": ["patch", "pin", "digest"],
       "automerge": true
     },
     {
@@ -147,7 +147,7 @@
         "integrations/github",
         "kubernetes"
       ],
-      "updateTypes": ["minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
     }
   ]

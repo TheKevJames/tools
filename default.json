@@ -26,14 +26,14 @@
       }
     }, {
       "matchManagers": ["poetry"],
-      "depTypeList": ["dependencies"],
+      "matchDepTypes": ["dependencies"],
       "matchPackagePatterns": ["^python$"],
       "rangeStrategy": "widen"
     }, {
-      "depTypeList": ["build-system.requires"],
+      "matchDepTypes": ["build-system.requires"],
       "rangeStrategy": "widen"
     }, {
-      "depTypeList": ["devDependencies"],
+      "matchDepTypes": ["devDependencies"],
       "rangeStrategy": "pin"
     }, {
       "matchManagers": ["maven"],
