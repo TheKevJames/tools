@@ -28,8 +28,7 @@ jobs:
         type: string
     steps:
       - checkout
-      - setup_remote_docker:
-          version: 20.10.7
+      - setup_remote_docker
       - run: echo "$DOCKER_PASS" | docker login docker.io --username "$DOCKER_USER" --password-stdin
       - run: echo "$QUAY_PASS" | docker login quay.io --username "$QUAY_USER" --password-stdin
       - docker/build:
