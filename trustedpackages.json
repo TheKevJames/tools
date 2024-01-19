@@ -124,6 +124,7 @@
       "matchDatasources": ["pypi"],
       "matchPackageNames": [
         "fastapi",
+        "flask",
         "google-cloud-pubsub",
         "httpx",
         "prometheus-client",
