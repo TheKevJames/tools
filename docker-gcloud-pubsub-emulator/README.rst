@@ -6,10 +6,10 @@ gcloud-pubsub-emulator
 Description
 -----------
 
-This image is a clone of `marcelcorso/gcloud-pubsub-emulator`_, updated to
-auto-build off of every new ``gcloud`` release. It basically amounts to a
-dockerized form of the emulator itself as well as the `pubsubc`_ tool, which
-can be used to initialize various topics/subscriptions on startup.
+This image was based on `marcelcorso/gcloud-pubsub-emulator`_, updated to
+auto-build off of every new ``gcloud`` release. We also include an updated
+version of the `pubsubc`_ tool, which supports a wider range of usecases around
+initializing various topics/subscriptions on startup.
 
 You can find the source code in `this Github repo`_.
 
@@ -36,7 +36,7 @@ or via `quay.io`_:
 
 If you plan to create topics/subscriptions automatically on startup (see
 `Automatic Topic and Subscription Creation`_ below), you may also want to
-epose port 8682 for liveness probes. See the section on `Liveness Probes`_ for
+expose port 8682 for liveness probes. See the section on `Liveness Probes`_ for
 more info.
 
 Once the image is running, you can point your application code to the emulator
@@ -51,9 +51,54 @@ Automatic Topic and Subscription Creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This image also provides the ability to create topics and subscriptions in
-projects on startup by specifying the ``PUBSUB_PROJECT`` environment variable
-with a sequential number appended to it, *starting with 1*. The format of the
-environment variable is as follows::
+projects on startup. The prefered method of doing so is by creating a
+configuration json file, the location of which defaults to
+``/etc/pubsubc/config.json``. The location of this file can be overwritten by
+setting the ``$PUBSUBC_CONFIG`` environment variable::
+
+    docker run \
+        -ePUBSUBC_CONFIG=/foo/bar.json -v./my-config.json:/foo/bar.json \
+        quay.io/thekevjames/gcloud-pubsub-emulator:latest
+
+The config file should be a list of objects containing topic configurations::
+
+    [
+      {
+        "topic": "topic1",
+        "project": "project1"
+      },
+      {
+        "topic": "topic2",
+        "project": "project1",
+        "subscriptions": [
+          {
+            "name": "subscription1"
+          },
+          {
+            "name": "subscription2"
+          }
+        ]
+      }
+    ]
+
+You must specify at least one ``topic``. A ``topic`` must include a ``project``
+key, and may optionally include a list of ``subscription`` names which will be
+attached to that topic.
+
+See `config.json`_ for a sample configuration file.
+
+Environment Variables
+^^^^^^^^^^^^^^^^^^^^^
+
+You may also use environment variables to specify the above configuration. Note
+that environment variables are only checked if no configuration file is
+provided: if you specify a configuration file, you must use it for all of your
+configurations.
+
+To use environment variables, specify ``$PUBSUB_PROJECT`` with a sequential
+number appended to it, *starting with 1* (for example: your first project
+configuration should be ``$PUBSUB_PROJECT1``). The format of the environment
+variable is as follows::
 
    PROJECTID,TOPIC1,TOPIC2:SUBSCRIPTION1:SUBSCRIPTION2,TOPIC3:SUBSCRIPTION3
 
@@ -83,6 +128,9 @@ So the full command would look like:
 If you want to define more projects, you'd simply add a ``PUBSUB_PROJECT2``,
 ``PUBSUB_PROJECT3``, etc.
 
+As with configuring this script via config file, you must have at least one
+configured ``topic``.
+
 Liveness Probes
 ~~~~~~~~~~~~~~~
 
@@ -90,7 +138,8 @@ When this image starts up it will first make the emulator available on port
 8681, then will (optionally) create any specified topics/subscriptions and
 begin to respond on port 8682. As such, you can implement a liveness probe by
 checking is the relevant port is available: 8681 for a standard configuration
-or 8682 for any time you've set a ``PUBSUB_PROJECT*`` variable.
+or 8682 for any time you've set a ``PUBSUB_PROJECT*`` variable or provided a
+configuration json.
 
 You may find `wait-for`_ or `wait-for-it`_ useful for this purpose. If you use
 some other tool for readiness probes, any check for whether the port is bound
@@ -108,6 +157,7 @@ will work. Some examples include:
 .. _marcelcorso/gcloud-pubsub-emulator: https://github.com/marcelcorso/gcloud-pubsub-emulator
 .. _pubsubc: https://github.com/prep/pubsubc
 .. _this Github repo: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator
+.. _config.json: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator/config.json
 .. _quay.io: https://quay.io/repository/thekevjames/tuning-primer
 .. _wait-for-it: https://github.com/vishnubob/wait-for-it
 .. _wait-for: https://github.com/eficode/wait-for
