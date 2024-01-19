@@ -31,6 +31,7 @@ import json
 import os
 import sys
 from collections.abc import Iterator
+from typing import Optional
 
 from google.cloud import pubsub_v1
 
@@ -38,6 +39,7 @@ from google.cloud import pubsub_v1
 @dataclasses.dataclass
 class SubscriptionConfig:
     name: str
+    endpoint: Optional[str] = None
 
 
 @dataclasses.dataclass
@@ -63,7 +65,7 @@ def build_config() -> Iterator[TopicConfig]:
         pprint(f'loading config from file ({fname})...')
         for spec in config:
             subscriptions = [
-                SubscriptionConfig(sub['name'])
+                SubscriptionConfig(sub['name'], sub.get('push_endpoint'))
                 for sub in spec.get('subscriptions') or []
             ]
             yield TopicConfig(spec['topic'], spec['project'], subscriptions)
@@ -107,6 +109,8 @@ def print_config(config: list[TopicConfig]) -> None:
         pprint(f'topic: {topic.name} (project: {topic.project})', 1)
         for subscription in topic.subscriptions:
             pprint(f'subscription: {subscription.name}', 2)
+            if subscription.endpoint:
+                pprint(f'push endpoint: {subscription.endpoint}', 3)
 
 
 def create(topic: TopicConfig) -> None:
@@ -120,6 +124,14 @@ def create(topic: TopicConfig) -> None:
 
     for subscription in topic.subscriptions:
         pprint(f'  - creating subscription: {subscription.name}')
+
+        c: Optional[pubsub_v1.types.PushConfig]
+        if subscription.endpoint:
+            pprint(f'    using push endpoint: {subscription.endpoint}')
+            c = pubsub_v1.types.PushConfig(push_endpoint=subscription.endpoint)
+        else:
+            c = None
+
         subscription_name = subscriber.subscription_path(
             topic.project,
             subscription.name,
@@ -127,6 +139,7 @@ def create(topic: TopicConfig) -> None:
         subscriber.create_subscription(
             name=subscription_name,
             topic=topic_name,
+            push_config=c,
         )
 
 

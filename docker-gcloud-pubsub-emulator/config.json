@@ -12,7 +12,8 @@
         "name": "subscription1"
       },
       {
-        "name": "subscription2"
+        "name": "subscription2",
+        "push_endpoint": "http://localhost:3001/messages"
       }
     ]
   },

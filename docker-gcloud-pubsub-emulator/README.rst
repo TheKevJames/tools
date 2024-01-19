@@ -72,7 +72,8 @@ The config file should be a list of objects containing topic configurations::
         "project": "project1",
         "subscriptions": [
           {
-            "name": "subscription1"
+            "name": "subscription1",
+            "push_endpoint": "http://localhost:3001/messages"
           },
           {
             "name": "subscription2"
@@ -82,8 +83,9 @@ The config file should be a list of objects containing topic configurations::
     ]
 
 You must specify at least one ``topic``. A ``topic`` must include a ``project``
-key, and may optionally include a list of ``subscription`` names which will be
-attached to that topic.
+key, and may optionally include a list of ``subscription`` details which will
+be attached to that topic. A subscription will be created in push mode if a
+``push_endpoint`` is provided, otherwise it will be a pull subscription.
 
 See `config.json`_ for a sample configuration file.
 
@@ -94,6 +96,8 @@ You may also use environment variables to specify the above configuration. Note
 that environment variables are only checked if no configuration file is
 provided: if you specify a configuration file, you must use it for all of your
 configurations.
+
+Note that environment variables do not support configuring push subscriptions.
 
 To use environment variables, specify ``$PUBSUB_PROJECT`` with a sequential
 number appended to it, *starting with 1* (for example: your first project
