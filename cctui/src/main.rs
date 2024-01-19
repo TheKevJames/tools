@@ -12,7 +12,7 @@ use std::error::Error;
 use std::io::stdout;
 use std::process::exit;
 use std::str::FromStr;
-use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::AlternateScreen};
+use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::IntoAlternateScreen};
 use tui::{backend::TermionBackend, Terminal};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -45,8 +45,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let events = Events::new();
 
     let stdout = stdout().into_raw_mode()?;
-    let stdout = MouseTerminal::from(stdout);
-    let stdout = AlternateScreen::from(stdout);
+    let stdout = match MouseTerminal::from(stdout).into_alternate_screen() {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("could not build terminal screen: {:?}", e);
+            exit(1);
+        }
+    };
+
     let backend = TermionBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
