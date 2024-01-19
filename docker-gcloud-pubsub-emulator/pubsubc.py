@@ -26,6 +26,7 @@ Credit:
 
     This script was based on: https://github.com/prep/pubsubc
 """
+import dataclasses
 import json
 import os
 import sys
@@ -34,12 +35,26 @@ from collections.abc import Iterator
 from google.cloud import pubsub_v1
 
 
+@dataclasses.dataclass
+class SubscriptionConfig:
+    name: str
+
+
+@dataclasses.dataclass
+class TopicConfig:
+    name: str
+    project: str
+    subscriptions: list[SubscriptionConfig] = dataclasses.field(
+        default_factory=list,
+    )
+
+
 def pprint(x: str, levels: int = 0) -> None:
     indent = ' ' * ((levels * 2) + 1)
     print(f'[pubsubc]{indent}{x}')
 
 
-def build_config() -> Iterator[tuple[str, list[str]]]:
+def build_config() -> Iterator[TopicConfig]:
     fname = os.environ.get('PUBSUBC_CONFIG', '/etc/pubsubc/config.json')
     try:
         with open(fname, encoding='utf-8') as f:
@@ -47,12 +62,11 @@ def build_config() -> Iterator[tuple[str, list[str]]]:
 
         pprint(f'loading config from file ({fname})...')
         for spec in config:
-            subscriptions = spec.get('subscriptions')
-            topic = spec['topic']
-            if subscriptions:
-                topic += f':{":".join(s["name"] for s in subscriptions)}'
-
-            yield (spec['project'], [topic])
+            subscriptions = [
+                SubscriptionConfig(sub['name'])
+                for sub in spec.get('subscriptions') or []
+            ]
+            yield TopicConfig(spec['topic'], spec['project'], subscriptions)
 
         if os.environ.get('PUBSUB_PROJECT1'):
             pprint('WARN: $PUBSUB_PROJECT1 is set but loaded config from file')
@@ -78,42 +92,42 @@ def build_config() -> Iterator[tuple[str, list[str]]]:
         if not topics:
             return
 
-        yield (project, topics)
-
-
-def print_config(config: list[tuple[str, list[str]]]) -> None:
-    pprint('built pubsubc config:')
-    for project, topics in config:
-        pprint(f'project: {project}', 1)
         for spec in topics:
-            topic, *subscriptions = spec.split(':')
-            pprint(f'topic: {topic}', 2)
-            for subscription in subscriptions:
-                pprint(f'subscription: {subscription}', 3)
+            topic_name, *subscription_names = spec.split(':')
+            subscriptions = [
+                SubscriptionConfig(name)
+                for name in subscription_names or []
+            ]
+            yield TopicConfig(topic_name, project, subscriptions)
 
 
-def create(project: str, topics: list[str]) -> None:
+def print_config(config: list[TopicConfig]) -> None:
+    pprint('built pubsubc config:')
+    for topic in config:
+        pprint(f'topic: {topic.name} (project: {topic.project})', 1)
+        for subscription in topic.subscriptions:
+            pprint(f'subscription: {subscription.name}', 2)
+
+
+def create(topic: TopicConfig) -> None:
     publisher = pubsub_v1.PublisherClient()
     subscriber = pubsub_v1.SubscriberClient()
-    pprint(f'configuring project: {project}')
+    pprint(f'configuring topic: {topic.name} in project: {topic.project}')
 
-    for spec in topics:
-        topic, *subscriptions = spec.split(':')
+    pprint(f'- creating topic: {topic.name}')
+    topic_name = publisher.topic_path(topic.project, topic.name)
+    publisher.create_topic(name=topic_name)
 
-        pprint(f'- creating topic: {topic}')
-        topic_name = publisher.topic_path(project, topic)
-        publisher.create_topic(name=topic_name)
-
-        for subscription in subscriptions:
-            pprint(f'  - creating subscription: {subscription}')
-            subscription_name = subscriber.subscription_path(
-                project,
-                subscription,
-            )
-            subscriber.create_subscription(
-                name=subscription_name,
-                topic=topic_name,
-            )
+    for subscription in topic.subscriptions:
+        pprint(f'  - creating subscription: {subscription.name}')
+        subscription_name = subscriber.subscription_path(
+            topic.project,
+            subscription.name,
+        )
+        subscriber.create_subscription(
+            name=subscription_name,
+            topic=topic_name,
+        )
 
 
 def main() -> None:
@@ -125,8 +139,8 @@ def main() -> None:
         sys.exit(1)
 
     print_config(config)
-    for project, topics in config:
-        create(project, topics)
+    for topic in config:
+        create(topic)
 
 
 if __name__ == '__main__':
