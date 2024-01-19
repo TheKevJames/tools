@@ -1,0 +1,29 @@
+[
+  {
+    "project": "project1",
+    "topic": "topic1",
+    "subscriptions": []
+  },
+  {
+    "project": "project1",
+    "topic": "topic2",
+    "subscriptions": [
+      {
+        "name": "subscription1"
+      },
+      {
+        "name": "subscription2",
+        "push_endpoint": "http://localhost:3001/messages"
+      }
+    ]
+  },
+  {
+    "project": "project2",
+    "topic": "topic3",
+    "subscriptions": [
+      {
+        "name": "subscription3"
+      }
+    ]
+  }
+]
