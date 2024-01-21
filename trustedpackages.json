@@ -50,6 +50,7 @@
         "quay.io/linuxserver.io/jellyfin",
         "quay.io/linuxserver.io/prowlarr",
         "quay.io/linuxserver.io/radarr",
+        "quay.io/linuxserver.io/sonarr",
         "quay.io/linuxserver.io/syncthing",
         "quay.io/prometheus/prometheus"
       ],
