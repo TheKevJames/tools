@@ -27,13 +27,13 @@ You can run this image via:
 
 .. code-block:: console
 
-    $ docker run --rm -it -p 5000:5000 thekevjames/fava:latest
+    $ docker run --rm -it -p 5000:5000 -v/my/beancount:/data thekevjames/fava:latest /data/index.beancount
 
 or via `quay.io`_:
 
 .. code-block:: console
 
-    $ docker run --rm -it -p 5000:5000 quay.io/thekevjames/fava:latest
+    $ docker run --rm -it -p 5000:5000 -v/my/beancount:/data quay.io/thekevjames/fava:latest /data/index.beancount
 
 For full usage information, see the `Getting Started Guide`_.
 
