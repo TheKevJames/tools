@@ -11,6 +11,7 @@ completely forgotten about.
 - `CSS UserStyles`_
 - `DDTUI`_
 - `Dockerized caddy + caddy-security`_
+- `Dockerized Fava`_
 - `Dockerized gcloud Pubsub Emulator`_
 - `Dockerized MySQLTuner`_
 - `Dockerized Nox`_
@@ -35,6 +36,7 @@ Kevin has done anywhere" config with:
 .. _CSS UserStyles: https://github.com/TheKevJames/tools/tree/master/userstyles
 .. _DDTUI: https://github.com/TheKevJames/tools/tree/master/ddtui
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
+.. _Dockerized Fava: https://github.com/TheKevJames/tools/tree/master/docker-fava
 .. _Dockerized Nox: https://github.com/TheKevJames/tools/tree/master/docker-nox
 .. _Dockerized Tuning-Primer: https://github.com/TheKevJames/tools/tree/master/docker-tuning-primer
 .. _Dockerized caddy + caddy-security: https://github.com/TheKevJames/tools/tree/master/docker-caddy-security

@@ -89,6 +89,7 @@ workflows:
             parameters:
               ident:
                 - caddy-security
+                - fava
                 - gcloud-pubsub-emulator
                 - mysqltuner
                 - nox
@@ -104,6 +105,7 @@ workflows:
             parameters:
               ident:
                 - caddy-security
+                - fava
                 - gcloud-pubsub-emulator
                 - mysqltuner
                 - nox
@@ -119,6 +121,7 @@ workflows:
             parameters:
               ident:
                 - caddy-security
+                - fava
                 - gcloud-pubsub-emulator
                 - mysqltuner
                 - nox
@@ -145,6 +148,21 @@ workflows:
                 echo "${CADDY_VERSION}-${SECURITY_VERSION}" >/tmp/custom-tag
             - custom-tag:
                 ident: caddy-security
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+      - docker-publish:
+          name: docker-autopublish-fava
+          ident: fava
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export FAVA_VERSION=$(awk -F'=' '/ARG FAVA_VERSION/ {print $2}' docker-fava/Dockerfile)
+                echo "${FAVA_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: fava
           filters:
             branches:
               only: /master/
@@ -187,6 +205,7 @@ workflows:
             parameters:
               ident:
                 - caddy-security
+                - fava
                 - gcloud-pubsub-emulator
                 - mysqltuner
                 - nox
@@ -202,6 +221,7 @@ workflows:
             parameters:
               ident:
                 - caddy-security
+                - fava
                 - gcloud-pubsub-emulator
                 - mysqltuner
                 - nox
