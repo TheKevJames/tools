@@ -10,9 +10,9 @@ RUN chmod +x /tmp/wait-for
 FROM python:3.9.2 AS builder
 
 RUN python3 -m venv /opt/poetry
-ARG PIP_VERSION=23.0.1
+ARG PIP_VERSION=23.3.2
 RUN /opt/poetry/bin/pip install --upgrade "pip==${PIP_VERSION}"
-ARG POETRY_VERSION=1.4.0
+ARG POETRY_VERSION=1.7.1
 RUN /opt/poetry/bin/pip install "poetry==${POETRY_VERSION}"
 RUN /opt/poetry/bin/poetry config virtualenvs.options.no-pip true
 RUN /opt/poetry/bin/poetry config virtualenvs.options.no-setuptools true
@@ -38,7 +38,7 @@ RUN --mount=type=cache,target=/var/cache/apt \
         "netcat-openbsd=${NETCAT_VERSION}" && \
     gcloud config set disable_usage_reporting true
 
-ARG PIP_VERSION=23.0.1
+ARG PIP_VERSION=23.3.2
 RUN python3 -m pip install --upgrade "pip==${PIP_VERSION}"
 
 COPY --from=builder /tmp/requirements.txt /tmp/requirements.txt
