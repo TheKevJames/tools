@@ -27,7 +27,7 @@
     }, {
       "matchManagers": ["poetry"],
       "matchDepTypes": ["dependencies"],
-      "matchPackagePatterns": ["^python$"],
+      "matchDepPatterns": ["^python$"],
       "rangeStrategy": "widen"
     }, {
       "matchDepTypes": ["build-system.requires"],
@@ -37,19 +37,19 @@
       "rangeStrategy": "pin"
     }, {
       "matchManagers": ["maven"],
-      "matchPackagePatterns": ["^com.google.auto.value"],
+      "matchDepPatterns": ["^com.google.auto.value"],
       "groupName": "com.google.auto.value packages"
     }, {
       "matchDatasources": ["pypi"],
-      "matchPackagePatterns": ["^grpcio"],
+      "matchDepPatterns": ["^grpcio"],
       "groupName": "grpcio"
     }, {
       "matchDatasources": ["terraform"],
-      "matchPackagePatterns": ["^google"],
+      "matchDepPatterns": ["^google"],
       "groupName": "google"
     }, {
       "matchManagers": ["terraform"],
-      "matchPackagePatterns": ["^google"],
+      "matchDepPatterns": ["^google"],
       "groupName": "google"
     }, {
       "matchPackageNames": ["hashicorp/terraform", "terraform"],
@@ -58,7 +58,7 @@
       "matchPackageNames": ["sanic", "sanic-testing"],
       "groupName": "sanic"
     }, {
-      "matchPackagePatterns": ["torch", "torchaudio"],
+      "matchDepPatterns": ["^torch", "^torchaudio"],
       "groupName": "pytorch packages"
     }
   ],
