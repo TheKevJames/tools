@@ -184,6 +184,21 @@ workflows:
             tags:
               ignore: /.*/
       - docker-publish:
+          name: docker-autopublish-mysqltuner
+          ident: mysqltuner
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export MYSQLTUNER_VERSION=$(awk -F'=' '/VERSION=/ {print $2}' docker-mysqltuner/Makefile)
+                echo "${MYSQLTUNER_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: mysqltuner
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+      - docker-publish:
           name: docker-autopublish-nox
           ident: nox
           tag: "${CIRCLE_SHA1:0:10}"
@@ -193,6 +208,21 @@ workflows:
                 echo "${NOX_VERSION}" >/tmp/custom-tag
             - custom-tag:
                 ident: nox
+          filters:
+            branches:
+              only: /master/
+            tags:
+              ignore: /.*/
+      - docker-publish:
+          name: docker-autopublish-tuning-primer
+          ident: tuning-primer
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export TUNINGPRIMER_VERSION=$(awk -F' ' '/Version:/ {print $3}' docker-tuning-primer/root/tuning-primer.sh)
+                echo "${TUNINGPRIMER_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: tuning-primer
           filters:
             branches:
               only: /master/
@@ -215,6 +245,8 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
+          requires:
+            - docker-autopublish-<<matrix.ident>>
       - docker-readme-push:
           name: docker-readme-push-<<matrix.ident>>
           matrix:
