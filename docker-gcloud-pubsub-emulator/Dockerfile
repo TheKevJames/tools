@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # renovate: datasource=repology depName=debian_11/netcat versioning=loose
-ARG NETCAT_VERSION=1.217-3
+ARG NETCAT_VERSION=1.10-46
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=23.3.2
 # renovate: datasource=pypi depName=poetry
