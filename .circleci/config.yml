@@ -144,7 +144,7 @@ workflows:
           post-steps:
             - run: |
                 export CADDY_VERSION=$(awk -F':|-' '/builder-alpine/ {print $2}' docker-caddy-security/Dockerfile)
-                export SECURITY_VERSION=$(awk -F'@v' '/caddy-security/ {print $2}' docker-caddy-security/Dockerfile)
+                export SECURITY_VERSION=$(awk -F'=' '/ARG CADDYSECURITY_VERSION=/ {print substr($2, 2, length($2))}' docker-caddy-security/Dockerfile)
                 echo "${CADDY_VERSION}-${SECURITY_VERSION}" >/tmp/custom-tag
             - custom-tag:
                 ident: caddy-security
@@ -159,7 +159,7 @@ workflows:
           tag: "${CIRCLE_SHA1:0:10}"
           post-steps:
             - run: |
-                export FAVA_VERSION=$(awk -F'=' '/ARG FAVA_VERSION/ {print $2}' docker-fava/Dockerfile)
+                export FAVA_VERSION=$(awk -F'=' '/ARG FAVA_VERSION=/ {print $2}' docker-fava/Dockerfile)
                 echo "${FAVA_VERSION}" >/tmp/custom-tag
             - custom-tag:
                 ident: fava
