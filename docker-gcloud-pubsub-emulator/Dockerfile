@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-# renovate: datasource=repology depName=debian_11/netcat versioning=loose
-ARG NETCAT_VERSION=1.10-46
+# renovate: datasource=repology depName=debian_11/netcat-openbsd versioning=loose
+ARG NETCATOPENBSD_VERSION=1.217-3
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=23.3.2
 # renovate: datasource=pypi depName=poetry
@@ -43,14 +43,14 @@ RUN /opt/poetry/bin/poetry export -f requirements.txt --output /tmp/requirements
 # https://github.com/TheKevJames/tools/issues/675
 FROM google/cloud-sdk:460.0.0
 
-ARG NETCAT_VERSION
+ARG NETCATOPENBSD_VERSION
 RUN rm -f /etc/apt/apt.conf.d/docker-clean && \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
     apt-get update -qy && \
     apt-get install -qy --no-install-recommends \
-        "netcat-openbsd=${NETCAT_VERSION}" && \
+        "netcat-openbsd=${NETCATOPENBSD_VERSION}" && \
     gcloud config set disable_usage_reporting true
 
 ARG PIP_VERSION
