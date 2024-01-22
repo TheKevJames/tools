@@ -13,7 +13,7 @@
   "packageRules": [
     {
       "matchDatasources": ["docker"],
-      "matchPackageNames": ["python"],
+      "matchDepPatterns": ["^python$"],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$"
     }, {
       "matchManagers": ["poetry"],
@@ -52,14 +52,20 @@
       "matchDepPatterns": ["^google"],
       "groupName": "google"
     }, {
-      "matchPackageNames": ["hashicorp/terraform", "terraform"],
+      "matchDepPatterns": ["^terraform$"],
       "groupName": "terraform"
     }, {
-      "matchPackageNames": ["sanic", "sanic-testing"],
+      "matchDatasources": ["pypi"],
+      "matchDepPatterns": ["^sanic$", "^sanic-testing$"],
       "groupName": "sanic"
     }, {
-      "matchDepPatterns": ["^torch", "^torchaudio"],
+      "matchDatasources": ["pypi"],
+      "matchDepPatterns": ["^torch$", "^torchaudio$"],
       "groupName": "pytorch packages"
+    }, {
+      "matchDatasources": ["pypi"],
+      "matchDepPatterns": ["^fsspec$", "^gcsfs$"],
+      "groupName": "gcs filesystem packages"
     }
   ],
   "regexManagers": [
