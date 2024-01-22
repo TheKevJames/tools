@@ -51,7 +51,7 @@ Automatic Topic and Subscription Creation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This image also provides the ability to create topics and subscriptions in
-projects on startup. The prefered method of doing so is by creating a
+projects on startup. The preferred method of doing so is by creating a
 configuration json file, the location of which defaults to
 ``/etc/pubsubc/config.json``. The location of this file can be overwritten by
 setting the ``$PUBSUBC_CONFIG`` environment variable::
