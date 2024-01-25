@@ -94,7 +94,7 @@ repos:
         # `types-$lib` or `$lib-stubs`.
         additional_dependencies:
         - aiohttp
-        - google-cloud-pubsub
+        - google-cloud-pubsub>=2.19.0
         - types-google-cloud-ndb
         args:
         - --show-error-codes
