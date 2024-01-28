@@ -75,7 +75,7 @@
         }
     }
 
-    // sidebar>backgrounds
+    /* sidebar>backgrounds */
     .css-h8x255, .css-2w0klf, .css-16nzmci, .css-pg9xy8, .css-ge53n5 {
         background-color: @bg0h;
     }
@@ -94,38 +94,38 @@
     .css-1jokiij {
         background-color: @green0;
     }
-    // sidebar>controls
+    /* sidebar>controls */
     .css-1b0hfz7:hover, .css-1dhf353:hover, .css-1pu9hl8:hover, .css-1qkzb2c:hover, .css-1fe3hod:hover {
         background-color: @bg3;
     }
-    // sidebar>text>headers
+    /* sidebar>text>headers */
     .css-atc7s6, .css-fhb5z4, .css-16t9vem, .css-qnwbyh, .css-1qkzb2c, .css-1fe3hod {
         color: @fg2;
     }
-    // sidebar>text>body
+    /* sidebar>text>body */
     .css-liiv0k, .css-11b5hsp, .css-6gxsh7, .css-yknylw, .css-63odjp, .css-1ykbciu, .css-h51pp3 {
         color: @fg3;
     }
-    // sidebar>text>body>links
+    /* sidebar>text>body>links */
     .css-ydpnxx {
         color: @blue0;
         &:hover {
             color: @blue1;
         }
     }
-    // sidebar>text>body>images
+    /* sidebar>text>body>images */
     .css-syag5g {
         color: @fg1;
     }
 
-    // dashboard>backgrounds
+    /* dashboard>backgrounds */
     .css-dez2rm {
         background-color: @bg0s;
     }
     .css-mdb45b, .css-o3hy58, .css-9bg0jz, .css-1pup791 {
         background-color: @bg0;
     }
-    // dashboard>controls
+    /* dashboard>controls */
     .css-z7kxnz, .css-1yoybs8 {
         border-color: @fg4;
         &:hover {
@@ -158,12 +158,12 @@
     .css-1dhr9ju a {
         color: @blue0;
     }
-    // dashboard>controls>buttons
+    /* dashboard>controls>buttons */
     .css-1u7cwjg, .css-11j3t3v {
         background-color: @bg3;
         color: @fg2;
     }
-    .css-16r7kwb, .css-1fcahlh {
+    .css-16r7kwb, .css-1fcahlh, .css-1qlwhg6 {
         background-color: @bg4;
         color: @fg2;
         &:hover, &:hover:enabled {
@@ -182,7 +182,7 @@
         background-color: @bg4;
         color: @fg1;
     }
-    // dashboard>text>headers
+    /* dashboard>text>headers */
     .css-99zg73, .css-gwiobt, .css-yx00b3 {
         color: @fg2;
         &:hover {
@@ -195,7 +195,7 @@
             color: @blue1;
         }
     }
-    // dashboard>text>body
+    /* dashboard>text>body */
     .css-1et4yxl, .css-2ka2ld, .css-1i5dvk4, .css-pd01ta, .css-p1syl1, .css-1kacri {
         color: @fg3;
     }
@@ -217,7 +217,7 @@
     .css-ktgk5a {
         color: @red1;
     }
-    // dashboard>text>tooltips
+    /* dashboard>text>tooltips */
     .css-1xz2zn8, .css-1uc69qm, .css-d1xu4b, .css-8j0pea, .css-1l88zv2, .css-nomsyy, .css-19r93ch, .css-ojddw3, .css-x7uicv, .css-ofr4gb, .css-1rgixav, .css-d5qdj, .css-1s2e36s, .css-1or75eu {
         color: @fg4;
     }
@@ -233,7 +233,7 @@
         background-color: @bg3;
         color: @fg1;
     }
-    // dashboard>text>icons
+    /* dashboard>text>icons */
     .css-t4mprq {
         background-color: @green0;
         color: @fg0;
@@ -269,7 +269,7 @@
         }
     }
 
-    // workflows>backgrounds
+    /* workflows>backgrounds */
     .css-brkvkb, .css-18fpe5j {
         background-color: @bg0;
     }
@@ -280,12 +280,12 @@
         background-color: @bg1;
         border-color: @bg2;
     }
-    .css-govxcl, .css-btmbkn {
+    .css-govxcl, .css-btmbkn, .css-un3485 {
         background-color: @bg2;
         border-color: @bg2;
     }
-    // workflows>controls>buttons
-    .css-1531qan, .css-1l6rht7, .css-b7l5xy {
+    /* workflows>controls>buttons */
+    .css-1531qan, .css-1l6rht7, .css-b7l5xy, .css-gm0ygh {
         background-color: @bg3;
         color: @fg2;
         &:hover, &:hover:enabled {
@@ -293,16 +293,16 @@
             color: @fg0
         }
     }
-    // workflows>controls
+    /* workflows>controls */
     .css-18vf4hr:hover:enabled, .css-1ym1aaa:hover:enabled, .css-ti0j09 a:hover {
         background-color: @bg2;
     }
-    // workflows>tooltips
+    /* workflows>tooltips */
     .css-l6uz6m, .css-hjg6u8 {
         background-color: @bg1;
         color: @fg3;
     }
-    // workflows>text>body
+    /* workflows>text>body */
     .css-18vf4hr, .css-19wtgi5, .css-l6uz6m li button, .css-ti0j09 a {
         color: @fg3;
     }
@@ -310,7 +310,7 @@
         color: @fg4;
     }
 
-    // job>backgrounds
+    /* job>backgrounds */
     .css-qemf89, .css-1pfbiwg {
         background-color: @bg0s;
         border-color: @fg4;
@@ -321,8 +321,11 @@
     .css-1krqn3b, .css-1krqn3b:hover, .css-msguye {
         background-color: @bg0s;
     }
-    .css-227iwg, .css-1q2xawn {
+    .css-227iwg, .css-1q2xawn, .css-36gcrf {
         background-color: @bg1;
+        border-color: @fg4;
+    }
+    .css-tht5jc {
         border-color: @fg4;
     }
     .css-qkgf8a {
@@ -331,12 +334,12 @@
     .css-vawumd, .css-1ep8bia, .css-1rextz8, .css-9fmc7e, .css-1ufzcj5, .css-q7pef3, .css-11ito4k, .css-16kt0dw {
         background-color: @bg1;
     }
-    // job>text>headers
+    /* job>text>headers */
     .css-23u81u, .css-1y8bts0, .css-15ptnyb, .css-166jpda, .css-1038kmh, .css-do3bls, .css-0 {
         color: @fg2;
     }
-    // job>text>body
-    .css-1038kmh, .css-1cip4y2, .css-19w47nt, .css-y4r76o, .css-svkhhe, .css-l784un, .css-4pq4xr, .css-hv9sku, .css-6satsm, .css-lmsji2, .css-18su9bk, .css-9fmc7e, .css-1ufzcj5, .css-l4a0v5 {
+    /* job>text>body */
+    .css-1038kmh, .css-1cip4y2, .css-19w47nt, .css-y4r76o, .css-svkhhe, .css-l784un, .css-4pq4xr, .css-hv9sku, .css-6satsm, .css-lmsji2, .css-18su9bk, .css-9fmc7e, .css-1ufzcj5, .css-l4a0v5, .css-2bf7az {
         color: @fg3;
     }
     .css-1ws00ao, .css-bnomal, .css-d8x164, .css-1r3zbj0, .css-o2j9ze, .css-1qkv3lc, .css-18kydn2, .css-1o2bffr {
@@ -351,7 +354,7 @@
             color: @blue1;
         }
     }
-    // job>text>icons
+    /* job>text>icons */
     .css-26aoo8 {
         background-color: @bg1;
         border-color: @fg4;
@@ -373,7 +376,7 @@
     .css-ze2tr, .css-clwkge {
         color: @green1;
     }
-    // job>controls
+    /* job>controls */
     .css-1oz6z1b {
         background-color: @bg3;
         border-color: @bg3;
@@ -388,7 +391,7 @@
         border-color: @bg4;
         color: @fg1;
     }
-    // job>controls>buttons
+    /* job>controls>buttons */
     .css-1lq19sw, .css-7lgdri, .css-mexut9, .css-409jmb {
         background-color: @bg3;
         color: @fg2;
@@ -398,7 +401,7 @@
         }
     }
 
-    // projects>backgrounds
+    /* projects>backgrounds */
     .css-zzgq2a, .css-1mjc6e7 {
         background-color: @bg0s;
     }
@@ -408,7 +411,7 @@
     .css-iakciv {
         border-bottom-color: @bg1;
     }
-    // projects>controls
+    /* projects>controls */
     .css-2rvuin, .css-2rvuin:hover:enabled {
         background-color: @bg1;
         color: @fg4;
@@ -423,7 +426,7 @@
         background-color: @bg2;
         color: @fg2;
     }
-    // projects>controls>buttons
+    /* projects>controls>buttons */
     .css-16k7myj, .css-1qmanjs {
         background-color: @bg2;
         color: @fg2;
@@ -435,11 +438,11 @@
     .css-85w52l {
         background-color: @blue0;
     }
-    // projects>text>headers
+    /* projects>text>headers */
     .css-yo16xa, .css-so60d8 {
         color: @fg2;
     }
-    // projects>text>body
+    /* projects>text>body */
     .css-1c1tyii {
         color: @fg3;
     }
@@ -449,7 +452,7 @@
             color: @blue1;
         }
     }
-    // projects>text>icons
+    /* projects>text>icons */
     .css-1bf6sed {
         border-left-color: @blue0;
     }
@@ -457,7 +460,7 @@
         color: @blue0;
     }
 
-    // project settings>backgrounds
+    /* project settings>backgrounds */
     .css-jdukv3 {
         background-color: @bg0s;
     }
@@ -471,14 +474,14 @@
     .css-howj5h:hover, .css-fro66o:hover {
         background-color: @bg1;
     }
-    // project settings>text>headers
+    /* project settings>text>headers */
     .css-1w14nha, .css-dlgbax {
         color: @fg1;
     }
     .css-dqpre1, .css-1cp804z, .css-dd29o8, .css-1r3maf4, .css-c857s1 {
         color: @fg2;
     }
-    // project settings>text>body
+    /* project settings>text>body */
     .css-ei7ndx, .css-zwll95, .css-3m76ux {
         color: @fg3;
     }
@@ -491,7 +494,7 @@
             color: @blue1;
         }
     }
-    // project settings>controls
+    /* project settings>controls */
     .css-1m79yrn {
         background-color: @bg0s;
     }
@@ -504,7 +507,7 @@
     .css-fviq9m label, .css-js042 {
         color: @fg4;
     }
-    // project settings>controls>buttons
+    /* project settings>controls>buttons */
     .css-1jexpce {
         background-color: @bg3;
         color: @fg2;
@@ -517,7 +520,7 @@
         background-color: @red0;
     }
 
-    // organization settings>backgrounds
+    /* organization settings>backgrounds */
     .css-2m7jpk {
         background-color: @bg0;
     }
@@ -530,7 +533,7 @@
     .css-1w1j1ee:hover, .css-xc6cn0:hover {
         background-color: @bg3;
     }
-    // organization settings>controls>buttons
+    /* organization settings>controls>buttons */
     .css-ykkbmw {
         background-color: @blue0;
         color: @fg3;
@@ -539,7 +542,7 @@
         background-color: @blue1;
         color: @fg2;
     }
-    // organization settings>text>body
+    /* organization settings>text>body */
     .css-7vec0e, .css-uhyp7r, .css-1kmqpnu {
         color: @fg2;
     }
@@ -556,22 +559,22 @@
         }
     }
 
-    // user settings>text>headers
+    /* user settings>text>headers */
     .css-18v3rgq {
         color: @fg1;
     }
-    // user settings>text>body
+    /* user settings>text>body */
     .css-k0mmy, .css-10tj4k5, .css-15y4ldn, .css-1twlfi2 {
         color: @fg3;
     }
     .css-pqatcu {
         color: @fg4;
     }
-    // user settings>controls
+    /* user settings>controls */
     .css-1imf424 {
         background-color: @bg0s;
     }
-    // user settings>controls>buttons
+    /* user settings>controls>buttons */
     .css-e0d9w9 {
         background-color: @gray;
         color: @fg1;
