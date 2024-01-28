@@ -2,10 +2,10 @@ use crate::poll::{NotifsPoller, ReposPoller};
 use crate::settings::Settings;
 use crate::util::StatefulList;
 
+use crossterm::event::{KeyCode, KeyEvent};
 use log::{error, info};
 use std::cmp::{max, min};
 use std::process::Command;
-use termion::event::Key;
 
 pub struct App {
     pub filter: String,
@@ -55,17 +55,17 @@ impl App {
         }
     }
 
-    pub fn on_key(&mut self, key: Key) -> bool {
+    pub fn on_key(&mut self, key: KeyEvent) -> bool {
         // TODO: fixup ugly return value handling
-        match key {
-            Key::Backspace => match self.state.state.selected() {
+        match key.code {
+            KeyCode::Backspace => match self.state.state.selected() {
                 Some(2) => {
                     self.filter.pop();
                     true
                 }
                 _ => false,
             },
-            Key::Char(c) => {
+            KeyCode::Char(c) => {
                 match self.state.state.selected() {
                     Some(0) => {
                         self.notifs.on_key(c);
