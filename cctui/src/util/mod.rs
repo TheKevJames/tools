@@ -1,9 +1,9 @@
 pub mod event;
 
+use ratatui::widgets::ListState;
 use std::cmp::{max, min};
 use std::collections::BTreeMap;
 use std::fmt::Debug;
-use tui::widgets::ListState;
 
 #[derive(Debug, Clone)]
 pub struct FilteredListState {

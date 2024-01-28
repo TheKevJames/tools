@@ -1,14 +1,14 @@
 use crate::display::App;
 use crate::settings::Branch;
 
-use tui::backend::Backend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Modifier, Style};
-use tui::text::Span;
-use tui::widgets::{Block, Borders, List, ListItem, ListState};
-use tui::Frame;
+use ratatui::layout::{Constraint, Direction, Layout, Rect};
+use ratatui::style::{Color, Modifier, Style};
+use ratatui::text::Span;
+use ratatui::widgets::{Block, Borders, List, ListItem, ListState};
+use ratatui::Frame;
+use ratatui::prelude::Text;
 
-pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+pub fn draw(f: &mut Frame, app: &mut App) {
     if app.notifs.enabled {
         let chunks = Layout::default()
             .constraints(
@@ -44,7 +44,7 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
     }
 }
 
-fn draw_filter<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
+fn draw_filter(f: &mut Frame, app: &mut App, area: Rect) {
     let style = match app.state.state.selected() {
         Some(2) => Style::default()
             .fg(Color::Yellow)
@@ -64,7 +64,7 @@ fn draw_filter<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     f.render_widget(rows, area);
 }
 
-fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
+fn draw_notifs(f: &mut Frame, app: &mut App, area: Rect) {
     let style = Style::default().fg(Color::White);
     let notifs = app
         .notifs
@@ -116,7 +116,7 @@ fn draw_notifs<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     f.render_stateful_widget(rows, area, &mut app.notifs.all.state);
 }
 
-fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
+fn draw_repos(f: &mut Frame, app: &mut App, area: Rect) {
     let style_error = Style::default().fg(Color::Magenta);
     let style_failure = Style::default().fg(Color::Red);
     let style_success = Style::default().fg(Color::Green);
@@ -154,7 +154,7 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
             (text, status)
         })
         .map(|(text, status)| {
-            ListItem::new(Span::styled(
+            Text::styled(
                 text,
                 match status.status.as_ref() {
                     "error" => style_error,
@@ -162,7 +162,7 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
                     "success" => style_success,
                     _ => style_unknown,
                 },
-            ))
+            )
         })
         .collect::<Vec<_>>();
 
@@ -175,14 +175,14 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
         .direction(Direction::Horizontal)
         .split(area);
 
-    for (i, (&chunk, rows)) in chunks.iter().zip(repos.chunks(height as usize)).enumerate() {
+    for (i, (&chunk, lines)) in chunks.iter().zip(repos.chunks(height as usize)).enumerate() {
         let style = match app.state.state.selected() {
             Some(1) => Style::default()
                 .fg(Color::Yellow)
                 .add_modifier(Modifier::BOLD),
             _ => Style::default().fg(Color::White),
         };
-        let rows = List::new(rows)
+        let rows = List::new(lines.iter().map(|x| x.clone()).collect::<Vec<Text>>())
             .block(
                 Block::default()
                     .borders(Borders::ALL)
@@ -204,7 +204,7 @@ fn draw_repos<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
     }
 }
 
-fn draw_recent<B: Backend>(f: &mut Frame<B>, app: &mut App, area: Rect) {
+fn draw_recent(f: &mut Frame, app: &mut App, area: Rect) {
     let style_error = Style::default().fg(Color::Magenta);
     let style_failure = Style::default().fg(Color::Red);
     let style_success = Style::default().fg(Color::Green);

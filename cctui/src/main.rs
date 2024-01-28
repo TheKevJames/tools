@@ -7,13 +7,13 @@ use crate::display::{ui, App};
 use crate::util::event::{Event, Events};
 
 use log::debug;
+use ratatui::{backend::TermionBackend, Terminal};
 use settings::Settings;
 use std::error::Error;
 use std::io::stdout;
 use std::process::exit;
 use std::str::FromStr;
 use termion::{event::Key, input::MouseTerminal, raw::IntoRawMode, screen::IntoAlternateScreen};
-use tui::{backend::TermionBackend, Terminal};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let settings = match Settings::new() {
