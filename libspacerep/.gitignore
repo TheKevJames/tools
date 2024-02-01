@@ -1,8 +1,0 @@
-build/*
-libspacerep.*
-tests/__pycache__/*
-tests/lib_test
-tests/lib_test.o
-tests/lib_test.o.dSYM
-tests/nimcache
-venv/*
