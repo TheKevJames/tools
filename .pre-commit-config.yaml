@@ -41,7 +41,9 @@ repos:
     rev: v3.0.3
     hooks:
     # TODO: pylint-import-modules support for pylint v3 (or alternative linter)
-    -   id: pylint
+    -   &pylint
+        id: pylint
+        name: pylint-docker-gcloud-pubsub-emulator
         args:
         - --load-plugins=pylint.extensions.mccabe
         - --max-complexity=10
@@ -60,6 +62,11 @@ repos:
         - -d try-except-raise
         - -d ungrouped-imports  # conflicts with reorder-python-imports
         - -d wrong-import-order  # conflicts with reorder-python-imports
+        files: docker-gcloud-pubsub-emulator/
+    -   <<: *pylint
+        name: pylint-task
+        language_version: python3.11
+        files: task/
 -   repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.4
     hooks:
@@ -84,7 +91,9 @@ repos:
 -   repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.8.0
     hooks:
-    -   id: mypy
+    -   &mypy
+        id: mypy
+        name: mypy-docker-gcloud-pubsub-emulator
         require_serial: True
         # N.B. mypy requires an installed version of whatever third-party
         # library it is asked to check against. In practice, that means
@@ -101,7 +110,14 @@ repos:
         - --strict
         - --strict-equality
         - --warn-unreachable
-        exclude: tests/  # TODO
+        files: docker-gcloud-pubsub-emulator/
+    -   <<: *mypy
+        name: mypy-task
+        language_version: python3.11
+        additional_dependencies:
+        - pydantic
+        - typer
+        files: task/
 -   repo: https://github.com/asottile/yesqa
     rev: v1.5.0
     hooks:
