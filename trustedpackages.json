@@ -24,7 +24,8 @@
     {
       "matchDatasources": ["docker"],
       "matchPackagePatterns": [
-        "^thekevjames/gcloud-pubsub-emulator$"
+        "^thekevjames/gcloud-pubsub-emulator$",
+        "^quay.io/thekevjames/gcloud-pubsub-emulator$"
       ],
       "matchUpdateTypes": ["major", "minor", "patch", "pin", "digest"],
       "automerge": true
@@ -32,7 +33,8 @@
     {
       "matchDatasources": ["docker"],
       "matchPackagePatterns": [
-        "^thekevjames/"
+        "^thekevjames/",
+        "^quay.io/thekevjames/"
       ],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
