@@ -5,4 +5,4 @@ RUN apk --update add mysql-client perl perl-doc && \
 
 COPY root /
 
-ENTRYPOINT [ "/mysqltuner.pl" ]
+ENTRYPOINT [ "/usr/bin/perl", "/mysqltuner.pl" ]

@@ -1,5 +1,4 @@
-#!/usr/bin/env perl
-# mysqltuner.pl - Version 2.2.9
+# mysqltuner.pl - Version 2.5.2
 # High Performance MySQL Tuning Script
 # Copyright (C) 2015-2023 Jean-Marie Renouard - jmrenouard@gmail.com
 # Copyright (C) 2006-2023 Major Hayden - major@mhtx.net
@@ -57,7 +56,7 @@ use Cwd 'abs_path';
 #use Env;
 
 # Set up a few variables for use in the script
-my $tunerversion = "2.2.9";
+my $tunerversion = "2.5.2";
 my ( @adjvars, @generalrec );
 
 # Set defaults
@@ -68,7 +67,7 @@ my %opt = (
     "noinfo"              => 0,
     "debug"               => 0,
     "nocolor"             => ( !-t STDOUT ),
-    "color"               => 0,
+    "color"               => ( -t STDOUT ),
     "forcemem"            => 0,
     "forceswap"           => 0,
     "host"                => 0,
@@ -238,8 +237,9 @@ $opt{structstat} = 0
   if ( not defined( $opt{structstat} ) or $opt{nostructstat} == 1 )
   ;    # Don't print table struct information
 $opt{myisamstat} = 1
-  if ( not defined( $opt{myisamstat} ) or $opt{nomyisamstat} == 0 )
-  ;    # Don't print MyISAM table information
+  if ( not defined( $opt{myisamstat} ) );
+$opt{myisamstat} = 0
+  if ( $opt{nomyisamstat} == 1 );    # Don't print MyISAM table information
 
 # for RPM distributions
 $opt{cvefile} = "/usr/share/mysqltuner/vulnerabilities.csv"
@@ -811,11 +811,14 @@ sub mysql_setup {
 
     debugprint "MySQL Client: $mysqlcmd";
 
-    $opt{port} = ( $opt{port} eq 0 ) ? 3306 : $opt{port};
-
     # Are we being asked to connect via a socket?
     if ( $opt{socket} ne 0 ) {
-        $remotestring = " -S $opt{socket} -P $opt{port}";
+        if ( $opt{port} ne 0 ) {
+            $remotestring = " -S $opt{socket} -P $opt{port}";
+        }
+        else {
+            $remotestring = " -S $opt{socket}";
+        }
     }
 
     if ( $opt{protocol} ne '' ) {
@@ -825,6 +828,7 @@ sub mysql_setup {
     # Are we being asked to connect to a remote server?
     if ( $opt{host} ne 0 ) {
         chomp( $opt{host} );
+        $opt{port} = ( $opt{port} eq 0 ) ? 3306 : $opt{port};
 
 # If we're doing a remote connection, but forcemem wasn't specified, we need to exit
         if ( $opt{'forcemem'} eq 0 && is_remote eq 1 ) {
@@ -1577,7 +1581,9 @@ sub log_file_recommendations {
         $numLi++;
         debugprint "$numLi: $logLi"
           if $logLi =~ /warning|error/i and $logLi !~ /Logging to/;
-        $nbErrLog++ if $logLi =~ /error/i and $logLi !~ /Logging to/;
+        $nbErrLog++
+          if $logLi  =~ /error/i
+          and $logLi !~ /(Logging to|\[Warning\].*ERROR_FOR_DIVISION_BY_ZERO)/;
         $nbWarnLog++ if $logLi =~ /warning/i;
         push @lastShutdowns, $logLi
           if $logLi =~ /Shutdown complete/ and $logLi !~ /Innodb/i;
@@ -2025,7 +2031,7 @@ sub system_recommendations {
           "Consider increasing number of CPU for your database server";
     }
 
-    if ( $physical_memory < 1600 ) {
+    if ( $physical_memory >= 1.5 * 1024 ) {
         goodprint "There is at least 1 Gb of RAM dedicated to Linux server.";
     }
     else {
@@ -2523,7 +2529,7 @@ sub check_architecture {
     }
     elsif ( `uname` =~ /Darwin/ && `uname -m` =~ /x86_64/ ) {
 
-# Darwin gibas.local 12.3.0 Darwin Kernel Version 12.3.0: Sun Jan 6 22:37:10 PST 2013; root:xnu-2050.22.13~1/RELEASE_X86_64 x86_64
+# Darwin gibas.local 12.5.2 Darwin Kernel Version 12.3.0: Sun Jan 6 22:37:10 PST 2013; root:xnu-2050.22.13~1/RELEASE_X86_64 x86_64
         $arch = 64;
         goodprint "Operating on 64-bit architecture";
     }
@@ -3176,11 +3182,11 @@ sub calculations {
       = ( 1, 1 )
       unless defined $mystat{'Innodb_buffer_pool_reads'};
     $mycalc{'pct_read_efficiency'} = percentage(
+        $mystat{'Innodb_buffer_pool_read_requests'},
         (
-            $mystat{'Innodb_buffer_pool_read_requests'} -
+            $mystat{'Innodb_buffer_pool_read_requests'} +
               $mystat{'Innodb_buffer_pool_reads'}
-        ),
-        $mystat{'Innodb_buffer_pool_read_requests'}
+        )
     ) if defined $mystat{'Innodb_buffer_pool_read_requests'};
     debugprint "pct_read_efficiency: " . $mycalc{'pct_read_efficiency'} . "";
     debugprint "Innodb_buffer_pool_reads: "
@@ -3207,6 +3213,12 @@ sub calculations {
         ),
         $mystat{'Innodb_buffer_pool_pages_total'}
     ) if defined $mystat{'Innodb_buffer_pool_pages_total'};
+
+    $mycalc{'innodb_buffer_alloc_pct'} = select_one(
+            "select  round( 100* sum(allocated)/( select VARIABLE_VALUE "
+          . "FROM performance_schema.global_variables "
+          . "WHERE VARIABLE_NAME='innodb_buffer_pool_size' ) ,2)"
+          . 'FROM sys.x\$innodb_buffer_stats_by_table;' );
 
     # Binlog Cache
     if ( $myvar{'log_bin'} ne 'OFF' ) {
@@ -3562,8 +3574,7 @@ sub mysql_stats {
         push(
             @generalrec,
 "We will suggest raising the 'join_buffer_size' until JOINs not using indexes are found.
-             See https://dev.mysql.com/doc/internals/en/join-buffer-size.html
-             (specially the conclusions at the bottom of the page)."
+             See https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_join_buffer_size"
         );
     }
     else {
@@ -3870,7 +3881,7 @@ sub mysql_myisam {
 
     if ( $nb_myisam_tables > 0 ) {
         badprint
-          "Consider migrating $nb_myisam_tables followning tables to InnoDB:";
+          "Consider migrating $nb_myisam_tables following tables to InnoDB:";
         my $sql_mig = "";
         for my $myisam_table (
             select_array(
@@ -6280,11 +6291,11 @@ sub mysql_innodb {
               . hr_bytes( $myvar{'innodb_log_buffer_size'} );
         }
         if ( defined $mystat{'Innodb_buffer_pool_pages_free'} ) {
-            infoprint " +-- InnoDB Log Buffer Free: "
+            infoprint " +-- InnoDB Buffer Free: "
               . hr_bytes( $mystat{'Innodb_buffer_pool_pages_free'} ) . "";
         }
         if ( defined $mystat{'Innodb_buffer_pool_pages_total'} ) {
-            infoprint " +-- InnoDB Log Buffer Used: "
+            infoprint " +-- InnoDB Buffer Used: "
               . hr_bytes( $mystat{'Innodb_buffer_pool_pages_total'} ) . "";
         }
     }
@@ -6352,6 +6363,21 @@ sub mysql_innodb {
                 "innodb_buffer_pool_size (>= "
               . hr_bytes( $enginestats{'InnoDB'} )
               . ") if possible." );
+    }
+
+  # select  round( 100* sum(allocated)/( select VARIABLE_VALUE
+  #                                  FROM performance_schema.global_variables
+  #                              where VARIABLE_NAME='innodb_buffer_pool_size' )
+  # ,2) as "PCT ALLOC/BUFFER POOL"
+  #from sys.x$innodb_buffer_stats_by_table;
+
+    if ( $mycalc{innodb_buffer_alloc_pct} < 80 ) {
+        badprint "Ratio Buffer Pool allocated / Buffer Pool Size: "
+          . $mycalc{'innodb_buffer_alloc_pct'} . '%';
+    }
+    else {
+        goodprint "Ratio Buffer Pool allocated / Buffer Pool Size: "
+          . $mycalc{'innodb_buffer_alloc_pct'} . '%';
     }
     if (   $mycalc{'innodb_log_size_pct'} < 20
         or $mycalc{'innodb_log_size_pct'} > 30 )
@@ -6511,19 +6537,19 @@ sub mysql_innodb {
     {
         badprint "InnoDB Read buffer efficiency: "
           . $mycalc{'pct_read_efficiency'} . "% ("
-          . ( $mystat{'Innodb_buffer_pool_read_requests'} -
-              $mystat{'Innodb_buffer_pool_reads'} )
-          . " hits / "
           . $mystat{'Innodb_buffer_pool_read_requests'}
+          . " hits / "
+          . ( $mystat{'Innodb_buffer_pool_reads'} +
+              $mystat{'Innodb_buffer_pool_read_requests'} )
           . " total)";
     }
     else {
         goodprint "InnoDB Read buffer efficiency: "
           . $mycalc{'pct_read_efficiency'} . "% ("
-          . ( $mystat{'Innodb_buffer_pool_read_requests'} -
-              $mystat{'Innodb_buffer_pool_reads'} )
-          . " hits / "
           . $mystat{'Innodb_buffer_pool_read_requests'}
+          . " hits / "
+          . ( $mystat{'Innodb_buffer_pool_reads'} +
+              $mystat{'Innodb_buffer_pool_read_requests'} )
           . " total)";
     }
 
@@ -6538,6 +6564,10 @@ sub mysql_innodb {
           . " hits / "
           . $mystat{'Innodb_log_write_requests'}
           . " total)";
+        push( @adjvars,
+                "innodb_log_buffer_size (> "
+              . hr_bytes_rnd( $myvar{'innodb_log_buffer_size'} )
+              . ")" );
     }
     else {
         goodprint "InnoDB Write Log efficiency: "
@@ -6687,6 +6717,8 @@ sub mysql_databases {
       percentage( $totaldbinfo[2], $totaldbinfo[3] ) . "%";
     $result{'Databases'}{'All databases'}{'Total Size'} = $totaldbinfo[3];
     print "\n" unless ( $opt{'silent'} or $opt{'json'} );
+    my $nbViews  = 0;
+    my $nbTables = 0;
 
     foreach (@dblist) {
         my @dbinfo = split /\s/,
@@ -6694,11 +6726,12 @@ sub mysql_databases {
 "SELECT TABLE_SCHEMA, SUM(TABLE_ROWS), SUM(DATA_LENGTH), SUM(INDEX_LENGTH), SUM(DATA_LENGTH+INDEX_LENGTH), COUNT(DISTINCT ENGINE), COUNT(TABLE_NAME), COUNT(DISTINCT(TABLE_COLLATION)), COUNT(DISTINCT(ENGINE)) FROM information_schema.TABLES WHERE TABLE_SCHEMA='$_' GROUP BY TABLE_SCHEMA ORDER BY TABLE_SCHEMA"
           );
         next unless defined $dbinfo[0];
+
         infoprint "Database: " . $dbinfo[0] . "";
-        infoprint " +-- TABLE : "
-          . select_one(
+        $nbTables = select_one(
 "SELECT count(*) from information_schema.TABLES WHERE TABLE_TYPE ='BASE TABLE' AND TABLE_SCHEMA='$_'"
-          ) . "";
+        );
+        infoprint " +-- TABLE : $nbTables";
         infoprint " +-- VIEW  : "
           . select_one(
 "SELECT count(*) from information_schema.TABLES WHERE TABLE_TYPE ='VIEW' AND TABLE_SCHEMA='$_'"
@@ -6753,11 +6786,16 @@ sub mysql_databases {
 "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='$dbinfo[0]' AND ENGINE='$eng'"
               ) . " TABLE(s)";
         }
+
+        if ( $nbTables == 0 ) {
+            badprint " No table in $dbinfo[0] database";
+            next;
+        }
         badprint "Index size is larger than data size for $dbinfo[0] \n"
           if ( $dbinfo[2] ne 'NULL' )
           and ( $dbinfo[3] ne 'NULL' )
           and ( $dbinfo[2] < $dbinfo[3] );
-        unless ( $dbinfo[5] == 1 ) {
+        if ( $dbinfo[5] > 1 and $nbTables > 0 ) {
             badprint "There are "
               . $dbinfo[5]
               . " storage engines. Be careful. \n";
@@ -7067,9 +7105,13 @@ ENDSQL
             infoprint " +-- COMMENT     : " . $info[5] if defined $info[5];
             $found++;
         }
-        badprint "No index found for $dbname database" if $found == 0;
+        my $nbTables = select_one(
+"SELECT count(*) from information_schema.TABLES WHERE TABLE_TYPE ='BASE TABLE' AND TABLE_SCHEMA='$dbname'"
+        );
+        badprint "No index found for $dbname database"
+          if $found == 0 and $nbTables > 1;
         push @generalrec, "Add indexes on tables from $dbname database"
-          if $found == 0;
+          if $found == 0 and $nbTables > 1;
     }
     return
       unless ( defined( $myvar{'performance_schema'} )
@@ -7357,7 +7399,7 @@ __END__
 
 =head1 NAME
 
- MySQLTuner 2.2.9 - MySQL High Performance Tuning Script
+ MySQLTuner 2.5.2 - MySQL High Performance Tuning Script
 
 =head1 IMPORTANT USAGE GUIDELINES
 
