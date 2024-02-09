@@ -18,7 +18,10 @@ def filter_max_ahead(task: Task, days: int) -> bool:
 
 
 def load(
-    tasks: Iterable[Task], filter_: str, days: int, limit: int,
+        tasks: Iterable[Task],
+        filter_: str = '',
+        days: int = -1,
+        limit: int = -1,
 ) -> Iterator[Task]:
     tasks = functools.reduce(Filter.apply, Filter.parse(filter_), tasks)
     tasks = (x for x in tasks if filter_max_ahead(x, days))
@@ -29,7 +32,10 @@ def load(
 
 
 def load_with_next(
-    tasks: Iterable[Task], filter_: str, days: int, limit: int,
+        tasks: Iterable[Task],
+        filter_: str = '',
+        days: int = -1,
+        limit: int = -1,
 ) -> Iterator[Task]:
     tasks = load(tasks, filter_, days, -1)
     tasks = (x for x in tasks if x.details)

@@ -15,9 +15,24 @@ Filter = Annotated[str, typer.Option('-f', '--filter', help='foo=bar,baz!=bq')]
 Limit = Annotated[int, typer.Option('-l', '--limit')]
 
 
+@app.command('add')
+def add(idx: int, task: str) -> None:
+    conf = files.Settings()
+    tasks = list(cmd.load(files.load()))
+
+    # TODO: allow adding details
+    details = None
+    link = schema.Link(fname=conf.fnames[idx], ftitle='x', lineno=-1)
+    added = schema.Task(
+        summary=task, details=details, link=link, tag=['## Triage'],
+    )
+    tasks.append(added)
+    files.save(tasks)
+
+
 @app.command('delay')
 def delay(task: str, days: Days) -> None:
-    tasks = list(cmd.load(files.load(), '', -1, -1))
+    tasks = list(cmd.load(files.load()))
     item = next((x for x in tasks if str(x.link) == task), None)
     assert item, f'task {task} not found!'
 
@@ -32,7 +47,7 @@ def delay(task: str, days: Days) -> None:
 
 @app.command('done')
 def done(task: str, ago: Ago = 0) -> None:
-    tasks = list(cmd.load(files.load(), '', -1, -1))
+    tasks = list(cmd.load(files.load()))
     item = next((x for x in tasks if str(x.link) == task), None)
     assert item, f'task {task} not found!'
 
@@ -59,6 +74,8 @@ def due(filter_: Filter = '', limit: Limit = -1) -> None:
         print(task)
 
 
+# TODO: allow editing a task ID? eg. open with cursor on correct line
+# TODO: instead of indices, should use ftitle[0].lower()
 @app.command('edit')
 def edit(idx: int) -> None:
     conf = files.Settings()
@@ -87,8 +104,7 @@ def list_(filter_: Filter = '', days: Days = 7, limit: Limit = -1) -> None:
 
 @app.command('rewrite')
 def rewrite() -> None:
-    tasks = cmd.load(files.load(), '', -1, -1)
-    files.save(tasks)
+    files.save(cmd.load(files.load()))
 
 
 # TODO(feat): split to get/set
