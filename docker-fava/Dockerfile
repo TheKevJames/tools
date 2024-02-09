@@ -6,7 +6,7 @@ ARG PIP_VERSION=23.3.2
 ARG FAVA_VERSION=1.27.2
 
 
-FROM python:3.12.1-alpine
+FROM python:3.12.2-alpine
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk add -U \
