@@ -16,6 +16,7 @@
       "matchDatasources": ["crate"],
       "matchPackageNames": [
         "fern",
+        "ratatui",
         "reqwest"
       ],
       "matchUpdateTypes": ["patch", "pin", "digest"],
