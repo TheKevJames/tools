@@ -69,12 +69,6 @@ def build_config() -> Iterator[TopicConfig]:
                 for sub in spec.get('subscriptions') or []
             ]
             yield TopicConfig(spec['topic'], spec['project'], subscriptions)
-
-        if os.environ.get('PUBSUB_PROJECT1'):
-            pprint('WARN: $PUBSUB_PROJECT1 is set but loaded config from file')
-            pprint('      environment variables should be unset')
-
-        return
     except FileNotFoundError:
         pprint('loading config from env...')
     except Exception:
@@ -82,6 +76,12 @@ def build_config() -> Iterator[TopicConfig]:
         print()
         pprint('ERROR: invalid configuration file')
         sys.exit(1)
+    else:
+        if os.environ.get('PUBSUB_PROJECT1'):
+            pprint('WARN: $PUBSUB_PROJECT1 is set but loaded config from file')
+            pprint('      environment variables should be unset')
+
+        return
 
     i = 0
     while True:
