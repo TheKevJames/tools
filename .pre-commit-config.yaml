@@ -1,7 +1,6 @@
 ci:
     autofix_commit_msg: 'refactor(lint): apply automatic lint fixes'
     autoupdate_commit_msg: 'chore(deps): bump pre-commit linter versions'
-    skip: [terraform_fmt, terraform_validate]
 
 default_install_hook_types:
   - commit-msg
