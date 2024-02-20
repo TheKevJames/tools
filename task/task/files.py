@@ -36,7 +36,7 @@ def save(tasks: Iterable[Task]) -> None:
         )
 
         with fname.open('w', encoding='utf-8') as f:
-            f.write(f'# TODOs: {xs[0].link.ftitle}\n')
+            f.write(f'# TODOs: {xs[-1].link.ftitle}\n')
             lasttag: list[str] = []
             for task in xs:
                 if lasttag != task.tag:
