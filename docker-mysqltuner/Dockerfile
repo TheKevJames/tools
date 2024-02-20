@@ -11,6 +11,8 @@ ARG PERLDOC_VERSION=5.38.2-r0
 FROM alpine:3.19.1
 
 ARG MYSQLCLIENT_VERSION
+ARG PERL_VERSION
+ARG PERLDOC_VERSION
 RUN --mount=type=cache,target=/var/cache/apk \
     apk --update add \
         "mysql-client=${MYSQLCLIENT_VERSION}" \
