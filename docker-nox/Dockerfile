@@ -4,6 +4,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/GMT
 COPY requirements.txt /
 # https://devguide.python.org/#status-of-python-branches
+# hadolint ignore=DL3008,DL3013,SC1091
 RUN apt-get update -qy && \
     apt-get install -qy --no-install-recommends \
         ca-certificates \

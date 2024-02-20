@@ -10,11 +10,11 @@ ARG POETRY_VERSION=1.7.1
 ARG WAITFOR_VERSION=2.2.4
 
 
-FROM curlimages/curl:latest as fetcher
+FROM curlimages/curl:8.6.0 as fetcher
 
 ARG WAITFOR_VERSION
-RUN curl -vsSLo /tmp/wait-for "https://github.com/eficode/wait-for/releases/download/v${WAITFOR_VERSION}/wait-for"
-RUN chmod +x /tmp/wait-for
+RUN curl -vsSLo /tmp/wait-for "https://github.com/eficode/wait-for/releases/download/v${WAITFOR_VERSION}/wait-for" && \
+    chmod +x /tmp/wait-for
 
 
 # N.B. match to the python3 version in the gcloud image
