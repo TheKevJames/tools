@@ -132,6 +132,7 @@
         "flask",
         "google-cloud-pubsub",
         "httpx",
+        "pandas",
         "plotly",
         "prometheus-client",
         "uvicorn"
