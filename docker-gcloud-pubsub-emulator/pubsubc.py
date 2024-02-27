@@ -33,7 +33,8 @@ import sys
 from collections.abc import Iterator
 from typing import Optional
 
-from google.cloud import pubsub_v1
+from google.cloud import pubsub_v1  # type: ignore[import-untyped]
+# TODO: https://github.com/googleapis/python-pubsub/issues/536
 
 
 @dataclasses.dataclass
