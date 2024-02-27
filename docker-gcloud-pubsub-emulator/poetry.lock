@@ -176,13 +176,13 @@ requests = ["requests (>=2.20.0,<3.0.0.dev0)"]
 
 [[package]]
 name = "google-cloud-pubsub"
-version = "2.19.4"
+version = "2.19.7"
 description = "Google Cloud Pub/Sub API client library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-cloud-pubsub-2.19.4.tar.gz", hash = "sha256:a5f9280598f0c4a5819bb630a50c45dc8acda0c94afecae0a18368bccbfa2651"},
-    {file = "google_cloud_pubsub-2.19.4-py2.py3-none-any.whl", hash = "sha256:5eddfb8f4eb26e2a25b9856ca1a65c5f2015e5c3e365e68df3b4f5d36809d9c2"},
+    {file = "google-cloud-pubsub-2.19.7.tar.gz", hash = "sha256:da5f1eb217c0727befa7c85b9b95e6a89b32b422d548c9cf9a1e029410270b87"},
+    {file = "google_cloud_pubsub-2.19.7-py2.py3-none-any.whl", hash = "sha256:443cb58e2440729876f3b0d6046c30c7a873aeb247e5e17f161fe967c91b53fb"},
 ]
 
 [package.dependencies]
@@ -444,4 +444,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9, <4.0"
-content-hash = "69023ed7bd1a417dde78e6d2ff0731b20043ec9f49f2e2a43c9a673467fd61db"
+content-hash = "24432b912699be4b7a57f35b61ce8ce4c342e44f0808eaa661bf7c71567a4ebe"
