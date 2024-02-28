@@ -36,13 +36,12 @@
       "matchDepTypes": ["dev", "devDependencies"],
       "rangeStrategy": "pin"
     }, {
+      "matchDepPatterns": ["^terraform$"],
+      "groupName": "terraform"
+    }, {
       "matchManagers": ["maven"],
       "matchDepPatterns": ["^com.google.auto.value"],
       "groupName": "com.google.auto.value packages"
-    }, {
-      "matchDatasources": ["pypi"],
-      "matchDepPatterns": ["^grpcio"],
-      "groupName": "grpcio"
     }, {
       "matchDatasources": ["terraform"],
       "matchDepPatterns": ["^google"],
@@ -52,20 +51,25 @@
       "matchDepPatterns": ["^google"],
       "groupName": "google"
     }, {
-      "matchDepPatterns": ["^terraform$"],
-      "groupName": "terraform"
+      "matchDatasources": ["pypi"],
+      "matchDepPatterns": ["^fsspec$", "^gcsfs$"],
+      "groupName": "gcsfs"
+    }, {
+      "matchDatasources": ["pypi"],
+      "matchDepPatterns": ["^grpcio"],
+      "groupName": "grpcio"
+    }, {
+      "matchDatasources": ["pypi"],
+      "matchDepPatterns": ["^mkl$", "^intel-openmp$"],
+      "groupName": "mkl"
+    }, {
+      "matchDatasources": ["pypi"],
+      "matchDepPatterns": ["^torch$", "^torchaudio$"],
+      "groupName": "pytorch"
     }, {
       "matchDatasources": ["pypi"],
       "matchDepPatterns": ["^sanic$", "^sanic-testing$"],
       "groupName": "sanic"
-    }, {
-      "matchDatasources": ["pypi"],
-      "matchDepPatterns": ["^torch$", "^torchaudio$"],
-      "groupName": "pytorch packages"
-    }, {
-      "matchDatasources": ["pypi"],
-      "matchDepPatterns": ["^fsspec$", "^gcsfs$"],
-      "groupName": "gcs filesystem packages"
     }
   ],
   "regexManagers": [
