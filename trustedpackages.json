@@ -100,6 +100,7 @@
         "fava",
         "google-api-python-client",
         "google-auth",
+        "google-cloud-aiplatform",
         "google-cloud-bigquery",
         "google-cloud-pubsub",
         "hiredis",
