@@ -18,13 +18,17 @@
     },
     {
       "matchManagers": ["dockerfile"],
-      "matchPackageNames": ["python"],
       "matchFiles": ["docker-gcloud-pubsub-emulator/Dockerfile"],
+      "matchPackageNames": [
+        "python",
+      ],
       "allowedVersions": "3.9.2",
     },
     {
       "matchManagers": ["pip_requirements"],
-      "matchPackageNames": ["nox"],
+      "matchPackageNames": [
+        "nox",
+      ],
       "automerge": true,
     },
   ],
