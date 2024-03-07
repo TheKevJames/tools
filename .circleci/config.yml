@@ -20,7 +20,7 @@ commands:
 jobs:
   docker-publish:
     docker:
-      - image: docker:25.0.3-git
+      - image: docker:25.0.4-git
     parameters:
       ident:
         type: string
