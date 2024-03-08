@@ -83,6 +83,16 @@
         "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s(?:ENV|ARG) .+?_VERSION=(?<currentValue>.+?)\\s"
       ],
       "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}"
+    },
+    {
+      "description": "Update python dependencies in .pre-commit-config.yaml additional_dependencies",
+      "fileMatch": [
+        "^.pre-commit-config.yaml$"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>pypi) depName=(?<depName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s- .+==(?<currentValue>.+?)\\s"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}"
     }
   ],
   "prConcurrentLimit": 0,
