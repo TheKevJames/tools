@@ -13,6 +13,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
         let chunks = Layout::default()
             .constraints(
                 [
+                    // TODO: clamp this based on max terminal size
                     Constraint::Length(app.visible_notifs + 2),
                     Constraint::Min(0),
                     Constraint::Length(7),

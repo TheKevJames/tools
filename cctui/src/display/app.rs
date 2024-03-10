@@ -54,49 +54,31 @@ impl App {
             Some(2) => {
                 match key {
                     KeyCode::Backspace => _ = self.filter.pop(),
+                    KeyCode::Enter => {
+                        self.notifs.filter(&self.filter);
+                        self.repos.filter(&self.filter);
+                        self.state.first();
+                    },
                     KeyCode::Char(c) => self.filter.push(c),
                     _ => (),
                 }
+                return;
             },
             _ => (),
         }
         match key {
-            KeyCode::Enter => match self.state.state.selected() {
-                Some(0) | Some(1) => self.browse(),
-                Some(2) => {
-                    // TODO: consider live filtering (eg. apply on any key change)
-                    self.notifs.filter(&self.filter);
-                    self.repos.filter(&self.filter);
-                    self.state.first();
-                }
-                _ => (),
-            },
+            KeyCode::Enter => self.browse(),
             KeyCode::Tab => match self.state.state.selected() {
                 Some(0) => self.state.next(),
                 Some(1) => self.state.prev(),
                 _ => (),
             },
             KeyCode::Char('/') => {
-                match self.state.state.selected() {
-                    Some(0) | Some(1) => {
-                        self.filter.clear();
-                        self.state.last();
-                    }
-                    _ => (),
-                }
-            }
-            KeyCode::Char('J') => {
-                match self.state.state.selected() {
-                    Some(0) | Some(1) => self.visible_notifs = min(self.visible_notifs + 1, 9999), // TODO: max based on screen size to prevent panic
-                    _ => (),
-                }
-            }
-            KeyCode::Char('K') => {
-                match self.state.state.selected() {
-                    Some(0) | Some(1) => self.visible_notifs = max(self.visible_notifs - 1, 1),
-                    _ => (),
-                }
-            }
+                self.filter.clear();
+                self.state.last();
+            },
+            KeyCode::Char('J') => self.visible_notifs = min(self.visible_notifs + 1, 9999),
+            KeyCode::Char('K') => self.visible_notifs = max(self.visible_notifs - 1, 1),
             _ => (),
         }
     }
