@@ -77,7 +77,7 @@ impl App {
                 self.filter.clear();
                 self.state.last();
             },
-            KeyCode::Char('J') => self.visible_notifs = min(self.visible_notifs + 1, 9999),
+            KeyCode::Char('J') => self.visible_notifs = min(self.visible_notifs + 1, 20),
             KeyCode::Char('K') => self.visible_notifs = max(self.visible_notifs - 1, 1),
             _ => (),
         }
