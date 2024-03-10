@@ -2,7 +2,7 @@ use crate::poll::{NotifsPoller, ReposPoller};
 use crate::settings::Settings;
 use crate::util::StatefulList;
 
-use crossterm::event::{KeyCode, KeyEvent};
+use crossterm::event::KeyCode;
 use log::{error, info};
 use std::cmp::{max, min};
 use std::process::Command;
@@ -47,92 +47,57 @@ impl App {
         }
     }
 
-    fn resize(&mut self, c: char) {
-        self.visible_notifs = match c {
-            'J' => min(self.visible_notifs + 1, 9999), // TODO: max based on screen size to prevent panic
-            'K' => max(self.visible_notifs - 1, 1),
-            _ => self.visible_notifs,
-        }
-    }
-
-    pub fn on_key(&mut self, key: KeyEvent) -> bool {
-        // TODO: fixup ugly return value handling
-        match key.code {
-            KeyCode::Backspace => match self.state.state.selected() {
-                Some(2) => {
-                    self.filter.pop();
-                    true
+    pub fn on_key(&mut self, key: KeyCode) {
+        match self.state.state.selected() {
+            Some(0) => self.notifs.on_key(key),
+            Some(1) => self.repos.on_key(key),
+            Some(2) => {
+                match key {
+                    KeyCode::Backspace => _ = self.filter.pop(),
+                    KeyCode::Char(c) => self.filter.push(c),
+                    _ => (),
                 }
-                _ => false,
             },
-            KeyCode::Char(c) => {
+            _ => (),
+        }
+        match key {
+            KeyCode::Enter => match self.state.state.selected() {
+                Some(0) | Some(1) => self.browse(),
+                Some(2) => {
+                    // TODO: consider live filtering (eg. apply on any key change)
+                    self.notifs.filter(&self.filter);
+                    self.repos.filter(&self.filter);
+                    self.state.first();
+                }
+                _ => (),
+            },
+            KeyCode::Tab => match self.state.state.selected() {
+                Some(0) => self.state.next(),
+                Some(1) => self.state.prev(),
+                _ => (),
+            },
+            KeyCode::Char('/') => {
                 match self.state.state.selected() {
-                    Some(0) => {
-                        self.notifs.on_key(c);
-                        match c {
-                            '/' => {
-                                self.filter.clear();
-                                self.state.last();
-                                true
-                            }
-                            '\n' => {
-                                self.browse();
-                                true
-                            }
-                            '\t' => {
-                                self.state.next();
-                                true
-                            }
-                            'J' | 'K' => {
-                                self.resize(c);
-                                true
-                            }
-                            _ => false,
-                        }
+                    Some(0) | Some(1) => {
+                        self.filter.clear();
+                        self.state.last();
                     }
-                    Some(1) => {
-                        self.repos.on_key(c);
-                        match c {
-                            '/' => {
-                                self.filter.clear();
-                                self.state.last();
-                                true
-                            }
-                            '\n' => {
-                                self.browse();
-                                true
-                            }
-                            '\t' => {
-                                self.state.prev();
-                                true
-                            }
-                            'J' | 'K' => {
-                                self.resize(c);
-                                true
-                            }
-                            _ => false,
-                        }
-                    }
-                    Some(2) => {
-                        match c {
-                            '\n' => {
-                                self.notifs.filter(&self.filter);
-                                self.repos.filter(&self.filter);
-                                self.state.first();
-                                true
-                            }
-                            '\t' => false,
-                            _ => {
-                                // TODO: consider applying filters on each key press
-                                self.filter.push(c);
-                                true
-                            }
-                        }
-                    }
-                    _ => false,
+                    _ => (),
                 }
             }
-            _ => false,
+            KeyCode::Char('J') => {
+                match self.state.state.selected() {
+                    Some(0) | Some(1) => self.visible_notifs = min(self.visible_notifs + 1, 9999), // TODO: max based on screen size to prevent panic
+                    _ => (),
+                }
+            }
+            KeyCode::Char('K') => {
+                match self.state.state.selected() {
+                    Some(0) | Some(1) => self.visible_notifs = max(self.visible_notifs - 1, 1),
+                    _ => (),
+                }
+            }
+            _ => (),
         }
     }
 

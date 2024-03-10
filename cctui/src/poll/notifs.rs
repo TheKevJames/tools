@@ -1,6 +1,7 @@
 use crate::settings::{Notif, NotifService, Settings};
 use crate::util::StatefulHash;
 
+use crossterm::event::KeyCode;
 use log::{debug, error, warn};
 use reqwest::blocking::Client;
 use serde::Deserialize;
@@ -174,7 +175,7 @@ impl NotifsPoller {
         self.all.first();
     }
 
-    pub fn on_key(&mut self, c: char) {
+    pub fn on_key(&mut self, key: KeyCode) {
         if !self.enabled {
             return;
         }
@@ -185,19 +186,19 @@ impl NotifsPoller {
             *val = max(*val, 30);
         }
 
-        match c {
-            '\n' => {
+        match key {
+            KeyCode::Enter => {
                 for (_, val) in self.delay.iter_mut() {
                     // force refresh a few seconds after opening a notif
                     // TODO: only refresh the feed that got modified?
                     *val = 30;
                 }
             }
-            'G' => self.all.last(),
-            'g' => self.all.first(),
-            'j' => self.all.next(),
-            'k' => self.all.prev(),
-            'r' => {
+            KeyCode::Char('G') => self.all.last(),
+            KeyCode::Char('g') => self.all.first(),
+            KeyCode::Char('j') => self.all.next(),
+            KeyCode::Char('k') => self.all.prev(),
+            KeyCode::Char('r') => {
                 for (_, val) in self.delay.iter_mut() {
                     *val = 0;
                 }

@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         if event::poll(std::time::Duration::from_millis(16))? {
             if let event::Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {
-                    let _acted = app.on_key(key);
+                    app.on_key(key.code);
                     if key.code == KeyCode::Char('q') {
                         debug!("quitting for user request");
                         break;
