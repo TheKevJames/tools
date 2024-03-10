@@ -159,6 +159,14 @@
       ],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
+    },
+    {
+      "matchDatasources": ["github-releases"],
+      "matchPackageNames": [
+        "greenpau/caddy-security"
+      ],
+      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "automerge": true
     }
   ]
 }
