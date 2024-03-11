@@ -7,7 +7,7 @@ ARG MUSLDEV_VERSION=1.2.4_git20230717-r4
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=23.3.2
 # renovate: datasource=pypi depName=fava
-ARG FAVA_VERSION=1.27.2
+ARG FAVA_VERSION=1.27.3
 
 
 FROM python:3.12.2-alpine
