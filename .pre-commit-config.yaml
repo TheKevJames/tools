@@ -149,7 +149,7 @@ repos:
           - -iTRY101
           - -iTRY301
   - repo: https://github.com/hhatto/autopep8
-    rev: v2.0.4
+    rev: v2.1.0
     hooks:
       - id: autopep8
         args: [-a, -i, -p2]
@@ -268,7 +268,7 @@ repos:
 #       - id: bashate
 #         args: [--max-line-length=80]
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.6
+    rev: v0.10.0.1
     hooks:
       - id: shellcheck
 # TODO: enable me
