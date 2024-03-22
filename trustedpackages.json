@@ -167,6 +167,12 @@
       ],
       "matchUpdateTypes": ["patch", "pin", "digest"],
       "automerge": true
+    },
+    {
+      "matchManagers": ["pre-commit"],
+      "matchDatasources": ["github-releases", "pypi"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
     }
   ]
 }
