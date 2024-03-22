@@ -19,7 +19,7 @@
     {
       "matchDatasources": ["github-tags"],
       "matchDepPatterns": ["^AleksaC/hadolint-py$", "^shellcheck-py/shellcheck-py$"],
-      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+)?$"
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?$"
     },
     {
       "matchManagers": ["poetry"],
