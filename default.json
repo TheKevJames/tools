@@ -15,58 +15,77 @@
       "matchDatasources": ["docker"],
       "matchDepPatterns": ["^python$"],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$"
-    }, {
+    },
+    {
+      "matchDatasources": ["github-tags"],
+      "matchDepPatterns": ["^AleksaC/hadolint-py$", "^shellcheck-py/shellcheck-py$"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+)?$"
+    },
+    {
       "matchManagers": ["poetry"],
       "versioning": "poetry"
-    }, {
+    },
+    {
       "matchDatasources": ["orb"],
       "rangeStrategy": "replace",
       "patch": {
         "enabled": false
       }
-    }, {
+    },
+    {
       "matchManagers": ["poetry"],
       "matchDepTypes": ["dependencies"],
       "matchDepPatterns": ["^python$"],
       "rangeStrategy": "widen"
-    }, {
+    },
+    {
       "matchDepTypes": ["build-system.requires"],
       "rangeStrategy": "widen"
-    }, {
+    },
+    {
       "matchDepTypes": ["dev", "devDependencies"],
       "rangeStrategy": "pin"
-    }, {
+    },
+    {
       "matchDepPatterns": ["^terraform$"],
       "groupName": "terraform"
-    }, {
+    },
+    {
       "matchManagers": ["maven"],
       "matchDepPatterns": ["^com.google.auto.value"],
       "groupName": "com.google.auto.value packages"
-    }, {
+    },
+    {
       "matchDatasources": ["terraform"],
       "matchDepPatterns": ["^google"],
       "groupName": "google"
-    }, {
+    },
+    {
       "matchManagers": ["terraform"],
       "matchDepPatterns": ["^google"],
       "groupName": "google"
-    }, {
+    },
+    {
       "matchDatasources": ["pypi"],
       "matchDepPatterns": ["^fsspec$", "^gcsfs$"],
       "groupName": "gcsfs"
-    }, {
+    },
+    {
       "matchDatasources": ["pypi"],
       "matchDepPatterns": ["^grpcio"],
       "groupName": "grpcio"
-    }, {
+    },
+    {
       "matchDatasources": ["pypi"],
       "matchDepPatterns": ["^mkl$", "^intel-openmp$"],
       "groupName": "mkl"
-    }, {
+    },
+    {
       "matchDatasources": ["pypi"],
       "matchDepPatterns": ["^torch$", "^torchaudio$"],
       "groupName": "pytorch"
-    }, {
+    },
+    {
       "matchDatasources": ["pypi"],
       "matchDepPatterns": ["^sanic$", "^sanic-testing$"],
       "groupName": "sanic"
