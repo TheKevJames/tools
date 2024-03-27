@@ -10,7 +10,7 @@ ARG POETRY_VERSION=1.8.2
 ARG WAITFOR_VERSION=2.2.4
 
 
-FROM curlimages/curl:8.6.0 as fetcher
+FROM curlimages/curl:8.7.1 as fetcher
 
 ARG WAITFOR_VERSION
 RUN curl -vsSLo /tmp/wait-for "https://github.com/eficode/wait-for/releases/download/v${WAITFOR_VERSION}/wait-for" && \
