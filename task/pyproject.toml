@@ -13,7 +13,7 @@ task = "task.cli:cli"
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
 pydantic = "2.6.4"
-typer = { version = "0.10.0", extras = ["all"] }
+typer = { version = "0.11.0", extras = ["all"] }
 
 [[tool.poetry.source]]
 name = "pypi"
