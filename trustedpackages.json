@@ -99,6 +99,10 @@
       "matchPackageNames": [
         "aiohttp",
         "fava",
+        "flake8-2020",
+        "flake8-broken-line",
+        "flake8-builtins",
+        "flake8-comprehensions",
         "google-api-python-client",
         "google-auth",
         "google-cloud-aiplatform",
