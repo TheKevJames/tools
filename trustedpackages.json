@@ -141,6 +141,8 @@
         "pandas",
         "plotly",
         "prometheus-client",
+        "typer",
+        "typer-slim",
         "uvicorn"
       ],
       "matchUpdateTypes": ["patch", "pin", "digest"],
