@@ -227,13 +227,13 @@ files = [
 
 [[package]]
 name = "typer-slim"
-version = "0.12.2"
+version = "0.12.3"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "typer_slim-0.12.2-py3-none-any.whl", hash = "sha256:6dc665472f7929ae32ac3dcaf5b3efce1caf39829d0506358d2d56d4962ab207"},
-    {file = "typer_slim-0.12.2.tar.gz", hash = "sha256:f0167512f306a1002b393b14949adb0f65645f1fb5fcbeea600081e7f0a7d6d4"},
+    {file = "typer_slim-0.12.3-py3-none-any.whl", hash = "sha256:142c73d91ac1df79a49cec5a1c2210c00b1b4040a91014b539792af5ba81c65c"},
+    {file = "typer_slim-0.12.3.tar.gz", hash = "sha256:633965eb413074aa6c47549d1820832f229709e9a59857a4f57ee82b655602af"},
 ]
 
 [package.dependencies]
@@ -259,4 +259,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<4.0"
-content-hash = "1dbb949805749b2c8dcf5158c4e2e2c42ceb0769aee55befe37b44a02ea5d5ba"
+content-hash = "54cae9eae22a0430e65e7f133bd89faf926b5346329ea2bafc3a2f6c3bcb5ab5"
