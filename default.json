@@ -82,6 +82,11 @@
     },
     {
       "matchDatasources": ["pypi"],
+      "matchDepPatterns": ["^pydantic$", "^pydantic-core$"],
+      "groupName": "pydantic"
+    },
+    {
+      "matchDatasources": ["pypi"],
       "matchDepPatterns": ["^torch$", "^torchaudio$"],
       "groupName": "pytorch"
     },
