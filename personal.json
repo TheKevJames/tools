@@ -3,8 +3,5 @@
     "github>thekevjames/tools",
     "github>thekevjames/tools:trustedpackages"
   ],
-  "labels": ["task"],
-  "pre-commit": {
-    "enabled": true
-  }
+  "labels": ["task"]
 }

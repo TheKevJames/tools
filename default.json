@@ -114,6 +114,9 @@
       "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}"
     }
   ],
+  "pre-commit": {
+    "enabled": true
+  },
   "prConcurrentLimit": 0,
   "prCreation": "immediate",
   "prHourlyLimit": 0,
