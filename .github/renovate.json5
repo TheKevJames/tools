@@ -31,5 +31,14 @@
       ],
       "automerge": true,
     },
+    {
+      "matchFiles": ["docker-nox/Dockerfile"],
+      "matchManagers": ["dockerfile"],
+      "matchPackageNames": [
+        "ubuntu",
+      ],
+      // TODO: https://github.com/TheKevJames/tools/issues/861
+      "enabled": false,
+    },
   ],
 }
