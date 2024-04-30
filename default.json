@@ -47,10 +47,6 @@
       "rangeStrategy": "pin"
     },
     {
-      "matchDepPatterns": ["^terraform$"],
-      "groupName": "terraform"
-    },
-    {
       "matchManagers": ["maven"],
       "matchDepPatterns": ["^com.google.auto.value"],
       "groupName": "com.google.auto.value packages"
@@ -86,6 +82,10 @@
       "groupName": "pydantic"
     },
     {
+      "matchDepPatterns": ["^python$", "^python/cpython$"],
+      "groupName": "python"
+    },
+    {
       "matchDatasources": ["pypi"],
       "matchDepPatterns": ["^torch$", "^torchaudio$"],
       "groupName": "pytorch"
@@ -94,6 +94,10 @@
       "matchDatasources": ["pypi"],
       "matchDepPatterns": ["^sanic$", "^sanic-testing$"],
       "groupName": "sanic"
+    },
+    {
+      "matchDepPatterns": ["^terraform$"],
+      "groupName": "terraform"
     }
   ],
   "regexManagers": [
