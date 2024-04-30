@@ -63,6 +63,7 @@ jobs:
             - README.md
 
   # TODO: this should be doable with curl or python...
+  # TODO: also support quay
   docker-readme-push:
     docker:
       - image: node:22.0.0-alpine

@@ -109,6 +109,19 @@
       "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}"
     },
     {
+      "description": "Update default_language_version.python in .pre-commit-config.yaml",
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "python/cpython",
+      "extractVersionTemplate": "^v(?<version>\\d+\\.\\d+)(\\.\\d+)?$",
+      "fileMatch": [
+        "(^|/)\\.pre-commit-config\\.yaml$"
+      ],
+      "matchStrings": [
+        "default_language_version:\\s+python: python(?<currentValue>.+?)\\s"
+      ],
+      "versioningTemplate": "semver-coerced"
+    },
+    {
       "description": "Update python dependencies in .pre-commit-config.yaml additional_dependencies",
       "fileMatch": [
         "^.pre-commit-config.yaml$"
