@@ -17,6 +17,14 @@
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$"
     },
     {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "lscr.io/linuxserver/jellyfin",
+        "lscr.io/linuxserver/prowlarr"
+      ],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d{,3})$"
+    },
+    {
       "matchDatasources": ["github-tags"],
       "matchDepPatterns": ["^AleksaC/hadolint-py$", "^shellcheck-py/shellcheck-py$"],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?$"
