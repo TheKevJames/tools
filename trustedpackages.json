@@ -113,6 +113,7 @@
         "jira",
         "hypothesis",
         "prometheus-fastapi-instrumentator",
+        "poetry",
         "pydantic",
         "pydantic-settings",
         "pygments",
