@@ -132,12 +132,16 @@ repos:
         # N.B. keep these in sync with flake8, otherwise yesqa will remove
         # required noqa's related to these plugins
         additional_dependencies: &flake8deps
-        - flake8-2020==1.8.1
-        - flake8-broken-line==1.0.0
-        - flake8-builtins==2.2.0
-        - flake8-commas==2.1.0
-        - flake8-comprehensions==3.14.0
-        - flake8-typing-imports==1.15.0
+          # renovate: datasource=pypi depName=flake8-2020
+          - flake8-2020==1.8.1
+          # renovate: datasource=pypi depName=flake8-broken-line
+          - flake8-broken-line==1.0.0
+          # renovate: datasource=pypi depName=flake8-builtins
+          - flake8-builtins==2.5.0
+          # renovate: datasource=pypi depName=flake8-comprehensions
+          - flake8-comprehensions==3.14.0
+          # renovate: datasource=pypi depName=flake8-import-restrictions
+          - flake8-import-restrictions==2.0.1
   - repo: https://github.com/guilatrova/tryceratops
     rev: v2.3.2
     hooks:
@@ -169,8 +173,9 @@ repos:
           # E501: Line too long. Covered by autopep8.
           # E741: Do not use variables named 'I', 'O', or 'l'.
           # W503: Line break occurred before a binary operator. Breaks PEP8.
-          - --ignore=E501,E741,W503
-          - --min-python-version=3.11
+          # IMR200: Imports should only happen on module level, not locally. Covered by pylint.
+          # IMR241: When using 'from', import submodules not elements.
+          - --ignore=E501,E741,W503,IMR200,IMR241
   - repo: https://github.com/dosisod/refurb
     rev: v2.0.0
     hooks:
@@ -196,10 +201,11 @@ repos:
         entry: bash -c 'set -e; for toml in "$@"; do pushd ./${toml%pyproject.toml}; poetry check; popd; done' --
         language: python
         additional_dependencies:
-          - poetry>=1.5.0
+          # renovate: datasource=pypi depName=poetry
+          - poetry==1.8.3
         pass_filenames: true
         files: 'pyproject\.toml$'
-      - id: poetry-use-version-ranges
+      - id: pyproject-use-version-ranges
         name: avoid using carets for version ranges
         description: 'Avoid using carets for version ranges'
         entry: '\^'
@@ -231,8 +237,8 @@ repos:
       - id: check-github-workflows
       - id: check-renovate
         additional_dependencies:
-        - pyjson5
-
+          # renovate: datasource=pypi depName=pyjson5
+          - pyjson5==1.6.6
 # docker
   - repo: https://github.com/AleksaC/hadolint-py
     rev: v2.12.1b3
@@ -257,10 +263,6 @@ repos:
 #         exclude: '(.*.min.js)'
 
 # shell
-  - repo: https://github.com/lovesegfault/beautysh
-    rev: v6.2.1
-    hooks:
-      - id: beautysh
 # TODO: enable me
 #   - repo: https://github.com/openstack/bashate
 #     rev: 2.1.1
