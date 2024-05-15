@@ -2,6 +2,13 @@ version: 2.1
 
 orbs:
   docker: talkiq/docker@3
+  linter: talkiq/linter@4
+
+executors:
+  python:
+    docker:
+      - image: python:3.9.19
+    resource_class: medium
 
 commands:
   custom-tag:
@@ -138,6 +145,8 @@ workflows:
 
   run-jobs:
     jobs:
+      - linter/pre-commit:
+          executor: python
       - docker-publish:
           name: docker-autopublish-caddy-security
           ident: caddy-security
@@ -154,6 +163,8 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
+          requires:
+            - linter/pre-commit
       - docker-publish:
           name: docker-autopublish-fava
           ident: fava
@@ -169,6 +180,8 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
+          requires:
+            - linter/pre-commit
       - docker-publish:
           name: docker-autopublish-gcloud-pubsub-emulator
           ident: gcloud-pubsub-emulator
@@ -184,6 +197,8 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
+          requires:
+            - linter/pre-commit
       - docker-publish:
           name: docker-autopublish-mysqltuner
           ident: mysqltuner
@@ -199,6 +214,8 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
+          requires:
+            - linter/pre-commit
       - docker-publish:
           name: docker-autopublish-nox
           ident: nox
@@ -214,6 +231,8 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
+          requires:
+            - linter/pre-commit
       - docker-publish:
           name: docker-autopublish-tuning-primer
           ident: tuning-primer
@@ -229,6 +248,8 @@ workflows:
               only: /master/
             tags:
               ignore: /.*/
+          requires:
+            - linter/pre-commit
 
       - docker-readme-build:
           name: docker-readme-build-<<matrix.ident>>
