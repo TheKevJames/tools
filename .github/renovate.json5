@@ -31,7 +31,7 @@
         ".pre-commit-config.yaml",
       ],
       "matchPackageNames": [
-        "cpython",
+        "python/cpython",
       ],
       "allowedVersions": "3.9",
     },
