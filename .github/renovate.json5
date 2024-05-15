@@ -17,12 +17,23 @@
       "automerge": true,
     },
     {
-      "matchManagers": ["dockerfile"],
-      "matchFiles": ["docker-gcloud-pubsub-emulator/Dockerfile"],
+      "matchFiles": [
+        ".circleci/config.yml",
+        "docker-gcloud-pubsub-emulator/Dockerfile",
+      ],
       "matchPackageNames": [
         "python",
       ],
       "allowedVersions": "3.9.2",
+    },
+    {
+      "matchFiles": [
+        ".pre-commit-config.yaml",
+      ],
+      "matchPackageNames": [
+        "cpython",
+      ],
+      "allowedVersions": "3.9",
     },
     {
       "matchManagers": ["pip_requirements"],
