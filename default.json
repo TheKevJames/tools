@@ -142,6 +142,16 @@
         "# renovate: datasource=(?<datasource>pypi) depName=(?<depName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s+- .+==(?<currentValue>.+?)\\s"
       ],
       "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}"
+    },
+    {
+      "description": "Update docker images in terraform files",
+      "fileMatch": [
+        "(^|/)*\\.tf$"
+      ],
+      "matchStrings": [
+        "\\s*image\\s*=\\s*\"(?<depName>.*?):(?<currentValue>.*?)\"\\s*#\\s*renovate\\n"
+      ],
+      "datasourceTemplate": "docker"
     }
   ],
   "pre-commit": {
