@@ -177,13 +177,13 @@ requests = ["requests (>=2.20.0,<3.0.0.dev0)"]
 
 [[package]]
 name = "google-cloud-pubsub"
-version = "2.21.4"
+version = "2.21.5"
 description = "Google Cloud Pub/Sub API client library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-cloud-pubsub-2.21.4.tar.gz", hash = "sha256:2cb8c7698adbfea0448db6c89b78aa7217fce07c1e37b46d3e535fa1633f3ae6"},
-    {file = "google_cloud_pubsub-2.21.4-py2.py3-none-any.whl", hash = "sha256:e80a4c37c3cd45b68ee3c75eea45af228beeebc3f03915e8ee0b2fccd72e9926"},
+    {file = "google-cloud-pubsub-2.21.5.tar.gz", hash = "sha256:4fa96e7f200359ccc49cf6657e31ac35f5e6e55d00fbb3cedfa672903cf75b24"},
+    {file = "google_cloud_pubsub-2.21.5-py2.py3-none-any.whl", hash = "sha256:fbd6b00a1e28ea47609b2a5562aeecbaf31ad9cf4f7a83f91c3605e869c6447c"},
 ]
 
 [package.dependencies]
@@ -196,7 +196,7 @@ proto-plus = [
     {version = ">=1.22.2,<2.0.0dev", markers = "python_version >= \"3.11\""},
     {version = ">=1.22.0,<2.0.0dev", markers = "python_version < \"3.11\""},
 ]
-protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<5.0.0dev"
+protobuf = ">=3.20.2,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<6.0.0dev"
 
 [package.extras]
 libcst = ["libcst (>=0.3.10)"]
@@ -437,4 +437,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9, <4.0"
-content-hash = "f82699a2c48eb95f2a1cb1c0a0e564245dc719a906cfae49a1474d1d801c473a"
+content-hash = "cf1a9348b1b5f8dc7337afd298288430ec68d8fcaf0204dd8bfc3c21c4e4e633"
