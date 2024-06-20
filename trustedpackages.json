@@ -45,6 +45,7 @@
       "matchPackageNames": [
         "bitnami/kube-state-metrics",
         "busybox",
+        "caddy",
         "curlimages/curl",
         "docker",
         "hashicorp/terraform",
