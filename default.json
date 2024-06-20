@@ -18,9 +18,9 @@
     },
     {
       "matchDatasources": ["docker"],
-      "matchPackageNames": [
-        "lscr.io/linuxserver/jellyfin",
-        "lscr.io/linuxserver/prowlarr"
+      "matchDepPatterns": [
+        "^lscr.io/linuxserver/jellyfin$",
+        "^lscr.io/linuxserver/prowlarr$"
       ],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d{,3})$"
     },

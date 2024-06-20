@@ -3,14 +3,14 @@
   "packageRules": [
     {
       "matchManagers": ["dockerfile"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "google/cloud-sdk",
       ],
       "automerge": true,
     },
     {
       "matchManagers": ["dockerfile"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "library/caddy",
       ],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
@@ -21,7 +21,7 @@
         ".circleci/config.yml",
         "docker-gcloud-pubsub-emulator/Dockerfile",
       ],
-      "matchPackageNames": [
+      "matchDepNames": [
         "python",
       ],
       "allowedVersions": "3.9.2",
@@ -30,14 +30,14 @@
       "matchFiles": [
         ".pre-commit-config.yaml",
       ],
-      "matchPackageNames": [
+      "matchDepNames": [
         "python/cpython",
       ],
       "allowedVersions": "3.9",
     },
     {
       "matchManagers": ["pip_requirements"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "nox",
       ],
       "automerge": true,
@@ -45,7 +45,7 @@
     {
       "matchFiles": ["docker-nox/Dockerfile"],
       "matchManagers": ["dockerfile"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "ubuntu",
       ],
       // TODO: https://github.com/TheKevJames/tools/issues/861

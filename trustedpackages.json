@@ -2,7 +2,7 @@
   "packageRules": [
     {
       "matchDatasources": ["crate"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "chrono",
         "log",
         "serde",
@@ -14,7 +14,7 @@
     },
     {
       "matchDatasources": ["crate"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "fern",
         "ratatui",
         "reqwest"
@@ -42,7 +42,7 @@
     },
     {
       "matchDatasources": ["docker"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "bitnami/kube-state-metrics",
         "busybox",
         "caddy",
@@ -64,7 +64,7 @@
     },
     {
       "matchDatasources": ["docker"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "ghcr.io/gethomepage/homepage"
       ],
       "matchUpdateTypes": ["patch", "pin", "digest"],
@@ -72,7 +72,7 @@
     },
     {
       "matchDatasources": ["docker"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "python",
         "quay.io/prometheus/pushgateway"
       ],
@@ -97,7 +97,7 @@
     },
     {
       "matchDatasources": ["pypi"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "aiohttp",
         "fava",
         "flake8-2020",
@@ -135,7 +135,7 @@
     },
     {
       "matchDatasources": ["pypi"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "fastapi",
         "fastapi-slim",
         "flask",
@@ -153,7 +153,7 @@
     },
     {
       "matchDatasources": ["terraform-module", "terraform-provider"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "cloudflare",
         "confluent",
         "confluentinc/confluent",
@@ -172,7 +172,7 @@
     },
     {
       "matchDatasources": ["github-releases"],
-      "matchPackageNames": [
+      "matchDepNames": [
         "greenpau/caddy-security"
       ],
       "matchUpdateTypes": ["patch", "pin", "digest"],
