@@ -65,6 +65,7 @@
     {
       "matchDatasources": ["docker"],
       "matchDepNames": [
+        "alpine",
         "ghcr.io/gethomepage/homepage"
       ],
       "matchUpdateTypes": ["patch", "pin", "digest"],
