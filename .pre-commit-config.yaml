@@ -153,7 +153,7 @@ repos:
           - -iTRY101
           - -iTRY301
   - repo: https://github.com/hhatto/autopep8
-    rev: v2.3.0
+    rev: v2.3.1
     hooks:
       - id: autopep8
         args: [-a, -i, -p2]
