@@ -3,7 +3,7 @@
 # renovate: datasource=repology depName=debian_11/netcat-openbsd versioning=loose
 ARG NETCATOPENBSD_VERSION=1.217-3
 # renovate: datasource=pypi depName=pip
-ARG PIP_VERSION=23.3.2
+ARG PIP_VERSION=24.1.1
 # renovate: datasource=pypi depName=poetry
 ARG POETRY_VERSION=1.8.3
 # renovate: datasource=github-releases depName=eficode/wait-for
