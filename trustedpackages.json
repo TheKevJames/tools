@@ -130,6 +130,7 @@
         "requests",
         "sphinx",
         "sqlalchemy",
+        "transformers",
         "tqdm"
       ],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
