@@ -110,6 +110,7 @@
         "google-cloud-aiplatform",
         "google-cloud-bigquery",
         "google-cloud-pubsub",
+        "google-cloud-speech",
         "google-cloud-storage",
         "hiredis",
         "jinja2",
