@@ -1,4 +1,5 @@
-# mysqltuner.pl - Version 2.5.2
+#!/usr/bin/env perl
+# mysqltuner.pl - Version 2.6.0
 # High Performance MySQL Tuning Script
 # Copyright (C) 2015-2023 Jean-Marie Renouard - jmrenouard@gmail.com
 # Copyright (C) 2006-2023 Major Hayden - major@mhtx.net
@@ -56,7 +57,7 @@ use Cwd 'abs_path';
 #use Env;
 
 # Set up a few variables for use in the script
-my $tunerversion = "2.5.2";
+my $tunerversion = "2.6.0";
 my ( @adjvars, @generalrec );
 
 # Set defaults
@@ -108,6 +109,8 @@ my %opt = (
     "prettyjson"          => 0,
     "reportfile"          => 0,
     "verbose"             => 0,
+    "experimental"        => 0,
+    "nondedicated"        => 0,
     "defaults-file"       => '',
     "defaults-extra-file" => '',
     "protocol"            => '',
@@ -150,7 +153,8 @@ GetOptions(
     'server-log=s',          'protocol=s',
     'defaults-extra-file=s', 'dumpdir=s',
     'feature=s',             'dbgpattern=s',
-    'defaultarch=i'
+    'defaultarch=i',         'experimental',
+    'nondedicated'
   )
   or pod2usage(
     -exitval  => 1,
@@ -208,10 +212,15 @@ $basic_password_files = "/usr/share/mysqltuner/basic_passwords.txt"
 
 $opt{dbgpattern} = '.*' if ( $opt{dbgpattern} eq '' );
 
+# Activate debug variables
+#if ( $opt{debug} ne '' ) { $opt{debug} = 2; }
+# Activate experimental calculations and analysis
+#if ( $opt{experimental} ne '' ) { $opt{experimental} = 1; }
+
 # check if we need to enable verbose mode
 if ( $opt{feature} ne '' ) { $opt{verbose} = 1; }
 if ( $opt{verbose} ) {
-    $opt{checkversion} = 1;    # Check for updates to MySQLTuner
+    $opt{checkversion} = 0;    # Check for updates to MySQLTuner
     $opt{dbstat}       = 1;    # Print database information
     $opt{tbstat}       = 1;    # Print database information
     $opt{idxstat}      = 1;    # Print index information
@@ -586,6 +595,8 @@ sub os_setup {
     chomp($physical_memory);
     chomp($swap_memory);
     chomp($os);
+    $physical_memory = $opt{forcemem}
+      if ( defined( $opt{forcemem} ) and $opt{forcemem} gt 0 );
     $result{'OS'}{'OS Type'}                   = $os;
     $result{'OS'}{'Physical Memory'}{'bytes'}  = $physical_memory;
     $result{'OS'}{'Physical Memory'}{'pretty'} = hr_bytes($physical_memory);
@@ -763,9 +774,9 @@ sub mysql_setup {
         $mysqladmincmd = $opt{mysqladmin};
     }
     else {
-        $mysqladmincmd = which( "mysqladmin", $ENV{'PATH'} );
+        $mysqladmincmd = which( "mariadb-admin", $ENV{'PATH'} );
         if ( !-e $mysqladmincmd ) {
-            $mysqladmincmd = which( "mariadb-admin", $ENV{'PATH'} );
+            $mysqladmincmd = which( "mysqladmin", $ENV{'PATH'} );
         }
     }
     chomp($mysqladmincmd);
@@ -784,9 +795,9 @@ sub mysql_setup {
         $mysqlcmd = $opt{mysqlcmd};
     }
     else {
-        $mysqlcmd = which( "mysql", $ENV{'PATH'} );
+        $mysqlcmd = which( "mariadb", $ENV{'PATH'} );
         if ( !-e $mysqlcmd ) {
-            $mysqlcmd = which( "mariadb", $ENV{'PATH'} );
+            $mysqlcmd = which( "mysql", $ENV{'PATH'} );
         }
     }
     chomp($mysqlcmd);
@@ -2045,17 +2056,28 @@ sub system_recommendations {
     infoprint "User process except mysqld used "
       . hr_bytes_rnd($omem) . " RAM.";
     if ( ( 0.15 * $physical_memory ) < $omem ) {
-        badprint
+        if ( $opt{nondedicated} ) {
+            infoprint "No warning with --nondedicated option";
+            infoprint
 "Other user process except mysqld used more than 15% of total physical memory "
-          . percentage( $omem, $physical_memory ) . "% ("
-          . hr_bytes_rnd($omem) . " / "
-          . hr_bytes_rnd($physical_memory) . ")";
-        push( @generalrec,
+              . percentage( $omem, $physical_memory ) . "% ("
+              . hr_bytes_rnd($omem) . " / "
+              . hr_bytes_rnd($physical_memory) . ")";
+        }
+        else {
+
+            badprint
+"Other user process except mysqld used more than 15% of total physical memory "
+              . percentage( $omem, $physical_memory ) . "% ("
+              . hr_bytes_rnd($omem) . " / "
+              . hr_bytes_rnd($physical_memory) . ")";
+            push( @generalrec,
 "Consider stopping or dedicate server for additional process other than mysqld."
-        );
-        push( @adjvars,
+            );
+            push( @adjvars,
 "DON'T APPLY SETTINGS BECAUSE THERE ARE TOO MANY PROCESSES RUNNING ON THIS SERVER. OOM KILL CAN OCCUR!"
-        );
+            );
+        }
     }
     else {
         infoprint
@@ -2416,17 +2438,13 @@ sub validate_mysql_version {
 
     prettyprint " ";
 
-    if (   mysql_version_eq(8)
-        or mysql_version_eq( 5,  7 )
-        or mysql_version_eq( 10, 3 )
-        or mysql_version_eq( 10, 4 )
+    if (   mysql_version_eq(9)
+        or mysql_version_eq(8, 4)
+                or mysql_version_eq(8, 0)
         or mysql_version_eq( 10, 5 )
         or mysql_version_eq( 10, 6 )
-        or mysql_version_eq( 10, 7 )
-        or mysql_version_eq( 10, 8 )
-        or mysql_version_eq( 10, 9 )
-        or mysql_version_eq( 10, 10 )
-        or mysql_version_eq( 10, 11 ) )
+        or mysql_version_eq( 10, 11 )
+        or mysql_version_eq( 11, 4 ) )
     {
         goodprint "Currently running supported MySQL version "
           . $myvar{'version'} . "";
@@ -2529,7 +2547,7 @@ sub check_architecture {
     }
     elsif ( `uname` =~ /Darwin/ && `uname -m` =~ /x86_64/ ) {
 
-# Darwin gibas.local 12.5.2 Darwin Kernel Version 12.3.0: Sun Jan 6 22:37:10 PST 2013; root:xnu-2050.22.13~1/RELEASE_X86_64 x86_64
+# Darwin gibas.local 12.6.0 Darwin Kernel Version 12.3.0: Sun Jan 6 22:37:10 PST 2013; root:xnu-2050.22.13~1/RELEASE_X86_64 x86_64
         $arch = 64;
         goodprint "Operating on 64-bit architecture";
     }
@@ -3214,11 +3232,13 @@ sub calculations {
         $mystat{'Innodb_buffer_pool_pages_total'}
     ) if defined $mystat{'Innodb_buffer_pool_pages_total'};
 
-    $mycalc{'innodb_buffer_alloc_pct'} = select_one(
-            "select  round( 100* sum(allocated)/( select VARIABLE_VALUE "
-          . "FROM performance_schema.global_variables "
-          . "WHERE VARIABLE_NAME='innodb_buffer_pool_size' ) ,2)"
-          . 'FROM sys.x\$innodb_buffer_stats_by_table;' );
+    my $lreq =
+        "select  ROUND( 100* sum(allocated)/ "
+      . $myvar{'innodb_buffer_pool_size'}
+      . ',1) FROM sys.x\$innodb_buffer_stats_by_table;';
+    debugprint("lreq: $lreq");
+    $mycalc{'innodb_buffer_alloc_pct'} = select_one($lreq)
+      if ( $opt{experimental} );
 
     # Binlog Cache
     if ( $myvar{'log_bin'} ne 'OFF' ) {
@@ -3362,10 +3382,18 @@ sub mysql_stats {
     if ( $physical_memory <
         ( $mycalc{'max_peak_memory'} + get_other_process_memory() ) )
     {
-        badprint
-          "Overall possible memory usage with other process exceeded memory";
-        push( @generalrec,
-            "Dedicate this server to your database for highest performance." );
+        if ( $opt{nondedicated} ) {
+            infoprint "No warning with --nondedicated option";
+            infoprint
+"Overall possible memory usage with other process exceeded memory";
+        }
+        else {
+            badprint
+"Overall possible memory usage with other process exceeded memory";
+            push( @generalrec,
+                "Dedicate this server to your database for highest performance."
+            );
+        }
     }
     else {
         goodprint
@@ -6366,18 +6394,27 @@ sub mysql_innodb {
     }
 
   # select  round( 100* sum(allocated)/( select VARIABLE_VALUE
-  #                                  FROM performance_schema.global_variables
+  #                                  FROM information_schema.global_variables
   #                              where VARIABLE_NAME='innodb_buffer_pool_size' )
   # ,2) as "PCT ALLOC/BUFFER POOL"
   #from sys.x$innodb_buffer_stats_by_table;
 
-    if ( $mycalc{innodb_buffer_alloc_pct} < 80 ) {
-        badprint "Ratio Buffer Pool allocated / Buffer Pool Size: "
-          . $mycalc{'innodb_buffer_alloc_pct'} . '%';
-    }
-    else {
-        goodprint "Ratio Buffer Pool allocated / Buffer Pool Size: "
-          . $mycalc{'innodb_buffer_alloc_pct'} . '%';
+    if ( $opt{experimental} ) {
+        debugprint( 'innodb_buffer_alloc_pct: "'
+              . $mycalc{innodb_buffer_alloc_pct}
+              . '"' );
+        if ( defined $mycalc{innodb_buffer_alloc_pct}
+            and $mycalc{innodb_buffer_alloc_pct} ne '' )
+        {
+            if ( $mycalc{innodb_buffer_alloc_pct} < 80 ) {
+                badprint "Ratio Buffer Pool allocated / Buffer Pool Size: "
+                  . $mycalc{'innodb_buffer_alloc_pct'} . '%';
+            }
+            else {
+                goodprint "Ratio Buffer Pool allocated / Buffer Pool Size: "
+                  . $mycalc{'innodb_buffer_alloc_pct'} . '%';
+            }
+        }
     }
     if (   $mycalc{'innodb_log_size_pct'} < 20
         or $mycalc{'innodb_log_size_pct'} > 30 )
@@ -7198,6 +7235,8 @@ sub headerprint {
       . "\t * Major Hayden <major\@mhtx.net>\n"
       . " >>  Bug reports, feature requests, and downloads at http://mysqltuner.pl/\n"
       . " >>  Run with '--help' for additional options and output filtering";
+    debugprint( "Debug: " . $opt{debug} );
+    debugprint( "Experimental: " . $opt{experimental} );
 }
 
 sub string2file {
@@ -7208,12 +7247,12 @@ sub string2file {
 "Unable to open $filename in write mode. Please check permissions for this file or directory";
     print $fh $content if defined($content);
     close $fh;
-    debugprint $content if ( $opt{'debug'} );
+    debugprint $content;
 }
 
 sub file2array {
     my $filename = shift;
-    debugprint "* reading $filename" if ( $opt{'debug'} );
+    debugprint "* reading $filename";
     my $fh;
     open( $fh, q(<), "$filename" )
       or die "Couldn't open $filename for reading: $!\n";
@@ -7399,7 +7438,7 @@ __END__
 
 =head1 NAME
 
- MySQLTuner 2.5.2 - MySQL High Performance Tuning Script
+ MySQLTuner 2.6.0 - MySQL High Performance Tuning Script
 
 =head1 IMPORTANT USAGE GUIDELINES
 
@@ -7443,6 +7482,8 @@ You must provide the remote server's total memory when connecting to other serve
  --template   <path>         Path to a template file
  --dumpdir <path>            Path to a directory where to dump information files
  --feature <feature>         Run a specific feature (see FEATURES section)
+ --dumpdir <path>            information_schema tables and sys views are dumped in CSV in this path
+
 =head1 OUTPUT OPTIONS
 
  --silent                    Don't output anything on screen
@@ -7453,6 +7494,8 @@ You must provide the remote server's total memory when connecting to other serve
  --nobad                     Remove negative/suggestion responses
  --noinfo                    Remove informational responses
  --debug                     Print debug information
+ --experimental              Print experimental analysis (may fail)
+ --nondedicated              Consider server is not dedicated to Db server usage only
  --noprocess                 Consider no other process is running
  --dbstat                    Print database information
  --nodbstat                  Don't print database information

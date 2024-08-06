@@ -29,6 +29,6 @@ RUN --mount=type=cache,target=/var/cache/apk \
 
 COPY root /
 
-ENV TERM rxvt
+ENV TERM=rxvt
 
 ENTRYPOINT [ "/tuning-primer-wrapper.sh" ]
