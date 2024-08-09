@@ -21,7 +21,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
                 ]
                 .as_ref(),
             )
-            .split(f.size());
+            .split(f.area());
 
         draw_notifs(f, app, chunks[0]);
         draw_repos(f, app, chunks[1]);
@@ -37,7 +37,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
                 ]
                 .as_ref(),
             )
-            .split(f.size());
+            .split(f.area());
 
         draw_repos(f, app, chunks[0]);
         draw_recent(f, app, chunks[1]);
