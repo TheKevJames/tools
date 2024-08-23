@@ -131,7 +131,6 @@
         "requests",
         "sphinx",
         "sqlalchemy",
-        "transformers",
         "tqdm"
       ],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
@@ -149,6 +148,7 @@
         "pip",
         "plotly",
         "prometheus-client",
+        "transformers",
         "typer",
         "typer-slim",
         "uvicorn"
