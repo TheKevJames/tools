@@ -116,6 +116,7 @@
         "jinja2",
         "jira",
         "hypothesis",
+        "openai",
         "prometheus-fastapi-instrumentator",
         "poetry",
         "pydantic",
