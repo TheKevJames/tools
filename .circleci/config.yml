@@ -73,7 +73,7 @@ jobs:
   # TODO: also support quay
   docker-readme-push:
     docker:
-      - image: node:22.7.0-alpine
+      - image: node:22.8.0-alpine
     parameters:
       ident:
         type: string
