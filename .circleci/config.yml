@@ -9,10 +9,6 @@ executors:
     docker:
       - image: docker:25.0.5-git
     resource_class: medium
-  node:
-    docker:
-      - image: node:22.9.0-alpine
-    resource_class: medium
   pandoc:
     docker:
       - image: pandoc/core:3.5.0
@@ -47,7 +43,7 @@ commands:
           local_image_name: "<<parameters.ident>>:${CIRCLE_SHA1:0:10}"
           path: "docker-<<parameters.ident>>"
 
-  docker-publish:
+  docker-publish-image:
     parameters:
       ident:
         type: string
@@ -65,8 +61,26 @@ commands:
       - run: docker push "quay.io/thekevjames/<<parameters.ident>>:<<parameters.tag>>"
       - run: docker push "quay.io/thekevjames/<<parameters.ident>>:latest"
 
+  docker-publish-readme:
+    parameters:
+      ident:
+        type: string
+      version:
+        # TODO: renovate
+        default: v1.9.0
+        type: string
+    steps:
+      - run: apk add --no-cache --no-progress curl
+      - run: mkdir -p "${HOME}/.docker/cli-plugins"
+      - run: curl -Lo "${HOME}/.docker/cli-plugins/docker-pushrm" "https://github.com/christian-korneck/docker-pushrm/releases/download/<<parameters.version>>/docker-pushrm_linux_amd64"
+      - run: chmod +x "${HOME}/.docker/cli-plugins/docker-pushrm"
+      - attach_workspace:
+          at: /meta
+      - run: docker pushrm "thekevjames/<<parameters.ident>>" --file=/meta/README.md
+      - run: docker pushrm "quay.io/thekevjames/<<parameters.ident>>" --file=/meta/README.md
+
 jobs:
-  docker-build-and-publish:
+  docker-workflow:
     executor: docker
     parameters:
       ident:
@@ -76,9 +90,11 @@ jobs:
     steps:
       - docker-build:
           ident: <<parameters.ident>>
-      - docker-publish:
+      - docker-publish-image:
           ident: <<parameters.ident>>
           tag: <<parameters.tag>>
+      - docker-publish-readme:
+          ident: <<parameters.ident>>
 
   docker-build-readme:
     executor: pandoc
@@ -98,21 +114,6 @@ jobs:
           paths:
             - README.md
 
-  # TODO: this should be doable with curl or python...
-  # TODO: also support quay
-  docker-readme-push:
-    executor: node
-    parameters:
-      ident:
-        type: string
-    steps:
-      - run: apk add --no-cache --no-progress ca-certificates openssl
-      - checkout
-      - run: npm install docker-hub-api
-      - attach_workspace:
-          at: /meta
-      - run: node ./docker-update-readme.js thekevjames <<parameters.ident>> /meta/README.md
-
 workflows:
   # TODO: test workflow: cargo build cctui/etc
 
@@ -122,80 +123,6 @@ workflows:
     jobs:
       - linter/pre-commit:
           executor: python
-      - docker-build-and-publish:
-          name: docker-autopublish-caddy-security
-          ident: caddy-security
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export CADDY_VERSION=$(awk -F':|-' '/builder-alpine/ {print $2}' docker-caddy-security/Dockerfile)
-                export SECURITY_VERSION=$(awk -F'=' '/ARG CADDYSECURITY_VERSION=/ {print substr($2, 2, length($2))}' docker-caddy-security/Dockerfile)
-                echo "${CADDY_VERSION}-${SECURITY_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: caddy-security
-          requires:
-            - linter/pre-commit
-      - docker-build-and-publish:
-          name: docker-autopublish-fava
-          ident: fava
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export FAVA_VERSION=$(awk -F'=' '/ARG FAVA_VERSION=/ {print $2}' docker-fava/Dockerfile)
-                echo "${FAVA_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: fava
-          requires:
-            - linter/pre-commit
-      - docker-build-and-publish:
-          name: docker-autopublish-gcloud-pubsub-emulator
-          ident: gcloud-pubsub-emulator
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export GCLOUD_VERSION=$(awk -F':|-' '/cloud-sdk/ {print $3}' docker-gcloud-pubsub-emulator/Dockerfile)
-                echo "${GCLOUD_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: gcloud-pubsub-emulator
-          requires:
-            - linter/pre-commit
-      - docker-build-and-publish:
-          name: docker-autopublish-mysqltuner
-          ident: mysqltuner
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export MYSQLTUNER_VERSION=$(awk -F'=' '/VERSION=/ {print $2}' docker-mysqltuner/Makefile)
-                echo "${MYSQLTUNER_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: mysqltuner
-          requires:
-            - linter/pre-commit
-      - docker-build-and-publish:
-          name: docker-autopublish-nox
-          ident: nox
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export NOX_VERSION=$(awk -F'=' '/nox/ {print $3}' docker-nox/requirements.txt)
-                echo "${NOX_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: nox
-          requires:
-            - linter/pre-commit
-      - docker-build-and-publish:
-          name: docker-autopublish-tuning-primer
-          ident: tuning-primer
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export TUNINGPRIMER_VERSION=$(awk -F' ' '/Version:/ {print $3}' docker-tuning-primer/root/tuning-primer.sh)
-                echo "${TUNINGPRIMER_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: tuning-primer
-          requires:
-            - linter/pre-commit
-
       - docker-build-readme:
           name: docker-build-readme-<<matrix.ident>>
           matrix:
@@ -208,9 +135,85 @@ workflows:
                 - nox
                 - tuning-primer
           requires:
-            - docker-autopublish-<<matrix.ident>>
-      - docker-readme-push:
-          name: docker-readme-push-<<matrix.ident>>
+            - linter/pre-commit
+      - docker-workflow:
+          name: docker-autopublish-caddy-security
+          ident: caddy-security
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export CADDY_VERSION=$(awk -F':|-' '/builder-alpine/ {print $2}' docker-caddy-security/Dockerfile)
+                export SECURITY_VERSION=$(awk -F'=' '/ARG CADDYSECURITY_VERSION=/ {print substr($2, 2, length($2))}' docker-caddy-security/Dockerfile)
+                echo "${CADDY_VERSION}-${SECURITY_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: caddy-security
+          requires:
+            - docker-build-readme-caddy-security
+      - docker-workflow:
+          name: docker-autopublish-fava
+          ident: fava
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export FAVA_VERSION=$(awk -F'=' '/ARG FAVA_VERSION=/ {print $2}' docker-fava/Dockerfile)
+                echo "${FAVA_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: fava
+          requires:
+            - docker-build-readme-fava
+      - docker-workflow:
+          name: docker-autopublish-gcloud-pubsub-emulator
+          ident: gcloud-pubsub-emulator
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export GCLOUD_VERSION=$(awk -F':|-' '/cloud-sdk/ {print $3}' docker-gcloud-pubsub-emulator/Dockerfile)
+                echo "${GCLOUD_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: gcloud-pubsub-emulator
+          requires:
+            - docker-build-readme-gcloud-pubsub-emulator
+      - docker-workflow:
+          name: docker-autopublish-mysqltuner
+          ident: mysqltuner
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export MYSQLTUNER_VERSION=$(awk -F'=' '/VERSION=/ {print $2}' docker-mysqltuner/Makefile)
+                echo "${MYSQLTUNER_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: mysqltuner
+          requires:
+            - docker-build-readme-mysqltuner
+      - docker-workflow:
+          name: docker-autopublish-nox
+          ident: nox
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export NOX_VERSION=$(awk -F'=' '/nox/ {print $3}' docker-nox/requirements.txt)
+                echo "${NOX_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: nox
+          requires:
+            - docker-build-readme-nox
+      - docker-workflow:
+          name: docker-autopublish-tuning-primer
+          ident: tuning-primer
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export TUNINGPRIMER_VERSION=$(awk -F' ' '/Version:/ {print $3}' docker-tuning-primer/root/tuning-primer.sh)
+                echo "${TUNINGPRIMER_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: tuning-primer
+          requires:
+            - docker-build-readme-tuning-primer
+
+  manual-publish:
+    jobs:
+      - docker-build-readme:
+          name: docker-build-readme-<<matrix.ident>>
           matrix:
             parameters:
               ident:
@@ -220,13 +223,13 @@ workflows:
                 - mysqltuner
                 - nox
                 - tuning-primer
-          requires:
-            - docker-build-readme-<<matrix.ident>>
-
-  manual-publish:
-    jobs:
-      - docker-build-and-publish:
-          name: docker-build-and-publish-<<matrix.ident>>
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^docker-<<matrix.ident>>-.*/
+      - docker-workflow:
+          name: docker-workflow-<<matrix.ident>>
           tag: "${CIRCLE_TAG/docker-<<matrix.ident>>-/}"
           matrix:
             parameters:
@@ -242,183 +245,5 @@ workflows:
               ignore: /.*/
             tags:
               only: /^docker-<<matrix.ident>>-.*/
-      - docker-build-readme:
-          name: docker-build-readme-<<matrix.ident>>
-          matrix:
-            parameters:
-              ident:
-                - caddy-security
-                - fava
-                - gcloud-pubsub-emulator
-                - mysqltuner
-                - nox
-                - tuning-primer
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^docker-<<matrix.ident>>-.*/
-      - docker-readme-push:
-          name: docker-readme-push-<<matrix.ident>>
-          matrix:
-            parameters:
-              ident:
-                - caddy-security
-                - fava
-                - gcloud-pubsub-emulator
-                - mysqltuner
-                - nox
-                - tuning-primer
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^docker-<<matrix.ident>>-.*/
-          requires:
-            - docker-build-readme-<<matrix.ident>>
-            - docker-build-and-publish-<<matrix.ident>>
-
-  run-jobs:
-    jobs:
-      - linter/pre-commit:
-          executor: python
-      - docker-build-and-publish:
-          name: docker-autopublish-caddy-security
-          ident: caddy-security
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export CADDY_VERSION=$(awk -F':|-' '/builder-alpine/ {print $2}' docker-caddy-security/Dockerfile)
-                export SECURITY_VERSION=$(awk -F'=' '/ARG CADDYSECURITY_VERSION=/ {print substr($2, 2, length($2))}' docker-caddy-security/Dockerfile)
-                echo "${CADDY_VERSION}-${SECURITY_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: caddy-security
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-          requires:
-            - linter/pre-commit
-      - docker-build-and-publish:
-          name: docker-autopublish-fava
-          ident: fava
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export FAVA_VERSION=$(awk -F'=' '/ARG FAVA_VERSION=/ {print $2}' docker-fava/Dockerfile)
-                echo "${FAVA_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: fava
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-          requires:
-            - linter/pre-commit
-      - docker-build-and-publish:
-          name: docker-autopublish-gcloud-pubsub-emulator
-          ident: gcloud-pubsub-emulator
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export GCLOUD_VERSION=$(awk -F':|-' '/cloud-sdk/ {print $3}' docker-gcloud-pubsub-emulator/Dockerfile)
-                echo "${GCLOUD_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: gcloud-pubsub-emulator
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-          requires:
-            - linter/pre-commit
-      - docker-build-and-publish:
-          name: docker-autopublish-mysqltuner
-          ident: mysqltuner
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export MYSQLTUNER_VERSION=$(awk -F'=' '/VERSION=/ {print $2}' docker-mysqltuner/Makefile)
-                echo "${MYSQLTUNER_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: mysqltuner
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-          requires:
-            - linter/pre-commit
-      - docker-build-and-publish:
-          name: docker-autopublish-nox
-          ident: nox
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export NOX_VERSION=$(awk -F'=' '/nox/ {print $3}' docker-nox/requirements.txt)
-                echo "${NOX_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: nox
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-          requires:
-            - linter/pre-commit
-      - docker-build-and-publish:
-          name: docker-autopublish-tuning-primer
-          ident: tuning-primer
-          tag: "${CIRCLE_SHA1:0:10}"
-          post-steps:
-            - run: |
-                export TUNINGPRIMER_VERSION=$(awk -F' ' '/Version:/ {print $3}' docker-tuning-primer/root/tuning-primer.sh)
-                echo "${TUNINGPRIMER_VERSION}" >/tmp/custom-tag
-            - custom-tag:
-                ident: tuning-primer
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-          requires:
-            - linter/pre-commit
-
-      - docker-build-readme:
-          name: docker-build-readme-<<matrix.ident>>
-          matrix:
-            parameters:
-              ident:
-                - caddy-security
-                - fava
-                - gcloud-pubsub-emulator
-                - mysqltuner
-                - nox
-                - tuning-primer
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
-          requires:
-            - docker-autopublish-<<matrix.ident>>
-      - docker-readme-push:
-          name: docker-readme-push-<<matrix.ident>>
-          matrix:
-            parameters:
-              ident:
-                - caddy-security
-                - fava
-                - gcloud-pubsub-emulator
-                - mysqltuner
-                - nox
-                - tuning-primer
-          filters:
-            branches:
-              only: /master/
-            tags:
-              ignore: /.*/
           requires:
             - docker-build-readme-<<matrix.ident>>
