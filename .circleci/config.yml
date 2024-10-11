@@ -9,6 +9,14 @@ executors:
     docker:
       - image: docker:25.0.5-git
     resource_class: medium
+  node:
+    docker:
+      - image: node:22.9.0-alpine
+    resource_class: medium
+  pandoc:
+    docker:
+      - image: pandoc/core:3.5.0
+    resource_class: medium
   python:
     docker:
       - image: python:3.9.19
@@ -72,9 +80,8 @@ jobs:
           ident: <<parameters.ident>>
           tag: <<parameters.tag>>
 
-  docker-readme-build:
-    docker:
-      - image: pandoc/core:3.5.0
+  docker-build-readme:
+    executor: pandoc
     parameters:
       ident:
         type: string
@@ -94,8 +101,7 @@ jobs:
   # TODO: this should be doable with curl or python...
   # TODO: also support quay
   docker-readme-push:
-    docker:
-      - image: node:22.9.0-alpine
+    executor: node
     parameters:
       ident:
         type: string
@@ -109,6 +115,113 @@ jobs:
 
 workflows:
   # TODO: test workflow: cargo build cctui/etc
+
+  test:
+    when:
+      equal: [ kjames/build-on-branches, << pipeline.git.branch >> ]
+    jobs:
+      - linter/pre-commit:
+          executor: python
+      - docker-build-and-publish:
+          name: docker-autopublish-caddy-security
+          ident: caddy-security
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export CADDY_VERSION=$(awk -F':|-' '/builder-alpine/ {print $2}' docker-caddy-security/Dockerfile)
+                export SECURITY_VERSION=$(awk -F'=' '/ARG CADDYSECURITY_VERSION=/ {print substr($2, 2, length($2))}' docker-caddy-security/Dockerfile)
+                echo "${CADDY_VERSION}-${SECURITY_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: caddy-security
+          requires:
+            - linter/pre-commit
+      - docker-build-and-publish:
+          name: docker-autopublish-fava
+          ident: fava
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export FAVA_VERSION=$(awk -F'=' '/ARG FAVA_VERSION=/ {print $2}' docker-fava/Dockerfile)
+                echo "${FAVA_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: fava
+          requires:
+            - linter/pre-commit
+      - docker-build-and-publish:
+          name: docker-autopublish-gcloud-pubsub-emulator
+          ident: gcloud-pubsub-emulator
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export GCLOUD_VERSION=$(awk -F':|-' '/cloud-sdk/ {print $3}' docker-gcloud-pubsub-emulator/Dockerfile)
+                echo "${GCLOUD_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: gcloud-pubsub-emulator
+          requires:
+            - linter/pre-commit
+      - docker-build-and-publish:
+          name: docker-autopublish-mysqltuner
+          ident: mysqltuner
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export MYSQLTUNER_VERSION=$(awk -F'=' '/VERSION=/ {print $2}' docker-mysqltuner/Makefile)
+                echo "${MYSQLTUNER_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: mysqltuner
+          requires:
+            - linter/pre-commit
+      - docker-build-and-publish:
+          name: docker-autopublish-nox
+          ident: nox
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export NOX_VERSION=$(awk -F'=' '/nox/ {print $3}' docker-nox/requirements.txt)
+                echo "${NOX_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: nox
+          requires:
+            - linter/pre-commit
+      - docker-build-and-publish:
+          name: docker-autopublish-tuning-primer
+          ident: tuning-primer
+          tag: "${CIRCLE_SHA1:0:10}"
+          post-steps:
+            - run: |
+                export TUNINGPRIMER_VERSION=$(awk -F' ' '/Version:/ {print $3}' docker-tuning-primer/root/tuning-primer.sh)
+                echo "${TUNINGPRIMER_VERSION}" >/tmp/custom-tag
+            - custom-tag:
+                ident: tuning-primer
+          requires:
+            - linter/pre-commit
+
+      - docker-build-readme:
+          name: docker-build-readme-<<matrix.ident>>
+          matrix:
+            parameters:
+              ident:
+                - caddy-security
+                - fava
+                - gcloud-pubsub-emulator
+                - mysqltuner
+                - nox
+                - tuning-primer
+          requires:
+            - docker-autopublish-<<matrix.ident>>
+      - docker-readme-push:
+          name: docker-readme-push-<<matrix.ident>>
+          matrix:
+            parameters:
+              ident:
+                - caddy-security
+                - fava
+                - gcloud-pubsub-emulator
+                - mysqltuner
+                - nox
+                - tuning-primer
+          requires:
+            - docker-build-readme-<<matrix.ident>>
 
   manual-publish:
     jobs:
@@ -129,8 +242,8 @@ workflows:
               ignore: /.*/
             tags:
               only: /^docker-<<matrix.ident>>-.*/
-      - docker-readme-build:
-          name: docker-readme-build-<<matrix.ident>>
+      - docker-build-readme:
+          name: docker-build-readme-<<matrix.ident>>
           matrix:
             parameters:
               ident:
@@ -162,7 +275,7 @@ workflows:
             tags:
               only: /^docker-<<matrix.ident>>-.*/
           requires:
-            - docker-readme-build-<<matrix.ident>>
+            - docker-build-readme-<<matrix.ident>>
             - docker-build-and-publish-<<matrix.ident>>
 
   run-jobs:
@@ -273,8 +386,8 @@ workflows:
           requires:
             - linter/pre-commit
 
-      - docker-readme-build:
-          name: docker-readme-build-<<matrix.ident>>
+      - docker-build-readme:
+          name: docker-build-readme-<<matrix.ident>>
           matrix:
             parameters:
               ident:
@@ -308,4 +421,4 @@ workflows:
             tags:
               ignore: /.*/
           requires:
-            - docker-readme-build-<<matrix.ident>>
+            - docker-build-readme-<<matrix.ident>>
