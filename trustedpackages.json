@@ -122,6 +122,7 @@
         "pydantic",
         "pydantic-settings",
         "pygments",
+        "pyjson5",
         "pytest",
         "pytest-asyncio",
         "pytest-cases",
