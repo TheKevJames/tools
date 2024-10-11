@@ -5,6 +5,10 @@ orbs:
   linter: talkiq/linter@4
 
 executors:
+  docker:
+    docker:
+      - image: docker:25.0.5-git
+    resource_class: medium
   python:
     docker:
       - image: python:3.9.19
@@ -24,23 +28,26 @@ commands:
       - run: docker push "thekevjames/<<parameters.ident>>:$(cat <<parameters.tag>>)"
       - run: docker push "quay.io/thekevjames/<<parameters.ident>>:$(cat <<parameters.tag>>)"
 
-jobs:
+  docker-build:
+    parameters:
+      ident:
+        type: string
+    steps:
+      - checkout
+      - setup_remote_docker
+      - docker/build:
+          local_image_name: "<<parameters.ident>>:${CIRCLE_SHA1:0:10}"
+          path: "docker-<<parameters.ident>>"
+
   docker-publish:
-    docker:
-      - image: docker:25.0.5-git
     parameters:
       ident:
         type: string
       tag:
         type: string
     steps:
-      - checkout
-      - setup_remote_docker
       - run: echo "$DOCKER_PASS" | docker login docker.io --username "$DOCKER_USER" --password-stdin
       - run: echo "$QUAY_PASS" | docker login quay.io --username "$QUAY_USER" --password-stdin
-      - docker/build:
-          local_image_name: "<<parameters.ident>>:${CIRCLE_SHA1:0:10}"
-          path: "docker-<<parameters.ident>>"
       - run: docker tag "<<parameters.ident>>:${CIRCLE_SHA1:0:10}" "thekevjames/<<parameters.ident>>:<<parameters.tag>>"
       - run: docker tag "<<parameters.ident>>:${CIRCLE_SHA1:0:10}" "thekevjames/<<parameters.ident>>:latest"
       - run: docker tag "<<parameters.ident>>:${CIRCLE_SHA1:0:10}" "quay.io/thekevjames/<<parameters.ident>>:<<parameters.tag>>"
@@ -49,6 +56,21 @@ jobs:
       - run: docker push "thekevjames/<<parameters.ident>>:latest"
       - run: docker push "quay.io/thekevjames/<<parameters.ident>>:<<parameters.tag>>"
       - run: docker push "quay.io/thekevjames/<<parameters.ident>>:latest"
+
+jobs:
+  docker-build-and-publish:
+    executor: docker
+    parameters:
+      ident:
+        type: string
+      tag:
+        type: string
+    steps:
+      - docker-build:
+          ident: <<parameters.ident>>
+      - docker-publish:
+          ident: <<parameters.ident>>
+          tag: <<parameters.tag>>
 
   docker-readme-build:
     docker:
@@ -90,8 +112,8 @@ workflows:
 
   manual-publish:
     jobs:
-      - docker-publish:
-          name: docker-publish-<<matrix.ident>>
+      - docker-build-and-publish:
+          name: docker-build-and-publish-<<matrix.ident>>
           tag: "${CIRCLE_TAG/docker-<<matrix.ident>>-/}"
           matrix:
             parameters:
@@ -141,13 +163,13 @@ workflows:
               only: /^docker-<<matrix.ident>>-.*/
           requires:
             - docker-readme-build-<<matrix.ident>>
-            - docker-publish-<<matrix.ident>>
+            - docker-build-and-publish-<<matrix.ident>>
 
   run-jobs:
     jobs:
       - linter/pre-commit:
           executor: python
-      - docker-publish:
+      - docker-build-and-publish:
           name: docker-autopublish-caddy-security
           ident: caddy-security
           tag: "${CIRCLE_SHA1:0:10}"
@@ -165,7 +187,7 @@ workflows:
               ignore: /.*/
           requires:
             - linter/pre-commit
-      - docker-publish:
+      - docker-build-and-publish:
           name: docker-autopublish-fava
           ident: fava
           tag: "${CIRCLE_SHA1:0:10}"
@@ -182,7 +204,7 @@ workflows:
               ignore: /.*/
           requires:
             - linter/pre-commit
-      - docker-publish:
+      - docker-build-and-publish:
           name: docker-autopublish-gcloud-pubsub-emulator
           ident: gcloud-pubsub-emulator
           tag: "${CIRCLE_SHA1:0:10}"
@@ -199,7 +221,7 @@ workflows:
               ignore: /.*/
           requires:
             - linter/pre-commit
-      - docker-publish:
+      - docker-build-and-publish:
           name: docker-autopublish-mysqltuner
           ident: mysqltuner
           tag: "${CIRCLE_SHA1:0:10}"
@@ -216,7 +238,7 @@ workflows:
               ignore: /.*/
           requires:
             - linter/pre-commit
-      - docker-publish:
+      - docker-build-and-publish:
           name: docker-autopublish-nox
           ident: nox
           tag: "${CIRCLE_SHA1:0:10}"
@@ -233,7 +255,7 @@ workflows:
               ignore: /.*/
           requires:
             - linter/pre-commit
-      - docker-publish:
+      - docker-build-and-publish:
           name: docker-autopublish-tuning-primer
           ident: tuning-primer
           tag: "${CIRCLE_SHA1:0:10}"
