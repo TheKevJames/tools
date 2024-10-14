@@ -5,7 +5,7 @@ ARG NETCATOPENBSD_VERSION=1.217-3
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=24.1.2
 # renovate: datasource=pypi depName=poetry
-ARG POETRY_VERSION=1.8.3
+ARG POETRY_VERSION=1.8.4
 # renovate: datasource=github-releases depName=eficode/wait-for
 ARG WAITFOR_VERSION=2.2.4
 
