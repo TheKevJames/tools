@@ -202,7 +202,7 @@ repos:
         language: python
         additional_dependencies:
           # renovate: datasource=pypi depName=poetry
-          - poetry==1.8.3
+          - poetry==1.8.4
         pass_filenames: true
         files: 'pyproject\.toml$'
       - id: pyproject-use-version-ranges
