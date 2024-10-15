@@ -115,6 +115,7 @@
         "hiredis",
         "jinja2",
         "jira",
+        "jsonpath-ng",
         "hypothesis",
         "openai",
         "prometheus-fastapi-instrumentator",
