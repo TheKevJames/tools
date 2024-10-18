@@ -49,6 +49,7 @@
         "curlimages/curl",
         "docker",
         "hashicorp/terraform",
+        "moss/xelatex",
         "node",
         "nodejs/node",
         "pandoc/core",
