@@ -1,7 +1,8 @@
 # syntax=docker/dockerfile:1
 
-# renovate: datasource=repology depName=debian_11/netcat-openbsd versioning=loose
-ARG NETCATOPENBSD_VERSION=1.217-3
+# TODO: why is this not in repology?
+# renovate: datasource=repology depName=debian_12/netcat-openbsd versioning=loose
+ARG NETCATOPENBSD_VERSION=1.219-1
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=24.1.2
 # renovate: datasource=pypi depName=poetry
@@ -55,11 +56,11 @@ RUN --mount=type=cache,target=/var/cache/apt \
 
 ARG PIP_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip \
-    python3 -m pip install --upgrade "pip==${PIP_VERSION}"
+    python3 -m pip install --upgrade "pip==${PIP_VERSION}" --break-system-packages
 
 COPY --from=builder /tmp/requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
-    python3 -m pip install -r /tmp/requirements.txt
+    python3 -m pip install -r /tmp/requirements.txt --break-system-packages
 
 COPY --from=fetcher /tmp/wait-for /usr/bin
 COPY --link pubsubc.py /usr/bin/pubsubc
