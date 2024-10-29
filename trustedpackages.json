@@ -148,6 +148,7 @@
         "fastapi-slim",
         "flask",
         "google-cloud-pubsub",
+        "httptools",
         "httpx",
         "pandas",
         "pip",
