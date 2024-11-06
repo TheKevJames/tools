@@ -20,7 +20,7 @@ config = { version = "=0.14.0", features = ["yaml"] }
 crossterm = "=0.28.1"
 fern = "=0.6.2"
 log = "=0.4.22"
-ratatui = "=0.28.1"
+ratatui = "=0.29.0"
 reqwest = { version = "=0.12.9", features = ["blocking", "json"] }
 serde = { version = "=1.0.214", features = ["derive"] }
 serde-xml-rs = "=0.6.0"
