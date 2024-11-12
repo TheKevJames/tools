@@ -53,6 +53,7 @@
         "node",
         "nodejs/node",
         "pandoc/core",
+        "surnet/alpine-wkhtmltopdf",
         "quay.io/linuxserver.io/jellyfin",
         "quay.io/linuxserver.io/prowlarr",
         "quay.io/linuxserver.io/radarr",
