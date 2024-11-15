@@ -6,7 +6,7 @@ ARG GCC_VERSION=13.2.1_git20240309-r0
 # renovate: datasource=repology depName=alpine_3_20/musl-dev versioning=loose
 ARG MUSLDEV_VERSION=1.2.5-r0
 # renovate: datasource=pypi depName=pip
-ARG PIP_VERSION=24.1.2
+ARG PIP_VERSION=24.3.1
 # renovate: datasource=pypi depName=fava
 ARG FAVA_VERSION=1.27.3
 
