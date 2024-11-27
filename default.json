@@ -55,9 +55,23 @@
       "rangeStrategy": "pin"
     },
     {
+      "matchDepPatterns": ["^elasticsearch", "^org.elasticsearch.client"],
+      "groupName": "elasticsearch"
+    },
+    {
       "matchManagers": ["maven"],
       "matchDepPatterns": ["^com.google.auto.value"],
-      "groupName": "com.google.auto.value packages"
+      "groupName": "com.google.auto.value"
+    },
+    {
+      "matchManagers": ["maven"],
+      "matchDepPatterns": ["^org.apache.beam", "^apache-beam$", "^beam_python..._sdk$"],
+      "groupName": "org.apache.beam"
+    },
+    {
+      "matchManagers": ["maven"],
+      "matchDepPatterns": ["^org.jetbrains.kotlin"],
+      "groupName": "org.jetbrains.kotlin"
     },
     {
       "matchDatasources": ["terraform"],
