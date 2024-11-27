@@ -4,13 +4,6 @@
     {
       "matchManagers": ["dockerfile"],
       "matchDepNames": [
-        "google/cloud-sdk",
-      ],
-      "automerge": true,
-    },
-    {
-      "matchManagers": ["dockerfile"],
-      "matchDepNames": [
         "library/caddy",
       ],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],

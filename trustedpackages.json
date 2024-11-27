@@ -25,6 +25,7 @@
     {
       "matchDatasources": ["docker"],
       "matchPackagePatterns": [
+        "^google/cloud-sdk",
         "^thekevjames/gcloud-pubsub-emulator$",
         "^quay.io/thekevjames/gcloud-pubsub-emulator$"
       ],
@@ -46,6 +47,7 @@
         "bitnami/kube-state-metrics",
         "busybox",
         "caddy",
+        "cimg/gcp",
         "curlimages/curl",
         "docker",
         "hashicorp/terraform",
