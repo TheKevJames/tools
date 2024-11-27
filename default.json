@@ -3,7 +3,8 @@
   "branchPrefix": "renovate/",
   "extends": [
     "group:monorepos",
-    "group:recommended"
+    "group:recommended",
+    "npm:unpublishSafe"
   ],
   "ignoreUnstable": true,
   "lockFileMaintenance": {
@@ -55,80 +56,81 @@
       "rangeStrategy": "pin"
     },
     {
-      "matchDepPatterns": ["^elasticsearch", "^org.elasticsearch.client"],
-      "groupName": "elasticsearch"
+      "groupName": "elasticsearch",
+      "matchDepPatterns": ["^elasticsearch", "^org.elasticsearch.client"]
     },
     {
+      "groupName": "com.google.auto.value",
       "matchManagers": ["maven"],
-      "matchDepPatterns": ["^com.google.auto.value"],
-      "groupName": "com.google.auto.value"
+      "matchDepPatterns": ["^com.google.auto.value"]
     },
     {
+      "groupName": "org.apache.beam",
       "matchManagers": ["maven"],
-      "matchDepPatterns": ["^org.apache.beam", "^apache-beam$", "^beam_python..._sdk$"],
-      "groupName": "org.apache.beam"
+      "matchDepPatterns": ["^org.apache.beam", "^apache-beam$", "^beam_python..._sdk$"]
     },
     {
+      "groupName": "org.jetbrains.kotlin",
       "matchManagers": ["maven"],
-      "matchDepPatterns": ["^org.jetbrains.kotlin"],
-      "groupName": "org.jetbrains.kotlin"
+      "matchDepPatterns": ["^org.jetbrains.kotlin"]
     },
     {
+      "groupName": "google",
       "matchDatasources": ["terraform"],
-      "matchDepPatterns": ["^google"],
-      "groupName": "google"
+      "matchDepPatterns": ["^google"]
     },
     {
+      "groupName": "google",
       "matchManagers": ["terraform"],
-      "matchDepPatterns": ["^google"],
-      "groupName": "google"
+      "matchDepPatterns": ["^google"]
     },
     {
+      "groupName": "gcsfs",
       "matchDatasources": ["pypi"],
-      "matchDepPatterns": ["^fsspec$", "^gcsfs$"],
-      "groupName": "gcsfs"
+      "matchDepPatterns": ["^fsspec$", "^gcsfs$"]
     },
     {
+      "groupName": "grpcio",
       "matchDatasources": ["pypi"],
-      "matchDepPatterns": ["^grpcio"],
-      "groupName": "grpcio"
+      "matchDepPatterns": ["^grpcio"]
     },
     {
+      "groupName": "mkl",
       "matchDatasources": ["pypi"],
-      "matchDepPatterns": ["^mkl$", "^intel-openmp$"],
-      "groupName": "mkl"
+      "matchDepPatterns": ["^mkl$", "^intel-openmp$"]
     },
     {
+      "groupName": "pydantic",
       "matchDatasources": ["pypi"],
-      "matchDepPatterns": ["^pydantic$", "^pydantic-core$"],
-      "groupName": "pydantic"
+      "matchDepPatterns": ["^pydantic$", "^pydantic-core$"]
     },
     {
-      "matchDepPatterns": ["^python$", "^python/cpython$"],
-      "groupName": "python"
+      "groupName": "python",
+      "matchDepPatterns": ["^python$", "^python/cpython$"]
     },
     {
+      "groupName": "pytorch",
       "matchDatasources": ["pypi"],
-      "matchDepPatterns": ["^torch$", "^torchaudio$"],
-      "groupName": "pytorch"
+      "matchDepPatterns": ["^torch$", "^torchaudio$"]
     },
     {
+      "groupName": "sanic",
       "matchDatasources": ["pypi"],
-      "matchDepPatterns": ["^sanic$", "^sanic-testing$"],
-      "groupName": "sanic"
+      "matchDepPatterns": ["^sanic$", "^sanic-testing$"]
     },
     {
-      "matchDepPatterns": ["^terraform$"],
-      "groupName": "terraform"
+      "groupName": "terraform",
+      "matchDepPatterns": ["^terraform$"]
     }
   ],
-  "regexManagers": [
+  "customManagers": [
     {
       "description": "Update _VERSION variables in Dockerfiles",
       "fileMatch": [
         "(^|/|\\.)Dockerfile$",
         "(^|/)Dockerfile\\.[^/]*$"
       ],
+      "customType": "regex",
       "matchStrings": [
         "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s(?:ENV|ARG) .+?_VERSION=(?<currentValue>.+?)\\s"
       ],
@@ -142,6 +144,7 @@
       "fileMatch": [
         "(^|/)\\.pre-commit-config\\.yaml$"
       ],
+      "customType": "regex",
       "matchStrings": [
         "default_language_version:\\s+python: python(?<currentValue>.+?)\\s"
       ],
@@ -152,6 +155,7 @@
       "fileMatch": [
         "^.pre-commit-config.yaml$"
       ],
+      "customType": "regex",
       "matchStrings": [
         "# renovate: datasource=(?<datasource>pypi) depName=(?<depName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s+- .+==(?<currentValue>.+?)\\s"
       ],
@@ -162,6 +166,7 @@
       "fileMatch": [
         "(^|/)*\\.tf$"
       ],
+      "customType": "regex",
       "matchStrings": [
         "\\s*image\\s*=\\s*\"(?<depName>.*?):(?<currentValue>.*?)\"\\s*#\\s*renovate\\n"
       ],
@@ -177,7 +182,7 @@
   "pruneStaleBranches": true,
   "rangeStrategy": "pin",
   "rollbackPrs": true,
-  "semanticCommits": true,
+  "semanticCommits": "enabled",
   "semanticCommitType": "chore",
   "separateMajorMinor": true,
   "separateMinorPatch": true,
