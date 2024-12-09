@@ -44,6 +44,7 @@
     {
       "matchDatasources": ["docker"],
       "matchDepNames": [
+        "alpine/git",
         "bitnami/kube-state-metrics",
         "busybox",
         "caddy",
