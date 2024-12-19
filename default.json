@@ -106,7 +106,7 @@
     },
     {
       "groupName": "python",
-      "matchDepPatterns": ["^python$", "^python/cpython$"]
+      "matchDepPatterns": ["^cimg/python$", "^python$", "^python/cpython$"]
     },
     {
       "groupName": "pytorch",
