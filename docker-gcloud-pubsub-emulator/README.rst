@@ -135,6 +135,27 @@ If you want to define more projects, you'd simply add a ``PUBSUB_PROJECT2``,
 As with configuring this script via config file, you must have at least one
 configured ``topic``.
 
+Timeout
+^^^^^^^
+There are times when the Google Cloud PubSub system takes more than the default 15s
+to be ready to accept requests to create the project/topic/subscription. If you
+are getting the message:
+```
+Operation timed out
+```
+you may want to increase the timeout, by setting the environment variable
+`PUBSUB_EMULATOR_WAIT_TIMEOUT` (in seconds) to some value larger than 15.
+For example, the command below will set the timeout to be 60 seconds.
+
+.. code-block:: console
+
+   $ docker run --rm -it \
+         -p 8681:8681 \
+         -e PUBSUB_EMULATOR_WAIT_TIMEOUT=60 \
+         -e PUBSUB_PROJECT1=company-dev,invoices:invoice-calculator,chats:slack-out:irc-out,notifications \
+         thekevjames/gcloud-pubsub-emulator:latest
+
+
 Liveness Probes
 ~~~~~~~~~~~~~~~
 
