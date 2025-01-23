@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
 
-# https://pkgs.alpinelinux.org/packages?name=&branch=v3.20&repo=&arch=&maintainer=
-# renovate: datasource=repology depName=alpine_3_20/gcc versioning=loose
-ARG GCC_VERSION=13.2.1_git20240309-r0
-# renovate: datasource=repology depName=alpine_3_20/musl-dev versioning=loose
-ARG MUSLDEV_VERSION=1.2.5-r0
+# https://pkgs.alpinelinux.org/packages?name=&branch=v3.21&repo=&arch=&maintainer=
+# renovate: datasource=repology depName=alpine_3_21/gcc versioning=loose
+ARG GCC_VERSION=14.2.0-r4
+# renovate: datasource=repology depName=alpine_3_21/musl-dev versioning=loose
+ARG MUSLDEV_VERSION=1.2.5-r8
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=24.3.1
 # renovate: datasource=pypi depName=fava

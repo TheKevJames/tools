@@ -2,11 +2,11 @@
 
 # https://pkgs.alpinelinux.org/packages?name=&branch=v3.20&repo=&arch=&maintainer=
 # renovate: datasource=repology depName=alpine_3_20/mysql-client versioning=loose
-ARG MYSQLCLIENT_VERSION=10.11.8-r0
+ARG MYSQLCLIENT_VERSION=10.11.10-r0
 # renovate: datasource=repology depName=alpine_3_20/perl versioning=loose
-ARG PERL_VERSION=5.38.2-r0
+ARG PERL_VERSION=5.38.3-r0
 # renovate: datasource=repology depName=alpine_3_20/perl-doc versioning=loose
-ARG PERLDOC_VERSION=5.38.2-r0
+ARG PERLDOC_VERSION=5.38.3-r0
 
 
 FROM alpine:3.20.5
