@@ -1,6 +1,7 @@
 ci:
     autofix_commit_msg: 'refactor(lint): apply automatic lint fixes'
     autoupdate_commit_msg: 'chore(deps): bump pre-commit linter versions'
+    skip: [terraform_fmt, terraform_validate]
 
 default_install_hook_types:
   - commit-msg
@@ -13,7 +14,7 @@ exclude: '^docker-tuning-primer/root/.*.sh$'
 
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v3.6.0
+    rev: v4.0.0
     hooks:
       - id: conventional-pre-commit
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -24,7 +25,6 @@ repos:
       - id: check-json
       - id: check-merge-conflict
       - id: check-shebang-scripts-are-executable
-        exclude: 'slack-notifier/send-deploy-notif.sh'  # TODO
       - id: check-symlinks
       - id: check-toml
       - id: check-vcs-permalinks
@@ -57,6 +57,7 @@ repos:
           - --max-complexity=10
           - --max-line-length=79
           - --max-module-lines=500
+          - --max-positional-arguments=10
           - --max-args=10
           - --score=n
           # TODO: narrow these down
@@ -110,8 +111,10 @@ repos:
         # Note that some libraries keep their type hints in packages named
         # `types-$lib` or `$lib-stubs`.
         additional_dependencies:
-        - aiohttp
-        - google-cloud-pubsub>=2.19.0
+          # renovate: datasource=pypi depName=aiohttp
+          - aiohttp==3.11.11
+          # renovate: datasource=pypi depName=google-cloud-pubsub
+          - google-cloud-pubsub==2.27.3
         args:
           - --show-error-codes
           - --strict
@@ -122,8 +125,10 @@ repos:
         name: mypy-task
         language_version: python3.11
         additional_dependencies:
-        - pydantic
-        - typer
+          # renovate: datasource=pypi depName=pydantic
+          - pydantic==2.10.6
+          # renovate: datasource=pypi depName=typer
+          - typer==0.12.5
         files: task/
   - repo: https://github.com/asottile/yesqa
     rev: v1.5.0
@@ -202,7 +207,7 @@ repos:
         language: python
         additional_dependencies:
           # renovate: datasource=pypi depName=poetry
-          - poetry==1.8.5
+          - poetry==2.0.1
         pass_filenames: true
         files: 'pyproject\.toml$'
       - id: pyproject-use-version-ranges
@@ -234,18 +239,20 @@ repos:
   - repo: https://github.com/python-jsonschema/check-jsonschema
     rev: 0.31.0
     hooks:
+      - id: check-circle-ci
       - id: check-github-workflows
       - id: check-renovate
         additional_dependencies:
           # renovate: datasource=pypi depName=pyjson5
           - pyjson5==1.6.8
+
 # docker
   - repo: https://github.com/AleksaC/hadolint-py
     rev: v2.12.1b3
     hooks:
       - id: hadolint
         args:
-          - --ignore=DL3025  # TODO: remove this ignorerule?
+          - --ignore=DL3025
           # https://github.com/hadolint/hadolint/issues/497
           - --ignore=DL3042
 
@@ -264,17 +271,17 @@ repos:
 
 # shell
 # TODO: enable me
-#   - repo: https://github.com/openstack/bashate
-#     rev: 2.1.1
-#     hooks:
-#       - id: bashate
-#         args: [--max-line-length=80]
+#  - repo: https://github.com/openstack/bashate
+#    rev: 2.1.1
+#    hooks:
+#      - id: bashate
+#        args: [--max-line-length=80]
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
-# TODO: enable me
-#   - repo: https://github.com/jumanjihouse/pre-commit-hooks
-#     rev: 3.0.0
-#     hooks:
-#       - id: script-must-not-have-extension
+  - repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: 3.0.0
+    hooks:
+      - id: script-must-not-have-extension
+        exclude: 'slack-notifier/send-deploy-notif.sh'

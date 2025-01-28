@@ -64,8 +64,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 COPY --from=fetcher /tmp/wait-for /usr/bin
 COPY --link pubsubc.py /usr/bin/pubsubc
-COPY --link run.sh /run.sh
+COPY --link run /usr/bin/run
 
 EXPOSE 8681 8682/udp
 
-ENTRYPOINT ["/run.sh"]
+ENTRYPOINT ["/usr/bin/run"]
