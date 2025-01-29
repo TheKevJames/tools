@@ -1,15 +1,15 @@
 # syntax=docker/dockerfile:1
 
-# https://pkgs.alpinelinux.org/packages?name=&branch=v3.20&repo=&arch=&maintainer=
-# renovate: datasource=repology depName=alpine_3_20/mysql-client versioning=loose
-ARG MYSQLCLIENT_VERSION=10.11.10-r0
-# renovate: datasource=repology depName=alpine_3_20/perl versioning=loose
-ARG PERL_VERSION=5.38.3-r0
-# renovate: datasource=repology depName=alpine_3_20/perl-doc versioning=loose
-ARG PERLDOC_VERSION=5.38.3-r0
+# https://pkgs.alpinelinux.org/packages?name=&branch=v3.21&repo=&arch=&maintainer=
+# renovate: datasource=repology depName=alpine_3_21/mysql-client versioning=loose
+ARG MYSQLCLIENT_VERSION=11.4.4-r1
+# renovate: datasource=repology depName=alpine_3_21/perl versioning=loose
+ARG PERL_VERSION=5.40.1-r0
+# renovate: datasource=repology depName=alpine_3_21/perl-doc versioning=loose
+ARG PERLDOC_VERSION=5.40.1-r0
 
 
-FROM alpine:3.20.5
+FROM alpine:3.21.2
 
 ARG MYSQLCLIENT_VERSION
 ARG PERL_VERSION
