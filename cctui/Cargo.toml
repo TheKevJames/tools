@@ -16,7 +16,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 chrono = "=0.4.39"
-config = { version = "=0.14.1", features = ["yaml"] }
+config = { version = "=0.15.7", features = ["yaml"] }
 crossterm = "=0.28.1"
 fern = "=0.6.2"
 log = "=0.4.25"
