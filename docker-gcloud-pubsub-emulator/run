@@ -7,7 +7,7 @@
 (
     set -eu
     echo "Waiting for emulator..."
-    /usr/bin/wait-for localhost:8681 -- env PUBSUB_EMULATOR_HOST=localhost:8681 /usr/bin/pubsubc
+    /usr/bin/wait-for localhost:8681 -t 120 -- env PUBSUB_EMULATOR_HOST=localhost:8681 /usr/bin/pubsubc
     echo "[run] Done building projects/topics/subscriptions! Opening readiness port..."
     nc -lkp 8682
 ) &
