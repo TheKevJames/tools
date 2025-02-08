@@ -8,7 +8,7 @@ ARG MUSLDEV_VERSION=1.2.5-r8
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=24.3.1
 # renovate: datasource=pypi depName=fava
-ARG FAVA_VERSION=1.27.3
+ARG FAVA_VERSION=1.30.1
 
 
 FROM python:3.13.2-alpine
