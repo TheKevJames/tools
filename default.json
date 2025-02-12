@@ -43,17 +43,19 @@
     },
     {
       "matchManagers": ["poetry"],
-      "matchDepTypes": ["dependencies"],
+      "matchDepTypes": ["dependencies", "extras"],
       "matchDepPatterns": ["^python$"],
       "rangeStrategy": "widen"
     },
     {
-      "matchDepTypes": ["build-system.requires"],
-      "rangeStrategy": "widen"
+      "matchManagers": ["poetry"],
+      "matchDepTypes": ["dev"],
+      "rangeStrategy": "pin"
     },
     {
-      "matchDepTypes": ["dev", "devDependencies"],
-      "rangeStrategy": "pin"
+      "matchManagers": ["poetry"],
+      "matchDepTypes": ["build-system.requires"],
+      "rangeStrategy": "widen"
     },
     {
       "groupName": "elasticsearch",
