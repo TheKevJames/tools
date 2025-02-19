@@ -6,12 +6,14 @@ ARG NETCATOPENBSD_VERSION=1.219-1
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=24.3.1
 # renovate: datasource=pypi depName=poetry
-ARG POETRY_VERSION=1.8.5
+ARG POETRY_VERSION=2.1.1
+# renovate: datasource=pypi depName=poetry-plugin-export
+ARG POETRYPLUGINEXPORT_VERSION=1.9.0
 # renovate: datasource=github-releases depName=eficode/wait-for
 ARG WAITFOR_VERSION=2.2.4
 
 
-FROM curlimages/curl:8.12.1 as fetcher
+FROM curlimages/curl:8.12.1 AS fetcher
 
 ARG WAITFOR_VERSION
 RUN curl -vsSLo /tmp/wait-for "https://github.com/eficode/wait-for/releases/download/v${WAITFOR_VERSION}/wait-for" && \
@@ -28,10 +30,12 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     /opt/poetry/bin/pip install --upgrade "pip==${PIP_VERSION}"
 
 ARG POETRY_VERSION
+ARG POETRYPLUGINEXPORT_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip \
-    /opt/poetry/bin/pip install "poetry==${POETRY_VERSION}" && \
-    /opt/poetry/bin/poetry config virtualenvs.options.no-pip true && \
-    /opt/poetry/bin/poetry config virtualenvs.options.no-setuptools true
+    /opt/poetry/bin/pip install \
+        "poetry==${POETRY_VERSION}" \
+        "poetry-plugin-export==${POETRYPLUGINEXPORT_VERSION}" && \
+    /opt/poetry/bin/poetry config virtualenvs.options.no-pip true
 
 WORKDIR /app
 COPY pyproject.toml poetry.lock ./

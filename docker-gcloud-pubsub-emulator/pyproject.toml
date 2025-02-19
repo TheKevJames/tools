@@ -1,15 +1,24 @@
-[tool.poetry]
+[project]
 name = "pubsubc"
 version = "0.1.0"
 description = "Google PubSub topic and subscription creator"
+requires-python = ">=3.9,<4.0"
+license = { text = "MIT" }
 
+authors = [
+    { name = "Kevin James", email = "KevinJames@thekev.in" },
+]
+
+dependencies = [
+    "google-cloud-pubsub==2.28.0",
+]
+
+[project.urls]
 repository = "https://github.com/TheKevJames/tools"
-authors = ["Kevin James <KevinJames@thekev.in>"]
-license = "MIT"
 
-[tool.poetry.dependencies]
-python = ">=3.9, <4.0"
-google-cloud-pubsub = "2.28.0"
+[tool.poetry]
+requires-poetry = ">=2.0"
+package-mode = false
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
