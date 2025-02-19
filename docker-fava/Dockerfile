@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # renovate: datasource=pypi depName=pip
-ARG PIP_VERSION=24.3.1
+ARG PIP_VERSION=25.0.1
 # renovate: datasource=pypi depName=fava
 ARG FAVA_VERSION=1.30.1
 
