@@ -1,0 +1,23 @@
+name: CI Builds
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read # This is required for actions/checkout
+  packages: write
+
+jobs:
+  build:
+    name: Build docker image
+    uses: PromiseNetwork/docker_tools_fork/.github/workflows/docker-build-image.yml@main
+    with:
+      dockerfile: "docker-gcloud-pubsub-emulator/Dockerfile"
+      name: docker-gcloud-pubsub-emulator
+      build_context: "./docker-gcloud-pubsub-emulator"
+      tags: |
+        ${{ github.ref == 'ref/heads/main' && 'latest' || null }}
+        ${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || null }}

@@ -1,0 +1,88 @@
+name: Build Container Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      dockerfile:
+        description: "The Dockerfile to use for building the image."
+        required: true
+        type: string
+      name:
+        description: "The container image name (e.g. imports-job)."
+        type: string
+        required: true
+      tags:
+        description: "Additional tags to apply to the image (Use whitespace to separate multiple tags)."
+        required: true
+        type: string
+      build_context:
+        description: "The build context to use for building the image."
+        required: true
+        type: string
+        default: "."
+  workflow_call:
+    inputs:
+      dockerfile:
+        description: "The Dockerfile to use for building the image."
+        required: true
+        type: string
+      name:
+        description: "The container image name (e.g. imports-job)."
+        type: string
+        required: true
+      tags:
+        description: "Additional tags to apply to the image (Use whitespace to separate multiple tags)."
+        required: true
+        type: string
+      build_context:
+        description: "The build context to use for building the image."
+        required: true
+        type: string
+        default: "."
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    name: Build ${{ inputs.name }} Container Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Configure Additional Tags"
+        shell: bash
+        run: |
+          echo "### Build with Tags" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ inputs.name }}:ref-${{ github.sha }}\`"
+
+          readarray -t tags_array <<< "${{ inputs.tags }}"
+          for tag in "${tags_array[@]}"; do
+            # Trim
+            tag=$(echo "$tag" | xargs)
+            if [ -n "$tag" ]; then
+              fulltag="${{ inputs.name }}:${tag}"
+              EXTENDED_TAGS+=($fulltag)
+              echo "Adding tag: $fulltag"
+              echo "- \`${fulltag}\`" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          tagstring=$(printf "%s " "${EXTENDED_TAGS[@]}")
+          echo "full_tags=$tagstring" >> $GITHUB_ENV
+
+      - name: "Build Image"
+        uses: ./.github/actions/docker-build
+        id: build_imports
+        with:
+          dockerfile: ${{ inputs.dockerfile}}
+          context: ${{ inputs.build_context }}
+          publish: true
+          tags: |
+            ${{ inputs.name }}:ref-${{ github.sha }}
+            ${{ env.full_tags }}

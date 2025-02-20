@@ -1,0 +1,99 @@
+name: "Build Docker Image"
+description: "Builds (and optionally pushes) a Docker image."
+inputs:
+  dockerfile:
+    description: "The path to the Dockerfile."
+    required: true
+    type: string
+  tags:
+    description: "The tags to apply to the image. (Use whitespace to separate multiple tags)."
+    required: true
+    type: string
+  npmToken:
+    description: "The NPM token to use for private package installation."
+    required: true
+    type: string
+
+  # Optional inputs
+  publish:
+    description: "Whether to push the image to a registry."
+    required: false
+    default: "false"
+    type: boolean
+  context:
+    description: "The context directory for the Docker build."
+    required: false
+    default: "."
+    type: string
+  build_args:
+    description: "Build-time variables to pass to the Docker build."
+    required: false
+    default: ""
+    type: string
+outputs:
+  full_tags:
+    description: "The full tags for the built image."
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: "Authenticate with Google Cloud"
+      uses: "google-github-actions/auth@v2"
+      with:
+        workload_identity_provider: "projects/144073409095/locations/global/workloadIdentityPools/github/providers/github"
+        service_account: "github-actions@developmentartifacts1.iam.gserviceaccount.com"
+        access_token_lifetime: 300s
+        token_format: access_token
+
+    - name: "Set up Cloud SDK"
+      uses: "google-github-actions/setup-gcloud@v2"
+
+    - name: "Artifact Registry Auth"
+      shell: bash
+      run: |
+        gcloud auth configure-docker us-central1-docker.pkg.dev
+
+    - name: "Extend tags"
+      shell: bash
+      run: |
+        REPO_URL="us-central1-docker.pkg.dev/developmentartifacts1/promisepay"
+        EXTENDED_TAGS=()
+
+        echo '### Container Output :rocket:' >> $GITHUB_STEP_SUMMARY
+        echo 'Building container from file `${{ inputs.dockerfile }}`.' >> $GITHUB_STEP_SUMMARY
+        echo '| Tag | Full Tag |' >> $GITHUB_STEP_SUMMARY
+        echo '| --- | -------- |' >> $GITHUB_STEP_SUMMARY
+
+        readarray -t tags_array <<< "${{ inputs.tags }}"
+        for tag in "${tags_array[@]}"; do
+          # Trim
+          tag=$(echo "$tag" | xargs)
+          if [ -n "$tag" ]; then
+            fulltag="${REPO_URL}/${tag}"
+            EXTENDED_TAGS+=($fulltag)
+            echo "Adding tag: $fulltag"
+            echo "| \`${tag}\` | \`${fulltag}\` |" >> $GITHUB_STEP_SUMMARY
+          fi
+        done
+
+        tagstring=$(printf "%s," "${EXTENDED_TAGS[@]}")
+        echo "full_tags=$tagstring" >> $GITHUB_ENV
+        echo "full_tags=$tagstring" >> $GITHUB_OUTPUT
+
+    - name: Build image and push to artifact registry
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ inputs.context }}
+        file: ${{ inputs.dockerfile }}
+        push: ${{ inputs.publish }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: ${{ inputs.build_args }}
+        secrets: |
+          "npm_token=${{ inputs.npmToken }}"
+        tags: ${{ env.full_tags }}
