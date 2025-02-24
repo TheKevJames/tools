@@ -112,7 +112,7 @@ repos:
         # `types-$lib` or `$lib-stubs`.
         additional_dependencies:
           # renovate: datasource=pypi depName=aiohttp
-          - aiohttp==3.11.12
+          - aiohttp==3.11.13
           # renovate: datasource=pypi depName=google-cloud-pubsub
           - google-cloud-pubsub==2.28.0
         args:
