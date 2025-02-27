@@ -128,7 +128,7 @@ repos:
           # renovate: datasource=pypi depName=pydantic
           - pydantic==2.10.6
           # renovate: datasource=pypi depName=typer
-          - typer==0.15.1
+          - typer==0.15.2
         files: task/
   - repo: https://github.com/asottile/yesqa
     rev: v1.5.0
