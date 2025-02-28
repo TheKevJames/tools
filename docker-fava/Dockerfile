@@ -7,7 +7,7 @@ ARG FAVA_VERSION=1.30.1
 
 
 # TODO: get alpine wheels for beancount
-FROM python:3.12.9-slim-bullseye
+FROM python:3.13.2-slim-bullseye
 
 ARG PIP_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip \
