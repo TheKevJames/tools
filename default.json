@@ -62,18 +62,23 @@
     },
     {
       "groupName": "com.google.auto.value",
-      "matchManagers": ["maven"],
-      "matchDepPatterns": ["^com.google.auto.value"]
+      "matchManagers": ["gradle", "maven"],
+      "matchDepPatterns": ["^com.google.auto.value.*$"]
     },
     {
       "groupName": "org.apache.beam",
-      "matchManagers": ["maven"],
-      "matchDepPatterns": ["^org.apache.beam", "^apache-beam$", "^beam_python..._sdk$"]
+      "matchManagers": ["gradle", "maven"],
+      "matchDepPatterns": ["^org.apache.beam.*$", "^apache-beam$", "^beam_python..._sdk$"]
+    },
+    {
+      "groupName": "org.apache.hadoop",
+      "matchManagers": ["gradle", "maven"],
+      "matchDepPatterns": ["^org.apache.hadoop.*$"]
     },
     {
       "groupName": "org.jetbrains.kotlin",
-      "matchManagers": ["maven"],
-      "matchDepPatterns": ["^org.jetbrains.kotlin"]
+      "matchManagers": ["gradle", "maven"],
+      "matchDepPatterns": ["^org.jetbrains.kotlin.*$"]
     },
     {
       "groupName": "google",
