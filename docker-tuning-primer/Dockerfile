@@ -4,9 +4,9 @@
 # renovate: datasource=repology depName=alpine_3_21/bc versioning=loose
 ARG BC_VERSION=1.07.1-r5
 # renovate: datasource=repology depName=alpine_3_21/mariadb versioning=loose
-ARG MARIADB_VERSION=11.4.4-r1
+ARG MARIADB_VERSION=11.4.5-r0
 # renovate: datasource=repology depName=alpine_3_21/mariadb-client versioning=loose
-ARG MARIADBCLIENT_VERSION=11.4.4-r1
+ARG MARIADBCLIENT_VERSION=11.4.5-r1
 # renovate: datasource=repology depName=alpine_3_21/ncurses versioning=loose
 ARG NCURSES_VERSION=6.5_p20241006-r3
 # renovate: datasource=repology depName=alpine_3_21/socat versioning=loose

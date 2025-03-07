@@ -2,7 +2,7 @@
 
 # https://pkgs.alpinelinux.org/packages?name=&branch=v3.21&repo=&arch=&maintainer=
 # renovate: datasource=repology depName=alpine_3_21/mariadb-client versioning=loose
-ARG MARIADBCLIENT_VERSION=11.4.4-r1
+ARG MARIADBCLIENT_VERSION=11.4.5-r0
 # renovate: datasource=repology depName=alpine_3_21/perl versioning=loose
 ARG PERL_VERSION=5.40.1-r0
 # renovate: datasource=repology depName=alpine_3_21/perl-doc versioning=loose
