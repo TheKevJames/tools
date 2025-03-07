@@ -15,6 +15,7 @@
     {
       "matchDatasources": ["crate"],
       "matchDepNames": [
+        "config",
         "fern",
         "ratatui",
         "reqwest"
