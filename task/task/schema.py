@@ -4,6 +4,7 @@ import pathlib
 import re
 from collections.abc import Iterable
 from collections.abc import Iterator
+from typing import Any
 from typing import assert_never
 from typing import Self
 
@@ -105,6 +106,18 @@ class Link(pydantic.BaseModel, extra='forbid'):
 
     def __str__(self) -> str:
         return f'{self.ftitle[0].lower()}{self.lineno}'
+
+    def __lt__(self, other: Any) -> bool:
+        if not isinstance(other, Link):
+            raise TypeError(
+                "'<' not supported between instances of 'Link' and "
+                f"'{type(other)}'",
+            )
+
+        if self.ftitle == other.ftitle:
+            return self.lineno < other.lineno
+
+        return self.ftitle < other.ftitle
 
 
 class Task(pydantic.BaseModel, extra='forbid'):
@@ -217,3 +230,9 @@ class Filter(pydantic.BaseModel, extra='forbid'):
     def apply(tasks: Iterable[Task], self: 'Filter') -> Iterator[Task]:
         # TODO(refactor): weird af call signature
         yield from (x for x in tasks if self.func(x))
+
+
+class SortOrder(str, enum.Enum):
+    ident = 'id'
+    due = 'due'
+    tag = 'tag'

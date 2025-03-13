@@ -13,6 +13,7 @@ Ago = Annotated[int, typer.Option('-a', '--ago')]
 Days = Annotated[int, typer.Option('-d', '--days')]
 Filter = Annotated[str, typer.Option('-f', '--filter', help='foo=bar,baz!=bq')]
 Limit = Annotated[int, typer.Option('-l', '--limit')]
+Sort = Annotated[schema.SortOrder, typer.Option('-s', '--sort')]
 
 
 @app.command('add')
@@ -69,8 +70,13 @@ def done(task: str, ago: Ago = 0) -> None:
 
 
 @app.command('due')
-def due(filter_: Filter = '', limit: Limit = -1) -> None:
-    for task in cmd.load_with_next(files.load(), filter_, 0, limit):
+def due(
+        filter_: Filter = '',
+        limit: Limit = -1,
+        sort: Sort = schema.SortOrder.due,
+) -> None:
+    # TODO: column-aligned printing
+    for task in cmd.load_with_next(files.load(), filter_, 0, limit, sort):
         print(task)
 
 
@@ -91,14 +97,25 @@ def filters() -> None:
 
 
 @app.command('highpri')
-def highpri(filter_: Filter = '', days: Days = -1, limit: Limit = -1) -> None:
-    for task in cmd.load(files.load(), f'{filter_},tag=highpri', days, limit):
+def highpri(
+        days: Days = -1,
+        filter_: Filter = '',
+        limit: Limit = -1,
+        sort: Sort = schema.SortOrder.due,
+) -> None:
+    filt = f'{filter_},tag=highpri'
+    for task in cmd.load(files.load(), filt, days, limit, sort):
         print(task)
 
 
 @app.command('list')
-def list_(filter_: Filter = '', days: Days = 7, limit: Limit = -1) -> None:
-    for task in cmd.load(files.load(), filter_, days, limit):
+def list_(
+        days: Days = 7,
+        filter_: Filter = '',
+        limit: Limit = -1,
+        sort: Sort = schema.SortOrder.ident,
+) -> None:
+    for task in cmd.load(files.load(), filter_, days, limit, sort):
         print(task)
 
 
@@ -116,14 +133,25 @@ def settings() -> None:
 
 
 @app.command('soon')
-def soon(filter_: Filter = '', days: Days = 3, limit: Limit = -1) -> None:
-    for task in cmd.load_with_next(files.load(), filter_, days, limit):
+def soon(
+        days: Days = 3,
+        filter_: Filter = '',
+        limit: Limit = -1,
+        sort: Sort = schema.SortOrder.due,
+) -> None:
+    for task in cmd.load_with_next(files.load(), filter_, days, limit, sort):
         print(task)
 
 
 @app.command('triage')
-def triage(filter_: Filter = '', days: Days = -1, limit: Limit = -1) -> None:
-    for task in cmd.load(files.load(), f'{filter_},tag=triage', days, limit):
+def triage(
+        days: Days = -1,
+        filter_: Filter = '',
+        limit: Limit = -1,
+        sort: Sort = schema.SortOrder.ident,
+) -> None:
+    filt = f'{filter_},tag=triage'
+    for task in cmd.load(files.load(), filt, days, limit, sort):
         print(task)
 
 
