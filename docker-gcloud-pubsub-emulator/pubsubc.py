@@ -31,6 +31,7 @@ import json
 import os
 import sys
 from collections.abc import Iterator
+from typing import Any
 from typing import Optional
 
 from google.cloud import pubsub_v1  # type: ignore[import-untyped]
@@ -41,6 +42,20 @@ from google.cloud import pubsub_v1  # type: ignore[import-untyped]
 class SubscriptionConfig:
     name: str
     endpoint: Optional[str] = None
+
+    def to_args(self) -> dict[str, Any]:
+        pprint(f'  - creating subscription: {self.name}')
+
+        push_conf: Optional[pubsub_v1.types.PushConfig]
+        if self.endpoint:
+            pprint(f'    using push endpoint: {self.endpoint}')
+            push_conf = pubsub_v1.types.PushConfig(push_endpoint=self.endpoint)
+        else:
+            push_conf = None
+
+        return {
+            'push_config': push_conf,
+        }
 
 
 @dataclasses.dataclass
@@ -124,14 +139,7 @@ def create(topic: TopicConfig) -> None:
     publisher.create_topic(name=topic_name)
 
     for subscription in topic.subscriptions:
-        pprint(f'  - creating subscription: {subscription.name}')
-
-        c: Optional[pubsub_v1.types.PushConfig]
-        if subscription.endpoint:
-            pprint(f'    using push endpoint: {subscription.endpoint}')
-            c = pubsub_v1.types.PushConfig(push_endpoint=subscription.endpoint)
-        else:
-            c = None
+        args = subscription.to_args()
 
         subscription_name = subscriber.subscription_path(
             topic.project,
@@ -140,7 +148,7 @@ def create(topic: TopicConfig) -> None:
         subscriber.create_subscription(
             name=subscription_name,
             topic=topic_name,
-            push_config=c,
+            **args,
         )
 
 
