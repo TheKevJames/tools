@@ -13,7 +13,9 @@
       },
       {
         "name": "subscription2",
-        "push_endpoint": "http://localhost:3001/messages"
+        "push_config": {
+          "push_endpoint": "http://localhost:3001/messages"
+        }
       }
     ]
   },
@@ -22,7 +24,47 @@
     "topic": "topic3",
     "subscriptions": [
       {
-        "name": "subscription3"
+        "name": "subscription3",
+        "push_config": {
+          "push_endpoint": "http://localhost:3001/messages",
+          "attributes": {
+            "foo": "bar",
+            "baz": "buuq"
+          }
+        },
+        "bigquery_config": {
+          "table": "asdf",
+          "use_table_schema": true,
+          "write_metadata": false,
+          "drop_unknown_fields": true,
+          "service_account_email": "foo@bar.com"
+        },
+        "cloud_storage_config": {
+          "bucket": "my-bucket-name",
+          "filename_prefix": "foo-",
+          "filename_suffix": "-bar"
+        },
+        "ack_deadline_seconds": 42,
+        "retain_acked_messages": false,
+        "message_retention_duration": "900.5s",
+        "labels": {
+          "foo": "bar"
+        },
+        "enable_message_ordering": false,
+        "expiration_policy": {
+          "ttl": "604800s"
+        },
+        "filter": "attributes.dropme=\"no\"",
+        "dead_letter_policy": {
+          "dead_letter_topic": "projects/project1/topics/topic2",
+          "max_delivery_attempts": 10
+        },
+        "retry_policy": {
+          "minimum_backoff": "3.5s",
+          "maximum_backoff": "420s"
+        },
+        "detached": false,
+        "enable_exactly_once_delivery": false
       }
     ]
   }

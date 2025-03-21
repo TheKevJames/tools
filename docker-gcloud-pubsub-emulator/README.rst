@@ -60,7 +60,9 @@ setting the ``$PUBSUBC_CONFIG`` environment variable::
         -ePUBSUBC_CONFIG=/foo/bar.json -v./my-config.json:/foo/bar.json \
         quay.io/thekevjames/gcloud-pubsub-emulator:latest
 
-The config file should be a list of objects containing topic configurations::
+The config file should be a list of objects containing topic configurations:
+
+.. code-block:: json
 
     [
       {
@@ -73,7 +75,9 @@ The config file should be a list of objects containing topic configurations::
         "subscriptions": [
           {
             "name": "subscription1",
-            "push_endpoint": "http://localhost:3001/messages"
+            "push_config": {
+              "push_endpoint": "http://localhost:3001/messages"
+            }
           },
           {
             "name": "subscription2"
@@ -86,6 +90,14 @@ You must specify at least one ``topic``. A ``topic`` must include a ``project``
 key, and may optionally include a list of ``subscription`` details which will
 be attached to that topic. A subscription will be created in push mode if a
 ``push_endpoint`` is provided, otherwise it will be a pull subscription.
+
+Each item in the ``subscriptions`` lists within your config file must include a
+``name`` value and may optional contain any valid configuration value as per
+Google's APIs. `You can find the spec here`_. Note that we deviate from the
+script in the following ways:
+
+* the ``topic`` value should not be nested under that object, and
+* field names should be ``snake_case`` rather than ``camelCase``.
 
 See `config.json`_ for a sample configuration file.
 
@@ -158,11 +170,12 @@ will work. Some examples include:
 * ``nmap -sS -O -p8681 127.0.0.1``
 * ``exec 6<>/dev/tcp/127.0.0.1/8681`` (requires ``bash``)
 
+.. _You can find the spec here: https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.subscriptions/create?rep_location=global#request-body
+.. _config.json: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator/config.json
 .. _marcelcorso/gcloud-pubsub-emulator: https://github.com/marcelcorso/gcloud-pubsub-emulator
 .. _pubsubc: https://github.com/prep/pubsubc
-.. _this Github repo: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator
-.. _config.json: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator/config.json
 .. _quay.io: https://quay.io/repository/thekevjames/tuning-primer
+.. _this Github repo: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator
 .. _wait-for-it: https://github.com/vishnubob/wait-for-it
 .. _wait-for: https://github.com/eficode/wait-for
 
