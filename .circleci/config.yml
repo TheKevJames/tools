@@ -11,7 +11,7 @@ executors:
     resource_class: medium
   pandoc:
     docker:
-      - image: pandoc/core:3.6.3
+      - image: pandoc/core:3.6.4
     resource_class: medium
   python:
     docker:
