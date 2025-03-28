@@ -52,6 +52,7 @@
         "cimg/gcp",
         "curlimages/curl",
         "docker",
+        "ghcr.io/gethomepage/homepage",
         "hashicorp/terraform",
         "moss/xelatex",
         "node",
@@ -72,14 +73,6 @@
       "matchDatasources": ["docker"],
       "matchDepNames": [
         "alpine",
-        "ghcr.io/gethomepage/homepage"
-      ],
-      "matchUpdateTypes": ["patch", "pin", "digest"],
-      "automerge": true
-    },
-    {
-      "matchDatasources": ["docker"],
-      "matchDepNames": [
         "python",
         "quay.io/prometheus/pushgateway"
       ],
