@@ -1,3 +1,5 @@
+import os
+import subprocess
 from typing import Annotated
 
 import typer
@@ -85,8 +87,10 @@ def due(
 @app.command('edit')
 def edit(idx: int) -> None:
     conf = files.Settings()
-    # TODO(feat): open in subprocess
-    print(f'$EDITOR {conf.fnames[idx]}')
+    subprocess.run(
+        [os.environ.get('EDITOR', 'vim'), conf.fnames[idx]],
+        check=True,
+    )
 
 
 @app.command('filters')
