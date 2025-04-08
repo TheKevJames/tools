@@ -126,7 +126,7 @@ repos:
         language_version: python3.11
         additional_dependencies:
           # renovate: datasource=pypi depName=pydantic
-          - pydantic==2.11.2
+          - pydantic==2.11.3
           # renovate: datasource=pypi depName=typer
           - typer==0.15.2
         files: task/
