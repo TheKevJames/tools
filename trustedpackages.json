@@ -52,6 +52,7 @@
         "cimg/gcp",
         "curlimages/curl",
         "docker",
+        "docker/dockerfile",
         "ghcr.io/gethomepage/homepage",
         "hashicorp/terraform",
         "moss/xelatex",
