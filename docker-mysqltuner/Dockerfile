@@ -4,9 +4,9 @@
 # renovate: datasource=repology depName=alpine_3_21/mariadb-client versioning=loose
 ARG MARIADBCLIENT_VERSION=11.4.5-r0
 # renovate: datasource=repology depName=alpine_3_21/perl versioning=loose
-ARG PERL_VERSION=5.40.1-r0
+ARG PERL_VERSION=5.40.1-r1
 # renovate: datasource=repology depName=alpine_3_21/perl-doc versioning=loose
-ARG PERLDOC_VERSION=5.40.1-r0
+ARG PERLDOC_VERSION=5.40.1-r1
 
 
 FROM alpine:3.21.3
