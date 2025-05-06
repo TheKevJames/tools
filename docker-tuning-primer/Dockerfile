@@ -10,7 +10,7 @@ ARG MARIADBCLIENT_VERSION=11.4.5-r0
 # renovate: datasource=repology depName=alpine_3_21/ncurses versioning=loose
 ARG NCURSES_VERSION=6.5_p20241006-r3
 # renovate: datasource=repology depName=alpine_3_21/socat versioning=loose
-ARG SOCAT_VERSION=1.8.0.1-r0
+ARG SOCAT_VERSION=1.8.0.3-r0
 
 
 FROM alpine:3.21.3
