@@ -44,6 +44,7 @@ RUN apt-get update -qy && \
     curl -fsSo /tmp/get-pip-3.5.py https://bootstrap.pypa.io/pip/3.5/get-pip.py && \
     curl -fsSo /tmp/get-pip-3.6.py https://bootstrap.pypa.io/pip/3.6/get-pip.py && \
     curl -fsSo /tmp/get-pip-3.7.py https://bootstrap.pypa.io/pip/3.7/get-pip.py && \
+    curl -fsSo /tmp/get-pip-3.8.py https://bootstrap.pypa.io/pip/3.8/get-pip.py && \
     curl -fsSo /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
     python2.7 /tmp/get-pip-2.7.py && \
     python2.7 -m pip install --no-cache-dir --upgrade pip && \
@@ -53,7 +54,7 @@ RUN apt-get update -qy && \
     python3.6 -m pip install --no-cache-dir --upgrade pip && \
     python3.7 /tmp/get-pip-3.7.py && \
     python3.7 -m pip install --no-cache-dir --upgrade pip && \
-    python3.8 /tmp/get-pip.py && \
+    python3.8 /tmp/get-pip-3.8.py && \
     python3.8 -m pip install --no-cache-dir --upgrade pip && \
     python3.9 /tmp/get-pip.py && \
     python3.9 -m pip install --no-cache-dir --upgrade pip && \
