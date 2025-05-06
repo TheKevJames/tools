@@ -21,7 +21,7 @@ ARG PYTHON3PIP_VERSION=23.0.1+dfsg-1
 
 
 # TODO: update to newer python
-FROM python:3.9-slim AS builder
+FROM python:3.9.22-slim AS builder
 
 RUN python3 -m venv /opt/poetry
 
@@ -42,13 +42,17 @@ COPY pyproject.toml poetry.lock ./
 RUN /opt/poetry/bin/poetry export -f requirements.txt --output /tmp/requirements.txt
 
 
-# TODO: update
-FROM python:3.9-slim
+# TODO: update to a newer python
+FROM python:3.9.22-slim
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean && \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 # TODO: pin me
 # TODO: figure out which other deps we need, add them, then do --no-install-recommends
+ARG BLUETOOTH_VERSION
+ARG LIBBLUETOOTHDEV_VERSION
+ARG LIBGLIB20DEV_VERSION
+ARG PYTHON3PIP_VERSION
 # hadolint ignore=DL3015
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
@@ -66,6 +70,8 @@ RUN --mount=type=cache,target=/var/cache/apt \
 
 # TODO: update to solve the below note, or consider using bleak or bless
 # pybluez wont compile with the newer version of setuptools so use fixed version
+ARG PROMETHEUSCLIENT_VERSION
+ARG PYBLUEZ_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m pip install --upgrade setuptools==57.5.0 && \
     python3 -m pip install \
