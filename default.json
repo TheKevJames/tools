@@ -43,6 +43,7 @@
     },
     {
       "matchManagers": ["poetry"],
+      "matchDepTypes": ["dependencies", "extras", "requires-python"],
       "matchDepPatterns": ["^python$"],
       "rangeStrategy": "widen"
     },
