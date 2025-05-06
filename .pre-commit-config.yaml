@@ -10,7 +10,7 @@ default_install_hook_types:
 default_language_version:
     python: python3.9
 
-exclude: '^docker-tuning-primer/root/.*.sh$'
+exclude: '^(docker-atc1441-exporter/atc1441_exporter/bluetooth_utils.py)|(docker-tuning-primer/root/.*.sh)$'
 
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
@@ -48,10 +48,10 @@ repos:
   - repo: https://github.com/PyCQA/pylint
     rev: v3.3.6
     hooks:
-    # TODO: pylint-import-modules support for pylint v3 (or alternative linter)
+      # TODO: pylint-import-modules support for pylint v3 (or alternative linter)
       - &pylint
         id: pylint
-        name: pylint-docker-gcloud-pubsub-emulator
+        name: pylint-docker-atc1441-exporter
         args:
           - --load-plugins=pylint.extensions.mccabe
           - --max-complexity=10
@@ -72,6 +72,9 @@ repos:
           - -d try-except-raise
           - -d ungrouped-imports  # conflicts with reorder-python-imports
           - -d wrong-import-order  # conflicts with reorder-python-imports
+        files: docker-atc1441-exporter/
+      - <<: *pylint
+        name: pylint-docker-gcloud-pubsub-emulator
         files: docker-gcloud-pubsub-emulator/
       - <<: *pylint
         name: pylint-task
@@ -102,24 +105,24 @@ repos:
     hooks:
       - &mypy
         id: mypy
-        name: mypy-docker-gcloud-pubsub-emulator
+        name: mypy-docker-atc1441-exporter
         require_serial: True
-        # N.B. mypy requires an installed version of whatever third-party
-        # library it is asked to check against. In practice, that means
-        # whenever we see an error telling us to do so, we should add the
-        # relevant library to `additional_dependencies`.
-        # Note that some libraries keep their type hints in packages named
-        # `types-$lib` or `$lib-stubs`.
         additional_dependencies:
-          # renovate: datasource=pypi depName=aiohttp
-          - aiohttp==3.11.18
-          # renovate: datasource=pypi depName=google-cloud-pubsub
-          - google-cloud-pubsub==2.29.0
+          # renovate: datasource=pypi depName=prometheus-client
+          - prometheus-client==0.21.1
         args:
           - --show-error-codes
           - --strict
           - --strict-equality
           - --warn-unreachable
+        files: docker-atc1441-exporter/
+      - <<: *mypy
+        name: mypy-docker-gcloud-pubsub-emulator
+        additional_dependencies:
+          # renovate: datasource=pypi depName=aiohttp
+          - aiohttp==3.11.18
+          # renovate: datasource=pypi depName=google-cloud-pubsub
+          - google-cloud-pubsub==2.29.0
         files: docker-gcloud-pubsub-emulator/
       - <<: *mypy
         name: mypy-task
@@ -186,11 +189,14 @@ repos:
     hooks:
       - &refurb
         id: refurb
-        name: refurb-docker-gloud-pubsub-emulator
+        name: refurb-docker-atc1441-exporter
         args:
           - --python-version
           - '3.9'
         language_version: python3.11
+        files: docker-atc1441-exporter/
+      - <<: *refurb
+        name: refurb-docker-gcloud-pubsub-emulator
         files: docker-gcloud-pubsub-emulator/
       - <<: *refurb
         name: refurb-task
