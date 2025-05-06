@@ -26,6 +26,13 @@ commands:
     steps:
       - when:
           condition:
+            equal: [ "atc1441-exporter", <<parameters.ident>> ]
+          steps:
+            - run: |
+                export ATC1441_VERSION=$(awk -F'= ' '/^version =/ {print substr($2, 2, length($2)-2)}'  docker-atc1441-exporter/pyproject.toml)
+                echo "${ATC1441_VERSION}" >/tmp/custom-tag
+      - when:
+          condition:
             equal: [ "caddy-security", <<parameters.ident>> ]
           steps:
             - run: |
