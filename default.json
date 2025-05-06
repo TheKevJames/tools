@@ -108,7 +108,7 @@
     {
       "groupName": "opentelemetry-instrumentation monorepo",
       "matchDatasources": ["pypi"],
-      "matchDepPatterns": ["^opentelemetry-instrumentation-"]
+      "matchDepPatterns": ["^opentelemetry-distro$", "^opentelemetry-instrumentation-"]
     },
     {
       "groupName": "pydantic",
