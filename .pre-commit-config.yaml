@@ -14,7 +14,7 @@ exclude: '^(docker-atc1441-exporter/atc1441_exporter/bluetooth_utils.py)|(docker
 
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v4.1.0
+    rev: v4.2.0
     hooks:
       - id: conventional-pre-commit
   - repo: https://github.com/pre-commit/pre-commit-hooks
