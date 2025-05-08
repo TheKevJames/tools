@@ -21,7 +21,7 @@ ARG PYTHON3PIP_VERSION=23.0.1+dfsg-1
 
 
 # TODO: update to newer python
-FROM python:3.9.22-slim AS builder
+FROM python:3.13.3-slim AS builder
 
 RUN python3 -m venv /opt/poetry
 
@@ -43,7 +43,7 @@ RUN /opt/poetry/bin/poetry export -f requirements.txt --output /tmp/requirements
 
 
 # TODO: update to a newer python
-FROM python:3.9.22-slim
+FROM python:3.13.3-slim
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean && \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
