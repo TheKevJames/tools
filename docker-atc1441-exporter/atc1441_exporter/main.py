@@ -2,6 +2,7 @@ import argparse
 import configparser
 import dataclasses
 import logging
+import os
 import signal
 from typing import Optional
 
@@ -15,13 +16,15 @@ from .utils import raw_packet_to_str
 from .utils import toggle_device
 
 
-logger = logging.getLogger('app.main')
-
-
 BATTERY = prometheus_client.Gauge('atc_battery', 'Battery', ['name'])
 HUMIDITY = prometheus_client.Gauge('atc_humidity', 'Humidity', ['name'])
 TEMPERATURE = prometheus_client.Gauge('atc_temperature', 'Temp.', ['name'])
 VOLTAGE = prometheus_client.Gauge('atc_voltage', 'Voltage', ['name'])
+
+DEBUG = os.environ.get('DEBUG', '').lower() == 'true'
+
+
+logger = logging.getLogger('app.main')
 
 
 @dataclasses.dataclass
@@ -74,7 +77,7 @@ def decode_data_atc1441(
 def main() -> None:
     logging.basicConfig(
         format='[%(levelname)s] %(name)s\t%(message)s',
-        level=logging.DEBUG,
+        level=logging.DEBUG if DEBUG else logging.INFO,
     )
     logger.info('starting atc1441-exporter')
 
