@@ -9,11 +9,11 @@ from typing import Optional
 
 import bluetooth._bluetooth as bluez
 import prometheus_client
-from bluetooth_utils import disable_le_scan
-from bluetooth_utils import enable_le_scan
-from bluetooth_utils import parse_le_advertising_events
-from bluetooth_utils import raw_packet_to_str
-from bluetooth_utils import toggle_device
+from utils import disable_le_scan
+from utils import enable_le_scan
+from utils import parse_le_advertising_events
+from utils import raw_packet_to_str
+from utils import toggle_device
 
 
 logger = logging.getLogger('app.main')
@@ -73,7 +73,7 @@ def decode_data_atc1441(
 
 
 def main() -> None:
-    logging.basicConfig()
+    logging.basicConfig(level=logging.INFO)
     logger.info('starting atc1441-exporter')
 
     parser = argparse.ArgumentParser(allow_abbrev=False)
@@ -110,7 +110,7 @@ def main() -> None:
         raise
 
     signal.signal(signal.SIGINT, lambda _sig, _frame: disable_le_scan(sock))
-    enable_le_scan(sock, filter_duplicates=False)
+    enable_le_scan(sock)
 
     prometheus_client.start_http_server(args.port)
 
@@ -129,13 +129,8 @@ def main() -> None:
             TEMPERATURE.labels(name).set(measurement.temperature)
             VOLTAGE.labels(name).set(measurement.voltage)
 
-        # blocking call (the given handler will be called each time a new LE
-        # advertisement packet is detected)
         parse_le_advertising_events(
-            sock,
-            mac_addr=tuple(sensors.keys()),
-            handler=handler,
-            debug=False,
+            sock, handler, filter_mac_addrs=tuple(sensors.keys()),
         )
     except KeyboardInterrupt:
         pass

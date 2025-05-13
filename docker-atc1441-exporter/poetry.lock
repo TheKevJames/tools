@@ -87,4 +87,4 @@ pyobjc-core = ">=5.3"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<4.0"
-content-hash = "f8865cda56b4d99c527a827529f8e944c1d107f8e6ba0dfc065453fb356c93e5"
+content-hash = "7550c8f0eccaad9d649ec738c76c6d62445ded991b1d83c86feb14e955dac2c4"

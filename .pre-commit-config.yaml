@@ -10,7 +10,7 @@ default_install_hook_types:
 default_language_version:
     python: python3.9
 
-exclude: '^(docker-atc1441-exporter/atc1441_exporter/bluetooth_utils.py)|(docker-tuning-primer/root/.*.sh)$'
+exclude: '^docker-tuning-primer/root/.*.sh$'
 
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
