@@ -43,13 +43,13 @@ def decode_data_atc1441(
     preamble = '161a18'
     data_idx = data_str.find(preamble)
     if data_idx == -1:
+        logger.debug('dropping packet with missing preamble')
         return None
 
     offset = data_idx + len(preamble)
     stripped_data_str = data_str[offset:]
     if len(stripped_data_str) != 26:
-        # magic number for length of ATC1441 data
-        # TODO: move to parse_le_advertising_events
+        logger.debug('dropping packet with invalid length')
         return None
 
     adv_number = stripped_data_str[-2:]  # last data in packet is adv number
@@ -136,7 +136,10 @@ def main() -> None:
             VOLTAGE.labels(name).set(measurement.voltage)
 
         parse_le_advertising_events(
-            sock, handler, filter_mac_addrs=tuple(sensors.keys()),
+            sock,
+            handler,
+            filter_mac_addrs=tuple(sensors.keys()),
+            filter_packet_length=32,
         )
     except KeyboardInterrupt:
         pass
