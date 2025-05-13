@@ -73,7 +73,7 @@ def decode_data_atc1441(
 
 def main() -> None:
     logging.basicConfig(
-        format='[%(levelname)s] %(name)s\t%(message)s\t%(args)s',
+        format='[%(levelname)s] %(name)s\t%(message)s',
         level=logging.DEBUG,
     )
     logger.info('starting atc1441-exporter')

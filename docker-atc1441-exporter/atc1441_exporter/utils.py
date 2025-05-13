@@ -105,15 +105,15 @@ def enable_le_scan(
     )
     hci_send_cmd(sock, OGF_LE_CTL, OCF_LE_SET_SCAN_PARAMETERS, cmd_pkt)
     logger.debug(
-        'enabling le scan',
-        extra={
+        'enabling le scan: %s',
+        str({
             'interval': f'{interval * 0.625:.3f}ms',
             'window': f'{window * 0.625:.3f}ms',
             'allowlist': filter_policy in (
                 FILTER_POLICY_SCAN_ALLOWLIST,
                 FILTER_POLICY_SCAN_AND_CONN_ALLOWLIST,
             ),
-        },
+        }),
     )
     scan_filter = SCAN_FILTER_DUPLICATES if filter_duplicates else 0x00
     cmd_pkt = struct.pack('<BB', SCAN_ENABLE, scan_filter)
@@ -143,8 +143,8 @@ def parse_le_advertising_events(
 
     try:
         logger.info(
-            'socket filter set, listening for data',
-            extra={'event': 'LE_META_EVENT', 'ptype': 'HCI_EVENT_PKT'},
+            'socket filter set, listening for data: %s',
+            str({'event': 'LE_META_EVENT', 'ptype': 'HCI_EVENT_PKT'}),
         )
 
         while True:
@@ -152,7 +152,7 @@ def parse_le_advertising_events(
             _ptype, event, plen = struct.unpack('BBB', pkt[:3])
             if event != LE_META_EVENT:
                 # should never occur because we filtered to this type of event
-                logger.error('received invalid event', extra={'event': event})
+                logger.error('received invalid event: %s', event)
                 continue
 
             sub_event, = struct.unpack('B', pkt[3:4])
@@ -171,8 +171,8 @@ def parse_le_advertising_events(
 
             if filter_packet_length and plen != filter_packet_length:
                 logger.debug(
-                    'packet with non-matching length',
-                    extra=log_context | {'data': raw_packet_to_str(body)},
+                    'packet with non-matching length: %s',
+                    str(log_context | {'data': raw_packet_to_str(body)}),
                 )
                 continue
 
@@ -182,14 +182,14 @@ def parse_le_advertising_events(
 
             if filter_mac_addrs and mac_addr not in filter_mac_addrs:
                 logger.debug(
-                    'packet with non-matching mac',
-                    extra=log_context | {'data': raw_packet_to_str(data)},
+                    'packet with non-matching mac: %s',
+                    str(log_context | {'data': raw_packet_to_str(data)}),
                 )
                 continue
 
             logger.debug(
-                'LE advertisement',
-                extra=log_context | {'data': raw_packet_to_str(data)},
+                'LE advertisement: %s',
+                str(log_context | {'data': raw_packet_to_str(data)}),
             )
 
             try:
