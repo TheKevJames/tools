@@ -21,11 +21,6 @@ from bluetooth._bluetooth import HCIDEVUP
 from bluetooth._bluetooth import SOL_HCI
 
 # TODO: find a more recent bluetooth library which gives us the above
-# TODO: do these get monkeypatched by the bluez import or something???
-# pylint: disable=no-member
-AF_BLUETOOTH = socket.AF_BLUETOOTH  # type: ignore[attr-defined]
-BTPROTO_HCI = socket.BTPROTO_HCI  # type: ignore[attr-defined]
-# pylint: enable=no-member
 
 
 LE_PUBLIC_ADDRESS = 0x00
@@ -208,7 +203,15 @@ def parse_le_advertising_events(
 
 def toggle_device(interface: int, enable: bool) -> None:
     """Power ON or OFF a bluetooth device."""
-    sock = socket.socket(AF_BLUETOOTH, socket.SOCK_RAW, BTPROTO_HCI)
+    # TODO: figure out how to tell mypy this is a bluetooth socket
+    # pylint: disable=no-member
+    sock = socket.socket(
+        socket.AF_BLUETOOTH,  # type: ignore[attr-defined]
+        socket.SOCK_RAW,
+        socket.BTPROTO_HCI,  # type: ignore[attr-defined]
+    )
+    # pylint: enable=no-member
+
     logger.info('toggling bluetooth device %d: %s', interface, enable)
     request = array.array('b', struct.pack('H', interface))
     try:
