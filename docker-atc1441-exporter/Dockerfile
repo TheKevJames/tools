@@ -80,4 +80,4 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 COPY ./atc1441_exporter /app
 
-ENTRYPOINT ["python3", "/app/main.py"]
+ENTRYPOINT ["python3", "-m", "app.main"]

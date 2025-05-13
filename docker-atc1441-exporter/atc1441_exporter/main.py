@@ -1,19 +1,18 @@
-#!/usr/bin/env python3
 import argparse
 import configparser
 import dataclasses
 import logging
 import signal
-from typing import Any
 from typing import Optional
 
 import bluetooth._bluetooth as bluez
 import prometheus_client
-from utils import disable_le_scan
-from utils import enable_le_scan
-from utils import parse_le_advertising_events
-from utils import raw_packet_to_str
-from utils import toggle_device
+
+from .utils import disable_le_scan
+from .utils import enable_le_scan
+from .utils import parse_le_advertising_events
+from .utils import raw_packet_to_str
+from .utils import toggle_device
 
 
 logger = logging.getLogger('app.main')
@@ -73,7 +72,7 @@ def decode_data_atc1441(
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     logger.info('starting atc1441-exporter')
 
     parser = argparse.ArgumentParser(allow_abbrev=False)
@@ -117,7 +116,8 @@ def main() -> None:
     try:
         adv_cache: dict[str, str] = {}
 
-        def handler(mac: str, _adv_type: Any, data: Any, _rssi: Any) -> None:
+        def handler(mac: str, adv: int, data: bytes, rssi: int) -> None:
+            # pylint: disable=unused-argument
             data_str = raw_packet_to_str(data)
             measurement = decode_data_atc1441(adv_cache, mac, data_str)
             if not measurement:
