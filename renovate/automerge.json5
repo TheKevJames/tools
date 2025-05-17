@@ -146,6 +146,13 @@
             "automerge": true,
         },
         {
+            "matchDatasources": ["pypi"],
+            "matchDepNames": [
+                "openai-whisper",
+            ],
+            "automerge": false,
+        },
+        {
             "matchDatasources": ["terraform-module", "terraform-provider"],
             "matchDepNames": [
                 "cloudflare",
