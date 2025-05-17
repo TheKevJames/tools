@@ -12,6 +12,10 @@
     // consider using `"matchCurrentVersion": "!/^0/"`
     "packageRules": [
         {
+            "matchUpdateTypes": ["patch", "pin", "digest"],
+            "automerge": true,
+        },
+        {
             "matchDatasources": ["crate"],
             "matchDepNames": [
                 "chrono",
@@ -20,18 +24,7 @@
                 "serde_json",
                 "xdg",
             ],
-            "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-            "automerge": true,
-        },
-        {
-            "matchDatasources": ["crate"],
-            "matchDepNames": [
-                "config",
-                "fern",
-                "ratatui",
-                "reqwest",
-            ],
-            "matchUpdateTypes": ["patch", "pin", "digest"],
+            "matchUpdateTypes": ["minor"],
             "automerge": true,
         },
         {
@@ -41,7 +34,7 @@
                 "^thekevjames/gcloud-pubsub-emulator$",
                 "^quay.io/thekevjames/gcloud-pubsub-emulator$",
             ],
-            "matchUpdateTypes": ["major", "minor", "patch", "pin", "digest"],
+            "matchUpdateTypes": ["major", "minor"],
             "automerge": true,
         },
         {
@@ -50,7 +43,7 @@
                 "^thekevjames/",
                 "^quay.io/thekevjames/",
             ],
-            "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+            "matchUpdateTypes": ["minor"],
             "automerge": true,
         },
         {
@@ -79,22 +72,12 @@
                 "quay.io/linuxserver.io/syncthing",
                 "quay.io/prometheus/prometheus",
             ],
-            "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-            "automerge": true,
-        },
-        {
-            "matchDatasources": ["docker"],
-            "matchDepNames": [
-                "alpine",
-                "python",
-                "quay.io/prometheus/pushgateway",
-            ],
-            "matchUpdateTypes": ["patch", "pin", "digest"],
+            "matchUpdateTypes": ["minor"],
             "automerge": true,
         },
         {
             "matchDepTypes": ["action"],
-            "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+            "matchUpdateTypes": ["minor"],
             "pinDigests": true,
             "automerge": true,
         },
@@ -105,7 +88,7 @@
                 "^gcloud-aio",
                 "^gcloud-rest",
             ],
-            "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+            "matchUpdateTypes": ["minor"],
             "automerge": true,
         },
         {
@@ -150,28 +133,7 @@
                 "sqlalchemy",
                 "tqdm",
             ],
-            "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-            "automerge": true,
-        },
-        {
-            "matchDatasources": ["pypi"],
-            "matchDepNames": [
-                "fastapi",
-                "fastapi-slim",
-                "flask",
-                "google-cloud-pubsub",
-                "httptools",
-                "httpx",
-                "pandas",
-                "pip",
-                "plotly",
-                "prometheus-client",
-                "transformers",
-                "typer",
-                "typer-slim",
-                "uvicorn",
-            ],
-            "matchUpdateTypes": ["patch", "pin", "digest"],
+            "matchUpdateTypes": ["minor"],
             "automerge": true,
         },
         {
@@ -190,21 +152,13 @@
                 "integrations/github",
                 "kubernetes",
             ],
-            "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-            "automerge": true,
-        },
-        {
-            "matchDatasources": ["github-releases"],
-            "matchDepNames": [
-                "greenpau/caddy-security",
-            ],
-            "matchUpdateTypes": ["patch", "pin", "digest"],
+            "matchUpdateTypes": ["minor"],
             "automerge": true,
         },
         {
             "matchManagers": ["pre-commit"],
             "matchDatasources": ["github-releases", "github-tags", "pypi"],
-            "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+            "matchUpdateTypes": ["minor"],
             "automerge": true,
         }
       ]

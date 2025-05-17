@@ -3,6 +3,7 @@
         {
             "groupName": "elasticsearch",
             "matchDepPatterns": [
+                "^docker.elastic.co/kibana/kibana",
                 "^elasticsearch",
                 "^org.elasticsearch.client",
             ],
