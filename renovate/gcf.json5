@@ -1,0 +1,80 @@
+// See https://cloud.google.com/run/docs/runtimes/python-dependencies#python38
+{
+    "packageRules": [
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["click"],
+            "allowedVersions": "8.1.7",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["cloudevents"],
+            "allowedVersions": "1.11.0",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["deprecation"],
+            "allowedVersions": "2.1.0",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["flask", "Flask"],
+            "allowedVersions": "2.2.5",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["functions-framework"],
+            "allowedVersions": "3.8.2",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["gunicorn"],
+            "allowedVersions": "23.0.0",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["importlib-metadata"],
+            "allowedVersions": "6.7.0",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["itsdangerous"],
+            "allowedVersions": "2.1.2",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["jinja2", "Jinja2"],
+            "allowedVersions": "3.1.6",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["markupsafe", "MarkupSafe"],
+            "allowedVersions": "2.1.5",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["packaging"],
+            "allowedVersions": "24.0",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["typing_extensions", "typing-extensions"],
+            "allowedVersions": "4.7.1",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["watchdog"],
+            "allowedVersions": "3.0.0",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["werkzeug", "Werkzeug"],
+            "allowedVersions": "2.2.3",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["zipp"],
+            "allowedVersions": "3.15.0",
+        },
+    ],
+}

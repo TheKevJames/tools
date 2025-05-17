@@ -87,6 +87,9 @@ The full list of available configs is as follows:
     ``gcloud`` cli, which uses the major bump to mean "updated any
     sub-dependency")
 
+* ``//renovate/gcf.json5(my/pyproject.toml)``: enforces that your pinned
+  versions are compatible with the GCF platform's overridden dependencies,
+  which will get used instead of your pins when deploying a cloud function.
 * ``//renovate/deprecated.json5``: various deprecated rules which used to be
   members of another preset but are, for whatever reason, being deprecated. See
   the inline comments in this file for migration instructions. If you include
