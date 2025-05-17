@@ -119,6 +119,7 @@
         "jsonpath-ng",
         "hypothesis",
         "openai",
+        "pip",
         "prometheus-fastapi-instrumentator",
         "poetry",
         "pydantic",
