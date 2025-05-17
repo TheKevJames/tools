@@ -1,0 +1,47 @@
+{
+    "packageRules": [
+        // N.B. see https://docs.renovatebot.com/modules/versioning/regex/
+        {
+            "matchDatasources": ["docker"],
+            "matchDepPatterns": ["^gke.gcr.io/prometheus-engine/frontend$"],
+            "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<compatibility>.*)\\.(?<build>\\d+)$",
+        },
+        {
+            "matchDatasources": ["docker"],
+            "matchDepPatterns": [
+                "^lscr.io/linuxserver/jellyfin$",
+                "^lscr.io/linuxserver/prowlarr$",
+            ],
+            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d{,3})$",
+        },
+        {
+            "matchDatasources": ["docker"],
+            "matchDepPatterns": ["^python$"],
+            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$",
+        },
+        {
+            "matchDatasources": ["github-tags"],
+            "matchDepPatterns": [
+                "^AleksaC/hadolint-py$",
+                "^shellcheck-py/shellcheck-py$",
+            ],
+            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?$",
+        },
+    ],
+    "customManagers": [
+        {
+            "description": "Update default_language_version.python in .pre-commit-config.yaml",
+            "datasourceTemplate": "github-tags",
+            "depNameTemplate": "python/cpython",
+            "extractVersionTemplate": "^v(?<version>\\d+\\.\\d+)(\\.\\d+)?$",
+            "fileMatch": [
+                "(^|/)\\.pre-commit-config\\.yaml$".
+            ],
+            "customType": "regex",
+            "matchStrings": [
+                "default_language_version:\\s+python: python(?<currentValue>.+?)\\s",
+            ],
+            "versioningTemplate": "semver-coerced",
+        },
+    ],
+}

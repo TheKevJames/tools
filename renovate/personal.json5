@@ -1,0 +1,7 @@
+{
+    "extends": [
+        "github>thekevjames/tools",
+         "github>thekevjames/tools:trustedpackages"
+    ],
+    "labels": ["task"],
+}

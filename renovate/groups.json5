@@ -1,0 +1,117 @@
+{
+    "packageRules": [
+        {
+            "groupName": "elasticsearch",
+            "matchDepPatterns": [
+                "^elasticsearch",
+                "^org.elasticsearch.client",
+            ],
+        },
+        {
+            "groupName": "com.google.auto.value",
+            "matchManagers": ["gradle", "maven"],
+            "matchDepPatterns": [
+                "^com.google.auto.value.*$",
+            ],
+        },
+        {
+            "groupName": "org.apache.beam",
+            "matchManagers": ["gradle", "maven"],
+            "matchDepPatterns": [
+                "^org.apache.beam.*$",
+                "^apache-beam$",
+                "^beam_python..._sdk$",
+            ],
+        },
+        {
+            "groupName": "org.apache.hadoop",
+            "matchManagers": ["gradle", "maven"],
+            "matchDepPatterns": [
+                "^org.apache.hadoop.*$",
+            ],
+        },
+        {
+            "groupName": "org.jetbrains.kotlin",
+            "matchManagers": ["gradle", "maven"],
+            "matchDepPatterns": [
+                "^org.jetbrains.kotlin.*$",
+            ],
+        },
+        {
+            "groupName": "google",
+            "matchDatasources": ["terraform"],
+            "matchDepPatterns": [
+                "^google.*$",
+            ],
+        },
+        {
+            "groupName": "gcsfs",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^fsspec$",
+                "^gcsfs$",
+            ],
+        },
+        {
+            "groupName": "grpcio",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^grpcio",
+            ],
+        },
+        {
+            "groupName": "mkl",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^intel-openmp$",
+                "^mkl$",
+            ],
+        },
+        {
+            "groupName": "opentelemetry-instrumentation monorepo",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^opentelemetry-distro$",
+                "^opentelemetry-instrumentation-",
+            ],
+        },
+        {
+            "groupName": "pydantic",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^pydantic$",
+                "^pydantic-core$",
+            ],
+        },
+        {
+            "groupName": "python",
+            "matchDepPatterns": [
+                "^cimg/python$",
+                "^python$",
+                "^python/cpython$",
+            ],
+        },
+        {
+            "groupName": "pytorch",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^torch$",
+                "^torchaudio$",
+            ],
+        },
+        {
+            "groupName": "sanic",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^sanic$",
+                "^sanic-testing$",
+            ],
+        },
+        {
+            "groupName": "terraform",
+            "matchDepPatterns": [
+                "^terraform$",
+            ],
+        },
+    ],
+}

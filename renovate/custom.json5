@@ -1,0 +1,47 @@
+{
+    "customManagers": [
+        // TODO: investigate https://docs.renovatebot.com/presets-customManagers/#custommanagersdockerfileversions
+        // Usage:
+        // 1. create an ARG with the version pin at the top of your Dockerfile,
+        //    before the first ``FROM`` block:
+        //        ARG PIP_VERSION=25.1.1
+        // 2. add a comment above specifying the datsource and depName:
+        //        # renovate: datasource=pypi depName=pip
+        // 3. import the immediately before the first layer of any image which
+        //    needs it:
+        //        ARG PIP_VERSION
+        // 4. make use of it inline as an env var:
+        //        RUN /bin/pip install --upgrade "pip==${PIP_VERSION}"
+        {
+            "description": "Update _VERSION variables in Dockerfiles",
+            "fileMatch": [
+                "(^|/|\\.)Dockerfile$",
+                "(^|/)Dockerfile\\.[^/]*$",
+            ],
+            "customType": "regex",
+            "matchStrings": [
+                "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s(?:ENV|ARG) .+?_VERSION=(?<currentValue>.+?)\\s",
+            ],
+            "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}",
+        },
+        // Usage:
+        // 1. specify a docker image within a terraform block as per usual, for
+        //    example within a CloudRun service resource:
+        //        resource "google_cloud_run_v2_service" "foobar" {
+        //            # SNIP
+        //            image = "grafana/agent:v0.44.2"
+        // 2. add a comment to flag it as updateable:
+        //        image = "grafana/agent:v0.44.2" # renovate
+        {
+            "description": "Update docker images in terraform files",
+            "fileMatch": [
+                "(^|/)*\\.tf$",
+            ],
+            "customType": "regex",
+            "matchStrings": [
+                "\\s*image\\s*=\\s*\"(?<depName>.*?):(?<currentValue>.*?)\"\\s*#\\s*renovate\\n",
+            ],
+            "datasourceTemplate": "docker"
+        }
+    ],
+}

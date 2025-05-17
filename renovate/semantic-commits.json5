@@ -1,0 +1,9 @@
+{
+    "branchPrefix": "renovate/",
+    "semanticCommits": "enabled",
+    "semanticCommitScope": "deps",
+    "semanticCommitType": "chore",
+    "separateMajorMinor": true,
+    "separateMinorPatch": true,
+    "separateMultipleMajor": true,
+}

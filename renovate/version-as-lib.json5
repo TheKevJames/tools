@@ -1,0 +1,46 @@
+{
+    "lockFileMaintenance": {
+        "enabled": true,
+    },
+    "packageRules": [
+        // by default, pin everything in the repo, eg. such as CI base image
+        // versions
+        {
+            "matchDepPatterns": ["^.*$"],
+            "rangeStrategy": "pin",
+        },
+        // widen our own package's dependencies
+        {
+            "matchManagers": ["poetry"],
+            "matchDepTypes": ["dependencies", "extras"],
+            "rangeStrategy": "widen",
+        },
+        {
+            "matchManagers": ["pep621"],
+            "matchDepTypes": ["project.dependencies", "project.optional-dependencies"],
+            "rangeStrategy": "widen",
+        },
+        // but ensure development dependencies are always pinned
+        {
+            "matchManagers": ["poetry"],
+            "matchDepTypes": ["dev", "devDependencies", "dev-dependencies"],
+            "rangeStrategy": "pin",
+        },
+        {
+            "matchManagers": ["pep621"],
+            "matchDepTypes": ["dev", "devDependencies", "dev-dependencies"],
+            "rangeStrategy": "pin",
+        },
+        // always widen supported python versions
+        {
+            "matchManagers": ["poetry"],
+            "matchDepPatterns": ["^python$"],
+            "rangeStrategy": "widen",
+        },
+        // and any build system compatibility
+        {
+            "matchDepTypes": ["build-system.requires"],
+            "rangeStrategy": "widen",
+        },
+    ],
+}
