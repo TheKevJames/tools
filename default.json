@@ -13,6 +13,10 @@
   },
   "packageRules": [
     {
+      "matchDepPatterns": ["^.*$"],
+      "rangeStrategy": "pin"
+    },
+    {
       "matchDatasources": ["docker"],
       "matchDepPatterns": ["^python$"],
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$"
@@ -191,7 +195,6 @@
   "prCreation": "immediate",
   "prHourlyLimit": 0,
   "pruneStaleBranches": true,
-  "rangeStrategy": "pin",
   "rollbackPrs": true,
   "semanticCommits": "enabled",
   "semanticCommitType": "chore",
