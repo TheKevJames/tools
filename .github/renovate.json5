@@ -1,48 +1,51 @@
 {
-  "extends": ["github>thekevjames/tools:personal"],
-  "packageRules": [
-    {
-      "matchManagers": ["dockerfile"],
-      "matchDepNames": [
-        "library/caddy",
-      ],
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "automerge": true,
-    },
-    {
-      "matchFiles": [
-        ".circleci/config.yml",
-        "docker-gcloud-pubsub-emulator/Dockerfile",
-      ],
-      "matchDepNames": [
-        "python",
-      ],
-      "allowedVersions": "3.9.2",
-    },
-    {
-      "matchFiles": [
-        ".pre-commit-config.yaml",
-      ],
-      "matchDepNames": [
-        "python/cpython",
-      ],
-      "allowedVersions": "3.9",
-    },
-    {
-      "matchManagers": ["pip_requirements"],
-      "matchDepNames": [
-        "nox",
-      ],
-      "automerge": true,
-    },
-    {
-      "matchFiles": ["docker-nox/Dockerfile"],
-      "matchManagers": ["dockerfile"],
-      "matchDepNames": [
-        "ubuntu",
-      ],
-      // TODO: https://github.com/TheKevJames/tools/issues/861
-      "enabled": false,
-    },
-  ],
+    "extends": [
+        "github>thekevjames/tools:personal",
+        "github>thekevjames/tools//renovate/version-as-app.json5",
+    ],
+    "packageRules": [
+        {
+            "matchManagers": ["dockerfile"],
+            "matchDepNames": [
+                "library/caddy",
+            ],
+            "matchUpdateTypes": ["minor"],
+            "automerge": true,
+        },
+        {
+            "matchFiles": [
+                ".circleci/config.yml",
+                "docker-gcloud-pubsub-emulator/Dockerfile",
+            ],
+            "matchDepNames": [
+                "python",
+            ],
+            "allowedVersions": "3.9.2",
+        },
+        {
+            "matchFiles": [
+                ".pre-commit-config.yaml",
+            ],
+            "matchDepNames": [
+                "python/cpython",
+            ],
+            "allowedVersions": "3.9",
+        },
+        {
+            "matchManagers": ["pip_requirements"],
+            "matchDepNames": [
+                "nox",
+            ],
+            "automerge": true,
+        },
+        {
+            "matchFiles": ["docker-nox/Dockerfile"],
+            "matchManagers": ["dockerfile"],
+            "matchDepNames": [
+                "ubuntu",
+            ],
+            // TODO: https://github.com/TheKevJames/tools/issues/861
+            "enabled": false,
+        },
+    ],
 }
