@@ -139,6 +139,7 @@
                 "sphinx",
                 "sqlalchemy",
                 "tqdm",
+                "transformers",
             ],
             "matchUpdateTypes": ["minor"],
             "automerge": true,

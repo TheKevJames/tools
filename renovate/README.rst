@@ -64,6 +64,17 @@ The full list of available configs is as follows:
   being set to widen, with the exception of testing/dev dependencies, which
   should always be pinned to ensure all developers can reproduce each other's
   environments.
+
+  * Note that, while I don't recommend it, sometimes a repo may contain
+    multiple projects: some which are apps, and some are libs. I would
+    recommend splitting things apart, since Renovate doesn't work very well
+    with repos that include versioned interdependencies to other local packages
+    and can't be coerced to running a subset of it's processing in the required
+    DAG. If you want to support this anyway, you can use
+    ``//renovate/version-as-app.json5`` as a baseline, then apply a file-based
+    override with
+    ``//renovate/version-file-as-lib.json5(path-to-library/pyproject.toml)``.
+
 * ``//renovate/automerge.json5``: my prefered automerge rules, eg. for packages
   which I trust to have non-breaking changes. Roughly maps to automerging
   ``minor`` and ``patch`` versions, with the following exceptions:
