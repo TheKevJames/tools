@@ -98,6 +98,7 @@
             "matchDepPatterns": [
                 "^torch$",
                 "^torchaudio$",
+                "^torchvision$",
             ],
         },
         {
