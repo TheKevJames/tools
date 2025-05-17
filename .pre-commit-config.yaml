@@ -243,6 +243,14 @@ repos:
         language: python
         additional_dependencies:
           - pyjson5==1.6.9
+        files: >
+          (?x)^(
+            renovate\.(json|json5)|
+            \.(github|gitlab)/renovate\.(json|json5)|
+            \.renovaterc|
+            \.renovaterc\.(json|json5)|
+            renovate/.*\.(json|json5)
+          )$
 
 # docker
   - repo: https://github.com/AleksaC/hadolint-py

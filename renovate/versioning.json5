@@ -35,7 +35,7 @@
             "depNameTemplate": "python/cpython",
             "extractVersionTemplate": "^v(?<version>\\d+\\.\\d+)(\\.\\d+)?$",
             "fileMatch": [
-                "(^|/)\\.pre-commit-config\\.yaml$".
+                "(^|/)\\.pre-commit-config\\.yaml$",
             ],
             "customType": "regex",
             "matchStrings": [
