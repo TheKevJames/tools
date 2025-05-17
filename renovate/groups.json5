@@ -111,6 +111,7 @@
         {
             "groupName": "terraform",
             "matchDepPatterns": [
+                "^hashicorp/terraform$",
                 "^terraform$",
             ],
         },
