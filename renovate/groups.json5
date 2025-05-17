@@ -110,6 +110,12 @@
             ],
         },
         {
+            "groupName": "tensorrt-cu12",
+            "matchDepPatterns": [
+                "^tensorrt-cu12.*$",
+            ],
+        },
+        {
             "groupName": "terraform",
             "matchDepPatterns": [
                 "^hashicorp/terraform$",
