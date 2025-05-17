@@ -30,7 +30,7 @@
         {
             "matchDatasources": ["docker"],
             "matchPackagePatterns": [
-                "^google/cloud-sdk",
+                "^google/cloud-sdk$",
                 "^thekevjames/gcloud-pubsub-emulator$",
                 "^quay.io/thekevjames/gcloud-pubsub-emulator$",
             ],
@@ -74,6 +74,13 @@
             ],
             "matchUpdateTypes": ["minor"],
             "automerge": true,
+        },
+        {
+            "matchDatasources": ["docker"],
+            "matchDepNames": [
+                "docker.io/cloudflare/cloudflared",
+            ],
+            "automerge": false,
         },
         {
             "matchDepTypes": ["action"],
