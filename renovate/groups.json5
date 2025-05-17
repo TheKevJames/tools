@@ -1,14 +1,6 @@
 {
     "packageRules": [
         {
-            "groupName": "elasticsearch",
-            "matchDepPatterns": [
-                "^docker.elastic.co/kibana/kibana",
-                "^elasticsearch",
-                "^org.elasticsearch.client",
-            ],
-        },
-        {
             "groupName": "com.google.auto.value",
             "matchManagers": ["gradle", "maven"],
             "matchDepPatterns": [
@@ -39,13 +31,6 @@
             ],
         },
         {
-            "groupName": "google",
-            "matchDatasources": ["terraform"],
-            "matchDepPatterns": [
-                "^google.*$",
-            ],
-        },
-        {
             "groupName": "gcsfs",
             "matchDatasources": ["pypi"],
             "matchDepPatterns": [
@@ -58,6 +43,14 @@
             "matchDatasources": ["pypi"],
             "matchDepPatterns": [
                 "^grpcio",
+            ],
+        },
+        {
+            "groupName": "kubernetes",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^kubernetes$",
+                "^kubernetes-asyncio$",
             ],
         },
         {
@@ -85,14 +78,6 @@
             ],
         },
         {
-            "groupName": "python",
-            "matchDepPatterns": [
-                "^cimg/python$",
-                "^python$",
-                "^python/cpython$",
-            ],
-        },
-        {
             "groupName": "pytorch",
             "matchDatasources": ["pypi"],
             "matchDepPatterns": [
@@ -111,8 +96,32 @@
         },
         {
             "groupName": "tensorrt-cu12",
+            "matchDatasources": ["pypi"],
             "matchDepPatterns": [
                 "^tensorrt-cu12.*$",
+            ],
+        },
+        {
+            "groupName": "google",
+            "matchDatasources": ["terraform"],
+            "matchDepPatterns": [
+                "^google.*$",
+            ],
+        },
+        {
+            "groupName": "elasticsearch",
+            "matchDepPatterns": [
+                "^docker.elastic.co/kibana/kibana",
+                "^elasticsearch",
+                "^org.elasticsearch.client",
+            ],
+        },
+        {
+            "groupName": "python",
+            "matchDepPatterns": [
+                "^cimg/python$",
+                "^python$",
+                "^python/cpython$",
             ],
         },
         {
