@@ -103,9 +103,10 @@
         },
         {
             "groupName": "google",
-            "matchDatasources": ["terraform"],
+            "matchDatasources": ["terraform-module", "terraform-provider"],
             "matchDepPatterns": [
-                "^google.*$",
+                "^google$",
+                "^google-beta$",
             ],
         },
         {
