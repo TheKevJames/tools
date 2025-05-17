@@ -13,7 +13,7 @@
             "automerge": true,
         },
         {
-            "matchFiles": [
+            "matchFileNames": [
                 ".circleci/config.yml",
                 "docker-gcloud-pubsub-emulator/Dockerfile",
             ],
@@ -23,7 +23,7 @@
             "allowedVersions": "3.9.2",
         },
         {
-            "matchFiles": [
+            "matchFileNames": [
                 ".pre-commit-config.yaml",
             ],
             "matchDepNames": [
@@ -39,7 +39,7 @@
             "automerge": true,
         },
         {
-            "matchFiles": ["docker-nox/Dockerfile"],
+            "matchFileNames": ["docker-nox/Dockerfile"],
             "matchManagers": ["dockerfile"],
             "matchDepNames": [
                 "ubuntu",
