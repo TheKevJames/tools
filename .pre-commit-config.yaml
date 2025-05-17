@@ -141,7 +141,7 @@ repos:
           - flake8-broken-line==1.0.0
           - flake8-builtins==2.5.0
           - flake8-comprehensions==3.16.0
-          - flake8-import-restrictions==2.0.1
+          - flake8-import-restrictions==2.1
   - repo: https://github.com/guilatrova/tryceratops
     rev: v2.4.1
     hooks:
