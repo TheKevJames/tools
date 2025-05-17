@@ -10,7 +10,7 @@ authors = [
 ]
 
 dependencies = [
-    "prometheus-client (==0.21.1)",
+    "prometheus-client (==0.22.0)",
     "pybluez (==0.23)",
 ]
 
