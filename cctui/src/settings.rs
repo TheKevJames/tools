@@ -142,7 +142,7 @@ pub struct Settings {
 
 impl Settings {
     pub fn new() -> Result<Self, ConfigError> {
-        let dirs = BaseDirectories::with_prefix("cctui").unwrap();
+        let dirs = BaseDirectories::with_prefix("cctui");
         let configfile = dirs
             .place_config_file("config.yml")
             .expect("cannot create configuration directory");
