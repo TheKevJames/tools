@@ -3,6 +3,14 @@
         // N.B. see https://docs.renovatebot.com/modules/versioning/regex/
         {
             "matchDatasources": ["docker"],
+            "matchDepPatterns": [
+                "^ghcr.io/ggerganov/llama.cpp$",
+                "^ghcr.io/ggml-org/llama.cpp$",
+            ],
+            "versioning": "regex:^(?<compatibility>[a-zA-Z\-]+)-(?<major>.*)$",
+        },
+        {
+            "matchDatasources": ["docker"],
             "matchDepPatterns": ["^gke.gcr.io/prometheus-engine/frontend$"],
             "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<compatibility>.*)\\.(?<build>\\d+)$",
         },
