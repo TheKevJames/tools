@@ -1,51 +1,60 @@
 {
-    "extends": [
-        "github>thekevjames/tools:personal",
-        "github>thekevjames/tools//renovate/version-as-app.json5",
+    extends: [
+        'github>thekevjames/tools:personal',
+        'github>thekevjames/tools//renovate/version-as-app.json5',
     ],
-    "packageRules": [
+    packageRules: [
         {
-            "matchManagers": ["dockerfile"],
-            "matchDepNames": [
-                "library/caddy",
+            matchManagers: [
+                'dockerfile',
             ],
-            "matchUpdateTypes": ["minor"],
-            "automerge": true,
+            matchDepNames: [
+                'library/caddy',
+            ],
+            matchUpdateTypes: [
+                'minor',
+            ],
+            automerge: true,
         },
         {
-            "matchFiles": [
-                ".circleci/config.yml",
-                "docker-gcloud-pubsub-emulator/Dockerfile",
+            matchFileNames: [
+                '.circleci/config.yml',
+                'docker-gcloud-pubsub-emulator/Dockerfile',
             ],
-            "matchDepNames": [
-                "python",
+            matchDepNames: [
+                'python',
             ],
-            "allowedVersions": "3.9.2",
+            allowedVersions: '3.9.2',
         },
         {
-            "matchFiles": [
-                ".pre-commit-config.yaml",
+            matchFileNames: [
+                '.pre-commit-config.yaml',
             ],
-            "matchDepNames": [
-                "python/cpython",
+            matchDepNames: [
+                'python/cpython',
             ],
-            "allowedVersions": "3.9",
+            allowedVersions: '3.9',
         },
         {
-            "matchManagers": ["pip_requirements"],
-            "matchDepNames": [
-                "nox",
+            matchManagers: [
+                'pip_requirements',
             ],
-            "automerge": true,
+            matchDepNames: [
+                'nox',
+            ],
+            automerge: true,
         },
         {
-            "matchFiles": ["docker-nox/Dockerfile"],
-            "matchManagers": ["dockerfile"],
-            "matchDepNames": [
-                "ubuntu",
+            matchFileNames: [
+                'docker-nox/Dockerfile',
             ],
-            // TODO: https://github.com/TheKevJames/tools/issues/861
-            "enabled": false,
+            matchManagers: [
+                'dockerfile',
+            ],
+            matchDepNames: [
+                'ubuntu',
+            ],
+            enabled: false,
         },
     ],
 }
