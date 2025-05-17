@@ -4,7 +4,7 @@
 # renovate: datasource=repology depName=debian_12/netcat-openbsd versioning=loose
 ARG NETCATOPENBSD_VERSION=1.219-1
 # renovate: datasource=pypi depName=pip
-ARG PIP_VERSION=25.0.1
+ARG PIP_VERSION=25.1.1
 # renovate: datasource=pypi depName=poetry
 ARG POETRY_VERSION=2.1.3
 # renovate: datasource=pypi depName=poetry-plugin-export
