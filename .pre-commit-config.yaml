@@ -109,7 +109,7 @@ repos:
         require_serial: True
         language: python
         additional_dependencies:
-          - prometheus-client==0.21.1
+          - prometheus-client==0.22.0
         args:
           - --show-error-codes
           - --strict
