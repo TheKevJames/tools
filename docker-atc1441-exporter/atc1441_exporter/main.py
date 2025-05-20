@@ -139,7 +139,8 @@ def main() -> None:
             sock,
             handler,
             filter_mac_addrs=tuple(sensors.keys()),
-            filter_packet_length=32,
+            # TODO: debug me
+            # filter_packet_length=32,
         )
     except KeyboardInterrupt:
         pass
