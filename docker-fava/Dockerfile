@@ -3,7 +3,7 @@
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=25.1.1
 # renovate: datasource=pypi depName=fava
-ARG FAVA_VERSION=1.30.2
+ARG FAVA_VERSION=1.30.3
 
 
 # TODO: get alpine wheels for beancount
