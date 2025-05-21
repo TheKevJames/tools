@@ -26,6 +26,11 @@
             "matchDepPatterns": ["^python$"],
             "rangeStrategy": "widen",
         },
+        {
+            "matchManagers": ["pep621"],
+            "matchDepPatterns": ["^python$"],
+            "rangeStrategy": "widen",
+        },
         // and any build system compatibility
         {
             "matchDepTypes": ["build-system.requires"],
