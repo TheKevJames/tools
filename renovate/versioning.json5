@@ -4,6 +4,22 @@
         {
             "matchDatasources": ["docker"],
             "matchDepPatterns": [
+                "^ghcr.io/hotio/qbittorrent$",
+                "^ghcr.io/hotio/unpackerr$",
+            ],
+            "versioning": "regex:^(?<compatibility>\\w+)-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
+        },
+        {
+            "matchDatasources": ["docker"],
+            "matchDepPatterns": [
+                "^lscr.io/linuxserver/jellyfin$",
+                "^lscr.io/linuxserver/prowlarr$",
+            ],
+            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d{,3})$",
+        },
+        {
+            "matchDatasources": ["docker"],
+            "matchDepPatterns": [
                 "^ghcr.io/ggerganov/llama.cpp$",
                 "^ghcr.io/ggml-org/llama.cpp$",
             ],
@@ -16,14 +32,6 @@
         },
         {
             "matchDatasources": ["docker"],
-            "matchDepPatterns": [
-                "^lscr.io/linuxserver/jellyfin$",
-                "^lscr.io/linuxserver/prowlarr$",
-            ],
-            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d{,3})$",
-        },
-        {
-            "matchDatasources": ["docker"],
             "matchDepPatterns": ["^python$"],
             "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$",
         },
@@ -31,9 +39,15 @@
             "matchDatasources": ["github-tags"],
             "matchDepPatterns": [
                 "^AleksaC/hadolint-py$",
+            ],
+            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?(?<prerelease>\\w+)?$",
+        },
+        {
+            "matchDatasources": ["github-tags"],
+            "matchDepPatterns": [
                 "^shellcheck-py/shellcheck-py$",
             ],
-            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?$",
+            "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?$",
         },
     ],
     "customManagers": [
