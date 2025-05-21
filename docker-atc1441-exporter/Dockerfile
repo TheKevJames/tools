@@ -5,7 +5,7 @@ ARG BLUETOOTH_VERSION=5.66-1+deb12u2
 # renovate: datasource=repology depName=debian_12/libbluetooth-dev versioning=loose
 ARG LIBBLUETOOTHDEV_VERSION=5.66-1+deb12u2
 # renovate: datasource=repology depName=debian_12/libglib2.0-dev versioning=loose
-ARG LIBGLIB20DEV_VERSION=2.74.6-2+deb12u5
+ARG LIBGLIB20DEV_VERSION=2.74.6-2+deb12u6
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=25.1.1
 # renovate: datasource=pypi depName=poetry
