@@ -127,7 +127,7 @@ repos:
         language_version: python3.11
         additional_dependencies:
           - pydantic==2.11.4
-          - typer==0.15.4
+          - typer==0.16.0
         files: task/
   - repo: https://github.com/asottile/yesqa
     rev: v1.5.0

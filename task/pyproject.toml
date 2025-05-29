@@ -1,19 +1,28 @@
-[tool.poetry]
+[project]
 name = "task"
 version = "1.2.0"
 description = "Simple personal task manager"
+requires-python = ">=3.11,<4.0"
+license = {text = "MIT"}
 
+authors = [
+    {name = "Kevin James",email = "KevinJames@thekev.in"}
+]
+
+dependencies = [
+    "pydantic (==2.11.5)",
+    "typer (==0.16.0)",
+]
+
+[project.urls]
 repository = "https://github.com/TheKevJames/tools"
-authors = ["Kevin James <KevinJames@thekev.in>"]
-license = "MIT"
 
-[tool.poetry.scripts]
+[project.scripts]
 task = "task.cli:cli"
 
-[tool.poetry.dependencies]
-python = ">=3.11,<4.0"
-pydantic = "2.11.5"
-typer = "0.15.4"
+[tool.poetry]
+requires-poetry = ">=2.0"
+package-mode = false
 
 [[tool.poetry.source]]
 name = "pypi"
