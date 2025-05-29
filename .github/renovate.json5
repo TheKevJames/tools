@@ -24,6 +24,15 @@
         },
         {
             "matchFileNames": [
+                "docker-atc1441-exporter/Dockerfile",
+            ],
+            "matchDepNames": [
+                "python",
+            ],
+            "allowedVersions": "3.9",
+        },
+        {
+            "matchFileNames": [
                 ".pre-commit-config.yaml",
             ],
             "matchDepNames": [
