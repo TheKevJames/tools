@@ -215,8 +215,7 @@ def build_config() -> Iterator[TopicConfig]:
         for spec in topics:
             topic_name, *subscription_names = spec.split(':')
             subscriptions = [
-                SubscriptionConfig(name)
-                for name in subscription_names or []
+                SubscriptionConfig(name) for name in subscription_names
             ]
             yield TopicConfig(topic_name, project, subscriptions)
 
