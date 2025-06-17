@@ -1,7 +1,4 @@
 {
-    "extends": [
-        "github>thekevjames/tools//renovate/version-as-app.json5",
-    ],
     "packageRules": [
         // Instead of including the following comment above each
         // additional_dependency, simply use `language: python` in the rule for
