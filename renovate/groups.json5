@@ -31,6 +31,13 @@
             ],
         },
         {
+            "groupName": "org.junit.jupiter",
+            "matchManagers": ["gradle", "maven"],
+            "matchDepPatterns": [
+                "^org.junit.jupiter:.*$",
+            ],
+        },
+        {
             "groupName": "gcsfs",
             "matchDatasources": ["pypi"],
             "matchDepPatterns": [
