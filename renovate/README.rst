@@ -73,7 +73,9 @@ The full list of available configs is as follows:
     DAG. If you want to support this anyway, you can use
     ``//renovate/version-as-app.json5`` as a baseline, then apply a file-based
     override with
-    ``//renovate/version-file-as-lib.json5(path-to-library/pyproject.toml)``.
+    ``//renovate/version-file-as-lib.json5(path-to-library/pyproject.toml)``
+    (or vice-versa, using ``version-as-lib`` as a baseline, then applying a
+    file-based ``version-file-as-app`` override).
 
 * ``//renovate/automerge.json5``: my prefered automerge rules, eg. for packages
   which I trust to have non-breaking changes. Roughly maps to automerging
