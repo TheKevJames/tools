@@ -21,7 +21,7 @@ RUN curl -vsSLo /tmp/wait-for "https://github.com/eficode/wait-for/releases/down
 
 
 # N.B. match to the python3 version in the gcloud image
-FROM python:3.9.2 AS builder
+FROM python:3.8.20-slim-bullseye AS builder
 
 RUN python3 -m venv /opt/poetry
 
