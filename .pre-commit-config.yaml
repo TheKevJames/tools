@@ -76,6 +76,7 @@ repos:
       - <<: *pylint
         name: pylint-docker-gcloud-pubsub-emulator
         files: docker-gcloud-pubsub-emulator/
+        language_version: python3.11  # python3.13
       - <<: *pylint
         name: pylint-task
         language_version: python3.11
@@ -190,6 +191,9 @@ repos:
         files: docker-atc1441-exporter/
       - <<: *refurb
         name: refurb-docker-gcloud-pubsub-emulator
+        args:
+          - --python-version
+          - '3.13'
         files: docker-gcloud-pubsub-emulator/
       - <<: *refurb
         name: refurb-task
