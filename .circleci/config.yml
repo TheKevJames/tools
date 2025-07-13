@@ -1,13 +1,12 @@
 version: 2.1
 
 orbs:
-  docker: talkiq/docker@3.1.0
   linter: talkiq/linter@4.0.0
 
 executors:
   docker:
     docker:
-      - image: docker:25.0.5-git
+      - image: docker:28.3.2
     resource_class: medium
   pandoc:
     docker:
@@ -26,14 +25,14 @@ commands:
     steps:
       - when:
           condition:
-            equal: [ "atc1441-exporter", <<parameters.ident>> ]
+            equal: ["atc1441-exporter", <<parameters.ident>>]
           steps:
             - run: |
                 export ATC1441_VERSION=$(awk -F'= ' '/^version =/ {print substr($2, 2, length($2)-2)}'  docker-atc1441-exporter/pyproject.toml)
                 echo "${ATC1441_VERSION}" >/tmp/custom-tag
       - when:
           condition:
-            equal: [ "caddy-security", <<parameters.ident>> ]
+            equal: ["caddy-security", <<parameters.ident>>]
           steps:
             - run: |
                 export CADDY_VERSION=$(awk -F':|-' '/builder-alpine/ {print $2}' docker-caddy-security/Dockerfile)
@@ -41,35 +40,35 @@ commands:
                 echo "${CADDY_VERSION}-${SECURITY_VERSION}" >/tmp/custom-tag
       - when:
           condition:
-            equal: [ "fava", <<parameters.ident>> ]
+            equal: ["fava", <<parameters.ident>>]
           steps:
             - run: |
                 export FAVA_VERSION=$(awk -F'=' '/ARG FAVA_VERSION=/ {print $2}' docker-fava/Dockerfile)
                 echo "${FAVA_VERSION}" >/tmp/custom-tag
       - when:
           condition:
-            equal: [ "gcloud-pubsub-emulator", <<parameters.ident>> ]
+            equal: ["gcloud-pubsub-emulator", <<parameters.ident>>]
           steps:
             - run: |
                 export GCLOUD_VERSION=$(awk -F':|-' '/cloud-sdk/ {print $3}' docker-gcloud-pubsub-emulator/Dockerfile)
                 echo "${GCLOUD_VERSION}" >/tmp/custom-tag
       - when:
           condition:
-            equal: [ "mysqltuner", <<parameters.ident>> ]
+            equal: ["mysqltuner", <<parameters.ident>>]
           steps:
             - run: |
                 export MYSQLTUNER_VERSION=$(awk -F'=' '/VERSION=/ {print $2}' docker-mysqltuner/Makefile)
                 echo "${MYSQLTUNER_VERSION}" >/tmp/custom-tag
       - when:
           condition:
-            equal: [ "nox", <<parameters.ident>> ]
+            equal: ["nox", <<parameters.ident>>]
           steps:
             - run: |
                 export NOX_VERSION=$(awk -F'=' '/nox/ {print $3}' docker-nox/requirements.txt)
                 echo "${NOX_VERSION}" >/tmp/custom-tag
       - when:
           condition:
-            equal: [ "tuning-primer", <<parameters.ident>> ]
+            equal: ["tuning-primer", <<parameters.ident>>]
           steps:
             - run: |
                 export TUNINGPRIMER_VERSION=$(awk -F' ' '/Version:/ {print $3}' docker-tuning-primer/root/tuning-primer.sh)
@@ -88,7 +87,7 @@ commands:
       - run: docker tag "<<parameters.ident>>:${CIRCLE_SHA1:0:10}" "quay.io/thekevjames/<<parameters.ident>>:${CIRCLE_SHA1:0:10}"
       - when:
           condition:
-            equal: [ "master", <<pipeline.git.branch>> ]
+            equal: ["master", <<pipeline.git.branch>>]
           steps:
             - docker-tag-as-custom:
                 ident: <<parameters.ident>>
@@ -124,9 +123,25 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - docker/build:
-          local_image_name: "<<parameters.ident>>:${CIRCLE_SHA1:0:10}"
-          path: "docker-<<parameters.ident>>"
+      - run: echo 'linux/amd64' > /tmp/buildx-platforms
+      - when:
+          condition:
+            equal: ["gcloud-pubsub-emulator", <<parameters.ident>>]
+          steps:
+            - run: echo 'linux/amd64,linux/arm64' > /tmp/buildx-platforms
+      - run: |
+          docker buildx create
+            --name mybuilder
+            --driver docker-container
+            --bootstrap
+      - run: |
+          docker buildx build
+            --builder mybuilder
+            --progress plain
+            -f docker-<<parameters.ident>>/Dockerfile
+            -t <<parameters.ident>>:${CIRCLE_SHA1:0:10}
+            --platform $(cat /tmp/buildx-platforms)
+            docker-<<parameters.ident>>
       - docker-publish-image:
           ident: <<parameters.ident>>
       - docker-publish-readme:
@@ -138,7 +153,7 @@ jobs:
       ident:
         type: string
       prefix:
-        default: 'docker-'
+        default: "docker-"
         type: string
     steps:
       - run: apk add --no-cache --no-progress ca-certificates openssl
