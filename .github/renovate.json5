@@ -15,27 +15,11 @@
         {
             "matchFileNames": [
                 ".circleci/config.yml",
-                "docker-gcloud-pubsub-emulator/Dockerfile",
-            ],
-            "matchDepNames": [
-                "python",
-            ],
-            "allowedVersions": "3.9.2",
-        },
-        {
-            "matchFileNames": [
+                ".pre-commit-config.yaml",
                 "docker-atc1441-exporter/Dockerfile",
             ],
             "matchDepNames": [
                 "python",
-            ],
-            "allowedVersions": "3.9",
-        },
-        {
-            "matchFileNames": [
-                ".pre-commit-config.yaml",
-            ],
-            "matchDepNames": [
                 "python/cpython",
             ],
             "allowedVersions": "3.9",
