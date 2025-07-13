@@ -20,10 +20,31 @@ RUN curl -vsSLo /tmp/wait-for "https://github.com/eficode/wait-for/releases/down
     chmod +x /tmp/wait-for
 
 
-# N.B. match to the python3 version in the gcloud image
-FROM python:3.9.2 AS builder
+FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:529.0.0-emulators AS base
 
-RUN python3 -m venv /opt/poetry
+ARG TARGETPLATFORM
+ARG NETCATOPENBSD_VERSION
+
+RUN rm -f /etc/apt/apt.conf.d/docker-clean && \
+    echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+RUN --mount=type=cache,sharing=locked,target=/var/cache/apt,id=apt-cache-$TARGETPLATFORM \
+    --mount=type=cache,sharing=locked,target=/var/lib/apt,id=apt-lib-$TARGETPLATFORM \
+    apt-get update -qy && \
+    apt-get install -qy --no-install-recommends \
+        "netcat-openbsd=${NETCATOPENBSD_VERSION}" \
+        python3-pip && \
+    gcloud config set disable_usage_reporting true
+
+
+FROM base AS builder
+
+ARG TARGETPLATFORM
+
+RUN --mount=type=cache,sharing=locked,target=/var/cache/apt,id=apt-cache-$TARGETPLATFORM \
+    --mount=type=cache,sharing=locked,target=/var/lib/apt,id=apt-lib-$TARGETPLATFORM \
+    apt-get install -qy --no-install-recommends \
+        python3-venv && \
+    python3 -m venv /opt/poetry
 
 ARG PIP_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -42,21 +63,7 @@ COPY pyproject.toml poetry.lock ./
 RUN /opt/poetry/bin/poetry export -f requirements.txt --output /tmp/requirements.txt
 
 
-# TODO: switch back to Alpine once this is resolved:
-# https://github.com/firebase/firebase-tools/issues/5256#issuecomment-1383228506
-# Alternatively, switch back to slim once this is resolved:
-# https://github.com/TheKevJames/tools/issues/675
-FROM google/cloud-sdk:530.0.0
-
-ARG NETCATOPENBSD_VERSION
-RUN rm -f /etc/apt/apt.conf.d/docker-clean && \
-    echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
-RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt \
-    apt-get update -qy && \
-    apt-get install -qy --no-install-recommends \
-        "netcat-openbsd=${NETCATOPENBSD_VERSION}" && \
-    gcloud config set disable_usage_reporting true
+FROM base
 
 ARG PIP_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip \
