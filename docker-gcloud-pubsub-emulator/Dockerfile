@@ -11,7 +11,7 @@ ARG POETRYPLUGINEXPORT_VERSION=1.9.0
 # renovate: datasource=repology depName=debian_12/python3-pip versioning=loose
 ARG PYTHON3PIP_VERSION=25.1.1+dfsg-1
 # renovate: datasource=repology depName=debian_12/python3-venv versioning=loose
-ARG PYTHON3VENV_VERSION=3.13.5-1
+ARG PYTHON3VENV_VERSION=3.11.2-1
 # renovate: datasource=github-releases depName=eficode/wait-for
 ARG WAITFOR_VERSION=2.2.4
 
