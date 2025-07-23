@@ -170,6 +170,7 @@ fn draw_repos(f: &mut Frame, app: &mut App, area: Rect) {
     // TODO: better handling for too many repos to fit nicely on screen
     let height = area.height - 2; // header/footer
     let columns = ((app.repos.all.items.len() as u16) + height - 1) / height;
+    // TODO: handle columns==0 edge case
     let constraints = vec![Constraint::Percentage(100 / columns); columns as usize];
     let chunks = Layout::default()
         .constraints(constraints)

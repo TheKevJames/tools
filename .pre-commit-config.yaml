@@ -120,7 +120,7 @@ repos:
         name: mypy-docker-gcloud-pubsub-emulator
         additional_dependencies:
           - aiohttp==3.11.18
-          - google-cloud-pubsub==2.29.0
+          - google-cloud-pubsub==2.31.0
         files: docker-gcloud-pubsub-emulator/
       - <<: *mypy
         name: mypy-task
