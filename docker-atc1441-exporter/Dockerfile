@@ -9,7 +9,7 @@ ARG LIBGLIB20DEV_VERSION=2.74.6-2+deb12u6
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=25.1.1
 # renovate: datasource=pypi depName=poetry
-ARG POETRY_VERSION=2.1.3
+ARG POETRY_VERSION=2.1.4
 # renovate: datasource=pypi depName=poetry-plugin-export
 ARG POETRYPLUGINEXPORT_VERSION=1.9.0
 # renovate: datasource=pypi depName=prometheus-client
