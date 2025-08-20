@@ -11,23 +11,19 @@
         },
         // pin our own package's dependencies
         {
-            "matchManagers": ["poetry"],
-            "matchDepTypes": ["dependencies", "extras", "dev", "devDependencies", "dev-dependencies"],
-            "rangeStrategy": "pin",
-        },
-        {
-            "matchManagers": ["pep621"],
-            "matchDepTypes": ["project.dependencies", "project.optional-dependencies", "dev", "devDependencies", "dev-dependencies"],
+            "matchDepTypes": [
+                "dependencies",
+                "dev",
+                "dev-dependencies",
+                "devDependencies",
+                "extras",
+                "project.dependencies",
+                "project.optional-dependencies",
+            ],
             "rangeStrategy": "pin",
         },
         // always widen supported python versions
         {
-            "matchManagers": ["poetry"],
-            "matchDepPatterns": ["^python$"],
-            "rangeStrategy": "widen",
-        },
-        {
-            "matchManagers": ["pep621"],
             "matchDepPatterns": ["^python$"],
             "rangeStrategy": "widen",
         },

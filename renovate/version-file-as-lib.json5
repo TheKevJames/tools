@@ -10,33 +10,27 @@
         // widen our own package's dependencies
         {
             "matchFileNames": ["{{arg0}}"],
-            "matchManagers": ["poetry"],
-            "matchDepTypes": ["dependencies", "extras", "dev", "devDependencies", "dev-dependencies"],
-            "rangeStrategy": "widen",
-        },
-        {
-            "matchFileNames": ["{{arg0}}"],
-            "matchManagers": ["pep621"],
-            "matchDepTypes": ["project.dependencies", "project.optional-dependencies", "dev", "devDependencies", "dev-dependencies"],
+            "matchDepTypes": [
+                "dependencies",
+                "extras",
+                "project.dependencies",
+                "project.optional-dependencies",
+            ],
             "rangeStrategy": "widen",
         },
         // but ensure development dependencies are always pinned
         {
             "matchFileNames": ["{{arg0}}"],
-            "matchManagers": ["poetry"],
-            "matchDepTypes": ["dev", "devDependencies", "dev-dependencies"],
-            "rangeStrategy": "pin",
-        },
-        {
-            "matchFileNames": ["{{arg0}}"],
-            "matchManagers": ["pep621"],
-            "matchDepTypes": ["dev", "devDependencies", "dev-dependencies"],
+            "matchDepTypes": [
+                "dev",
+                "dev-dependencies",
+                "devDependencies",
+            ],
             "rangeStrategy": "pin",
         },
         // always widen supported python versions
         {
             "matchFileNames": ["{{arg0}}"],
-            "matchManagers": ["poetry"],
             "matchDepPatterns": ["^python$"],
             "rangeStrategy": "widen",
         },

@@ -10,6 +10,7 @@
     },
     // TODO: check out the new `isBreaking` flag for simplifying this, or
     // consider using `"matchCurrentVersion": "!/^0/"`
+    // See https://github.com/renovatebot/renovate/pull/31859
     "packageRules": [
         {
             "matchUpdateTypes": ["patch", "pin", "digest"],
