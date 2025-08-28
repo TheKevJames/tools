@@ -142,7 +142,7 @@ repos:
         require_serial: True
         language: python
         additional_dependencies:
-          - aiohttp==3.11.18
+          - aiohttp==3.12.15
           - google-cloud-pubsub==2.31.0
         args:
           - --show-error-codes
