@@ -287,6 +287,12 @@ repos:
     hooks:
       - id: hadolint
         args:
+          # TODO: get renovate to work with apt pinning
+          - --ignore=DL3008
+          # TODO: get renovate to work with apk pinning
+          - --ignore=DL3018
+          # https://github.com/hadolint/hadolint/wiki/DL3025
+          # Breaks `exec` usage
           - --ignore=DL3025
           # https://github.com/hadolint/hadolint/issues/497
           - --ignore=DL3042

@@ -1,17 +1,11 @@
 # syntax=docker/dockerfile:1
 
-# renovate: datasource=repology depName=debian_12/netcat-openbsd versioning=loose
-ARG NETCATOPENBSD_VERSION=1.219-1
 # renovate: datasource=pypi depName=pip
-ARG PIP_VERSION=25.1.1
+ARG PIP_VERSION=25.2
 # renovate: datasource=pypi depName=poetry
 ARG POETRY_VERSION=2.1.4
 # renovate: datasource=pypi depName=poetry-plugin-export
 ARG POETRYPLUGINEXPORT_VERSION=1.9.0
-# renovate: datasource=repology depName=debian_12/python3-pip versioning=loose
-ARG PYTHON3PIP_VERSION=25.1.1+dfsg-1
-# renovate: datasource=repology depName=debian_12/python3-venv versioning=loose
-ARG PYTHON3VENV_VERSION=3.13.5-1
 # renovate: datasource=github-releases depName=eficode/wait-for
 ARG WAITFOR_VERSION=2.2.4
 
@@ -26,29 +20,28 @@ RUN curl -vsSLo /tmp/wait-for "https://github.com/eficode/wait-for/releases/down
 FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:531.0.0-emulators AS base
 
 ARG TARGETPLATFORM
-ARG NETCATOPENBSD_VERSION
-ARG PYTHON3PIP_VERSION
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean && \
     echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+# TODO: figure out how to properly pin these versions and have renovate update them
 RUN --mount=type=cache,sharing=locked,target=/var/cache/apt,id=apt-cache-$TARGETPLATFORM \
     --mount=type=cache,sharing=locked,target=/var/lib/apt,id=apt-lib-$TARGETPLATFORM \
     apt-get update -qy && \
     apt-get install -qy --no-install-recommends \
-        "netcat-openbsd=${NETCATOPENBSD_VERSION}" \
-        "python3-pip=${PYTHON3PIP_VERSION}" && \
+        "netcat-openbsd" \
+        "python3-pip" && \
     gcloud config set disable_usage_reporting true
 
 
 FROM base AS builder
 
 ARG TARGETPLATFORM
-ARG PYTHON3VENV_VERSION
 
+# TODO: figure out how to properly pin these versions and have renovate update them
 RUN --mount=type=cache,sharing=locked,target=/var/cache/apt,id=apt-cache-$TARGETPLATFORM \
     --mount=type=cache,sharing=locked,target=/var/lib/apt,id=apt-lib-$TARGETPLATFORM \
     apt-get install -qy --no-install-recommends \
-        "python3-venv=${PYTHON3VENV_VERSION}" && \
+        "python3-venv" && \
     python3 -m venv /opt/poetry
 
 ARG PIP_VERSION
