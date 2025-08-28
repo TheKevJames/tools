@@ -7,7 +7,7 @@ ARG CADDYSECURITY_VERSION=v1.1.31
 FROM docker.io/library/caddy:2.10.2-builder-alpine AS builder
 
 ARG CADDYSECURITY_VERSION
-RUN GOTOOLCHAIN=go1.24.1 xcaddy build \
+RUN GOTOOLCHAIN=auto xcaddy build \
     --with "github.com/greenpau/caddy-security@${CADDYSECURITY_VERSION}"
 
 
