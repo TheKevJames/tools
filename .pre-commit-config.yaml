@@ -49,9 +49,33 @@ repos:
     rev: v3.3.8
     hooks:
       # TODO: pylint-import-modules support for pylint v3 (or alternative linter)
+      # - id: pylint
+      #   name: pylint-docker-atc1441-exporter
+      #   args:
+      #     - --load-plugins=pylint.extensions.mccabe
+      #     - --max-complexity=10
+      #     - --max-line-length=79
+      #     - --max-module-lines=500
+      #     - --max-positional-arguments=10
+      #     - --max-args=10
+      #     - --score=n
+      #     # TODO: narrow these down
+      #     - -d broad-except
+      #     - -d duplicate-code
+      #     - -d fixme
+      #     - -d import-error
+      #     - -d invalid-name
+      #     - -d locally-disabled
+      #     - -d missing-docstring
+      #     - -d too-few-public-methods
+      #     - -d try-except-raise
+      #     - -d ungrouped-imports  # conflicts with reorder-python-imports
+      #     - -d wrong-import-order  # conflicts with reorder-python-imports
+      #   files: docker-atc1441-exporter/
+      #   language_version: python3.9
       - &pylint
         id: pylint
-        name: pylint-docker-atc1441-exporter
+        name: pylint-docker-gcloud-pubsub-emulator
         args:
           - --load-plugins=pylint.extensions.mccabe
           - --max-complexity=10
@@ -72,15 +96,9 @@ repos:
           - -d try-except-raise
           - -d ungrouped-imports  # conflicts with reorder-python-imports
           - -d wrong-import-order  # conflicts with reorder-python-imports
-        files: docker-atc1441-exporter/
-        language_version: python3.9
-      - <<: *pylint
-        name: pylint-docker-gcloud-pubsub-emulator
         files: docker-gcloud-pubsub-emulator/
-        language_version: python3.11
       - <<: *pylint
         name: pylint-task
-        language_version: python3.11
         files: task/
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.5
@@ -105,30 +123,35 @@ repos:
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.17.1
     hooks:
+      # - id: mypy
+      #   name: mypy-docker-atc1441-exporter
+      #   require_serial: True
+      #   language: python
+      #   language_version: python3.9
+      #   additional_dependencies:
+      #     - prometheus-client==0.22.0
+      #   args:
+      #     - --show-error-codes
+      #     - --strict
+      #     - --strict-equality
+      #     - --warn-unreachable
+      #   files: docker-atc1441-exporter/
       - &mypy
         id: mypy
-        name: mypy-docker-atc1441-exporter
+        name: mypy-docker-gcloud-pubsub-emulator
         require_serial: True
         language: python
-        language_version: python3.9
         additional_dependencies:
-          - prometheus-client==0.22.0
+          - aiohttp==3.11.18
+          - google-cloud-pubsub==2.31.0
         args:
           - --show-error-codes
           - --strict
           - --strict-equality
           - --warn-unreachable
-        files: docker-atc1441-exporter/
-      - <<: *mypy
-        name: mypy-docker-gcloud-pubsub-emulator
-        language_version: python3.11
-        additional_dependencies:
-          - aiohttp==3.11.18
-          - google-cloud-pubsub==2.31.0
         files: docker-gcloud-pubsub-emulator/
       - <<: *mypy
         name: mypy-task
-        language_version: python3.11
         additional_dependencies:
           - pydantic==2.11.4
           - typer==0.16.0
@@ -184,15 +207,14 @@ repos:
   - repo: https://github.com/dosisod/refurb
     rev: v2.1.0
     hooks:
+      # - id: refurb
+      #   name: refurb-docker-atc1441-exporter
+      #   args:
+      #     - --python-version
+      #     - '3.9'
+      #   files: docker-atc1441-exporter/
       - &refurb
         id: refurb
-        name: refurb-docker-atc1441-exporter
-        args:
-          - --python-version
-          - '3.9'
-        language_version: python3.11
-        files: docker-atc1441-exporter/
-      - <<: *refurb
         name: refurb-docker-gcloud-pubsub-emulator
         args:
           - --python-version
