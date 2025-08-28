@@ -8,7 +8,7 @@ default_install_hook_types:
   - pre-commit
 
 default_language_version:
-    python: python3.9
+    python: python3.11
 
 exclude: '^docker-tuning-primer/root/.*.sh$'
 
@@ -73,10 +73,11 @@ repos:
           - -d ungrouped-imports  # conflicts with reorder-python-imports
           - -d wrong-import-order  # conflicts with reorder-python-imports
         files: docker-atc1441-exporter/
+        language_version: python3.9
       - <<: *pylint
         name: pylint-docker-gcloud-pubsub-emulator
         files: docker-gcloud-pubsub-emulator/
-        language_version: python3.11  # python3.13
+        language_version: python3.11
       - <<: *pylint
         name: pylint-task
         language_version: python3.11
@@ -109,6 +110,7 @@ repos:
         name: mypy-docker-atc1441-exporter
         require_serial: True
         language: python
+        language_version: python3.9
         additional_dependencies:
           - prometheus-client==0.22.0
         args:
@@ -119,6 +121,7 @@ repos:
         files: docker-atc1441-exporter/
       - <<: *mypy
         name: mypy-docker-gcloud-pubsub-emulator
+        language_version: python3.11
         additional_dependencies:
           - aiohttp==3.11.18
           - google-cloud-pubsub==2.31.0
@@ -193,7 +196,7 @@ repos:
         name: refurb-docker-gcloud-pubsub-emulator
         args:
           - --python-version
-          - '3.13'
+          - '3.11'
         files: docker-gcloud-pubsub-emulator/
       - <<: *refurb
         name: refurb-task

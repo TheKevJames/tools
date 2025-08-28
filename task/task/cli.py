@@ -4,7 +4,7 @@ from typing import Annotated
 
 import typer
 
-from . import cmd
+from . import command
 from . import files
 from . import schema
 
@@ -21,7 +21,7 @@ Sort = Annotated[schema.SortOrder, typer.Option('-s', '--sort')]
 @app.command('add')
 def add(idx: int, task: str) -> None:
     conf = files.Settings()
-    tasks = list(cmd.load(files.load()))
+    tasks = list(command.load(files.load()))
 
     # TODO: allow adding details
     details = None
@@ -35,7 +35,7 @@ def add(idx: int, task: str) -> None:
 
 @app.command('delay')
 def delay(task: str, days: Days) -> None:
-    tasks = list(cmd.load(files.load()))
+    tasks = list(command.load(files.load()))
     item = next((x for x in tasks if str(x.link) == task), None)
     assert item, f'task {task} not found!'
 
@@ -50,7 +50,7 @@ def delay(task: str, days: Days) -> None:
 
 @app.command('done')
 def done(task: str, ago: Ago = 0) -> None:
-    tasks = list(cmd.load(files.load()))
+    tasks = list(command.load(files.load()))
     item = next((x for x in tasks if str(x.link) == task), None)
     assert item, f'task {task} not found!'
 
@@ -78,7 +78,7 @@ def due(
         sort: Sort = schema.SortOrder.due,
 ) -> None:
     # TODO: column-aligned printing
-    for task in cmd.load_with_next(files.load(), filter_, 0, limit, sort):
+    for task in command.load_with_next(files.load(), filter_, 0, limit, sort):
         print(task)
 
 
@@ -108,7 +108,7 @@ def highpri(
         sort: Sort = schema.SortOrder.due,
 ) -> None:
     filt = f'{filter_},tag=highpri'
-    for task in cmd.load(files.load(), filt, days, limit, sort):
+    for task in command.load(files.load(), filt, days, limit, sort):
         print(task)
 
 
@@ -119,13 +119,13 @@ def list_(
         limit: Limit = -1,
         sort: Sort = schema.SortOrder.ident,
 ) -> None:
-    for task in cmd.load(files.load(), filter_, days, limit, sort):
+    for task in command.load(files.load(), filter_, days, limit, sort):
         print(task)
 
 
 @app.command('rewrite')
 def rewrite() -> None:
-    files.save(cmd.load(files.load()))
+    files.save(command.load(files.load()))
 
 
 # TODO(feat): split to get/set
@@ -143,7 +143,9 @@ def soon(
         limit: Limit = -1,
         sort: Sort = schema.SortOrder.due,
 ) -> None:
-    for task in cmd.load_with_next(files.load(), filter_, days, limit, sort):
+    for task in command.load_with_next(
+            files.load(), filter_, days, limit, sort,
+    ):
         print(task)
 
 
@@ -155,7 +157,7 @@ def triage(
         sort: Sort = schema.SortOrder.ident,
 ) -> None:
     filt = f'{filter_},tag=triage'
-    for task in cmd.load(files.load(), filt, days, limit, sort):
+    for task in command.load(files.load(), filt, days, limit, sort):
         print(task)
 
 

@@ -14,8 +14,6 @@
         },
         {
             "matchFileNames": [
-                ".circleci/config.yml",
-                ".pre-commit-config.yaml",
                 "docker-atc1441-exporter/Dockerfile",
             ],
             "matchDepNames": [

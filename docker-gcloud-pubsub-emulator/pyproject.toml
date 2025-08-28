@@ -2,7 +2,7 @@
 name = "pubsubc"
 version = "0.1.0"
 description = "Google PubSub topic and subscription creator"
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.11,<4.0"
 license = { text = "MIT" }
 
 authors = [
