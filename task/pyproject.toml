@@ -22,7 +22,7 @@ task = "task.cli:cli"
 
 [tool.poetry]
 requires-poetry = ">=2.0"
-package-mode = false
+package-mode = true
 
 [[tool.poetry.source]]
 name = "pypi"
