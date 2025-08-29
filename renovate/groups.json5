@@ -76,6 +76,7 @@
                 "^opentelemetry-instrumentation-",
                 "^opentelemetry-semantic-conventions$",
             ],
+            "ignoreUnstable": false,
         },
         {
             "groupName": "pydantic",
