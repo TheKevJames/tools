@@ -74,6 +74,7 @@
             "matchDepPatterns": [
                 "^opentelemetry-distro$",
                 "^opentelemetry-instrumentation-",
+                "^opentelemetry-semantic-conventions$",
             ],
         },
         {
