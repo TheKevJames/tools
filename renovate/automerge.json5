@@ -92,6 +92,11 @@
             "automerge": true,
         },
         {
+            "matchDepTypes": ["orb"],
+            "matchUpdateTypes": ["minor"],
+            "automerge": true,
+        },
+        {
             "matchDatasources": ["pypi"],
             "matchPackagePatterns": [
                 "^coveralls$",
