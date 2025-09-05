@@ -11,7 +11,7 @@ authors = [
 
 dependencies = [
     "pydantic (==2.11.7)",
-    "typer (==0.17.3)",
+    "typer (==0.17.4)",
 ]
 
 [project.urls]
