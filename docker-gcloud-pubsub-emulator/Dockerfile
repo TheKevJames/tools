@@ -1,7 +1,5 @@
 # syntax=docker/dockerfile:1
 
-# renovate: datasource=pypi depName=pip
-ARG PIP_VERSION=25.2
 # renovate: datasource=pypi depName=poetry
 ARG POETRY_VERSION=2.1.4
 # renovate: datasource=pypi depName=poetry-plugin-export
@@ -44,10 +42,6 @@ RUN --mount=type=cache,sharing=locked,target=/var/cache/apt,id=apt-cache-$TARGET
         "python3-venv" && \
     python3 -m venv /opt/poetry
 
-ARG PIP_VERSION
-RUN --mount=type=cache,target=/root/.cache/pip \
-    /opt/poetry/bin/pip install --upgrade "pip==${PIP_VERSION}"
-
 ARG POETRY_VERSION
 ARG POETRYPLUGINEXPORT_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -62,10 +56,6 @@ RUN /opt/poetry/bin/poetry export -f requirements.txt --output /tmp/requirements
 
 
 FROM base
-
-ARG PIP_VERSION
-RUN --mount=type=cache,target=/root/.cache/pip \
-    python3 -m pip install --upgrade "pip==${PIP_VERSION}" --break-system-packages
 
 COPY --from=builder /tmp/requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
