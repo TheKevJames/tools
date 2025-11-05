@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+echo >/dev/stderr "WARNING:"
+echo >/dev/stderr "thekevjames/nox is deprecated, please use the manylinux images and 'pipx run nox'"
+echo >/dev/stderr "You can find available images and details here: https://github.com/pypa/manylinux"
+echo ""
+echo ""
+
+pipx run nox "$@"

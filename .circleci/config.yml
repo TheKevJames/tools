@@ -64,8 +64,7 @@ commands:
             equal: ["nox", <<parameters.ident>>]
           steps:
             - run: |
-                export NOX_VERSION=$(awk -F'=' '/nox/ {print $3}' docker-nox/requirements.txt)
-                echo "${NOX_VERSION}" >/tmp/custom-tag
+                echo "latest" >/tmp/custom-tag
       - when:
           condition:
             equal: ["tuning-primer", <<parameters.ident>>]

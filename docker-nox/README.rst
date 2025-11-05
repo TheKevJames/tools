@@ -3,6 +3,12 @@ Docker-Nox
 
 |dockerpulls|
 
+.. warning::
+
+    This project is now deprecated. I recommend switching to a manylinux base
+    image matching your usecase, which you can find here:
+    https://github.com/pypa/manylinux
+
 Description
 -----------
 
