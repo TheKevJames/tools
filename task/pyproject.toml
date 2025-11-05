@@ -10,7 +10,7 @@ authors = [
 ]
 
 dependencies = [
-    "pydantic (==2.11.7)",
+    "pydantic (==2.11.10)",
     "typer (==0.17.4)",
 ]
 
