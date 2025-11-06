@@ -167,7 +167,7 @@ repos:
           - flake8-2020==1.8.1
           - flake8-broken-line==1.0.0
           - flake8-builtins==3.1.0
-          - flake8-comprehensions==3.16.0
+          - flake8-comprehensions==3.17.0
           - flake8-import-restrictions==2.1
   - repo: https://github.com/guilatrova/tryceratops
     rev: v2.4.1
