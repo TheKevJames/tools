@@ -10,7 +10,7 @@ authors = [
 ]
 
 dependencies = [
-    "google-cloud-pubsub==2.31.1",
+    "google-cloud-pubsub==2.33.0",
 ]
 
 [project.urls]
