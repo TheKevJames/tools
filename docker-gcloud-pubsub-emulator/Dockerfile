@@ -15,7 +15,7 @@ RUN curl -vsSLo /tmp/wait-for "https://github.com/eficode/wait-for/releases/down
     chmod +x /tmp/wait-for
 
 
-FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:547.0.0-emulators AS base
+FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:548.0.0-emulators AS base
 
 ARG TARGETPLATFORM
 
