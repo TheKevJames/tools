@@ -127,6 +127,7 @@
                 "jira",
                 "jsonpath-ng",
                 "hypothesis",
+                "keyring",
                 "openai",
                 "pip",
                 "plotly",
