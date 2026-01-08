@@ -24,5 +24,5 @@ ratatui = "=0.29.0"
 reqwest = { version = "=0.12.28", features = ["blocking", "json"] }
 serde = { version = "=1.0.228", features = ["derive"] }
 serde-xml-rs = "=0.8.2"
-serde_json = "=1.0.148"
+serde_json = "=1.0.149"
 xdg = "=3.0.0"
