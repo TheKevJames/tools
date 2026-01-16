@@ -60,6 +60,7 @@
                 "docker",
                 "docker.n8n.io/n8nio/n8n",
                 "docker/dockerfile",
+                "gerbera/gerbera",
                 "ghcr.io/gethomepage/homepage",
                 "hashicorp/terraform",
                 "moss/xelatex",
