@@ -177,6 +177,7 @@
                 "hashicorp/kubernetes",
                 "integrations/github",
                 "kubernetes",
+                "random",
             ],
             "matchUpdateTypes": ["minor"],
             "automerge": true,
