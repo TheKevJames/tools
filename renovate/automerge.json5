@@ -133,6 +133,7 @@
                 "pip",
                 "plotly",
                 "poetry",
+                "poetry-plugin-export",
                 "prometheus-fastapi-instrumentator",
                 "pydantic",
                 "pydantic-settings",
