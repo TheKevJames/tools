@@ -3,7 +3,7 @@
 # renovate: datasource=pypi depName=poetry
 ARG POETRY_VERSION=2.3.1
 # renovate: datasource=pypi depName=poetry-plugin-export
-ARG POETRYPLUGINEXPORT_VERSION=1.9.0
+ARG POETRYPLUGINEXPORT_VERSION=1.10.0
 # renovate: datasource=github-releases depName=eficode/wait-for
 ARG WAITFOR_VERSION=2.2.4
 
