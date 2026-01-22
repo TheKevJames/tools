@@ -29,6 +29,7 @@
             ],
             "matchDepNames": [
                 "python",
+                "python/cpython",
             ],
             "allowedVersions": "3.11",
         },
