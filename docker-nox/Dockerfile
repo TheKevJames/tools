@@ -1,3 +1,3 @@
-FROM quay.io/pypa/manylinux2014:2026.01.16-1
+FROM quay.io/pypa/manylinux2014:2026.01.23-1
 
 COPY nox /usr/bin/nox
