@@ -6,7 +6,7 @@ orbs:
 executors:
   docker:
     docker:
-      - image: docker:29.1.5
+      - image: docker:29.2.0
     resource_class: medium
   pandoc:
     docker:
