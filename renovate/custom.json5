@@ -61,5 +61,24 @@
             ],
             "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}",
         },
+        // Usage:
+        // 1. specify a hook normally:
+        //        - repo: https://github.com/AleksaC/hadolint-py
+        //          rev: v2.14.0
+        // 2. overwrite the depName via a comment:
+        //        - repo: https://github.com/AleksaC/hadolint-py
+        //          # renovate: datasource=git-tags depName=hadolint/hadolint
+        //          rev: v2.14.0
+        {
+            "description": "Override depName for pre-commit rev lookups",
+            "fileMatch": [
+                "^.pre-commit-config.yml$",
+            ],
+            "customType": "regex",
+            "matchStrings": [
+                "# renovate: datasource=(?<datasource>git-tags) depName=(?<depName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s+rev: (?<currentValue>.+?)\\s",
+            ],
+            "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}",
+        },
     ],
 }
