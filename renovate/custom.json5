@@ -42,6 +42,24 @@
                 "\\s*image\\s*=\\s*\"(?<depName>.*?):(?<currentValue>.*?)\"\\s*#\\s*renovate\\n",
             ],
             "datasourceTemplate": "docker"
-        }
+        },
+        // Usage:
+        // 1. specify a job with a `version` parameter:
+        //        parameters:
+        //          version:
+        //            type: string
+        // 2. add a comment above specifying the datsource and depName:
+        //        # renovate: datasource=pypi depName=poetry
+        {
+            "description": "Update dependencies in .circleci/config.yml job parameters",
+            "fileMatch": [
+                "^.circleci/config.yml$",
+            ],
+            "customType": "regex",
+            "matchStrings": [
+                "# renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s+version: (?<currentValue>.+?)\\s",
+            ],
+            "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}",
+        },
     ],
 }
