@@ -53,6 +53,7 @@
             "matchDatasources": ["pypi"],
             "matchDepNames": [
                 "openai-whisper",
+                "sanic",
             ],
             "automerge": false,
         },
