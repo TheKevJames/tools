@@ -18,7 +18,8 @@
     "meteor": {"enabled": true},
     "npm": {"enabled": true},
     "pre-commit": {"enabled": true},
-    "prCreation": "immediate",
+    "internalChecksFilter": "strict",
+    "prCreation": "not-pending",
     "pruneStaleBranches": true,
     "rollbackPrs": true,
     "updateNotScheduled": true
