@@ -8,26 +8,27 @@
     "lockFileMaintenance": {
         "automerge": true
     },
-    // TODO: check out the new `isBreaking` flag for simplifying this, or
-    // consider using `"matchCurrentVersion": "!/^0/"`
-    // See https://github.com/renovatebot/renovate/pull/31859
     "packageRules": [
+        // Automerge minor bumps when they are non-breaking (eg. v1 or greater for semver)
+        {
+            "matchUpdateTypes": ["minor"],
+            "matchJsonata": ["isBreaking != true"],
+            "automerge": true,
+        },
+        // Automerge patch and lesser bumps
         {
             "matchUpdateTypes": ["patch", "pin", "digest"],
             "automerge": true,
         },
+        // Automerge non-breaking minor actions bumps and also pin digests
         {
-            "matchDatasources": ["crate"],
-            "matchDepNames": [
-                "chrono",
-                "log",
-                "serde",
-                "serde_json",
-                "xdg",
-            ],
+            "matchDepTypes": ["action"],
             "matchUpdateTypes": ["minor"],
+            "matchJsonata": ["isBreaking != true"],
+            "pinDigests": true,
             "automerge": true,
         },
+        // Automerge majors of gcloud CLI
         {
             "matchDatasources": ["docker"],
             "matchPackagePatterns": [
@@ -39,46 +40,7 @@
             "matchUpdateTypes": ["major", "minor", "patch"],
             "automerge": true,
         },
-        {
-            "matchDatasources": ["docker"],
-            "matchPackagePatterns": [
-                "^thekevjames/",
-                "^quay.io/thekevjames/",
-            ],
-            "matchUpdateTypes": ["minor"],
-            "automerge": true,
-        },
-        {
-            "matchDatasources": ["docker"],
-            "matchDepNames": [
-                "alpine/git",
-                "bitnami/kube-state-metrics",
-                "busybox",
-                "caddy",
-                "cimg/gcp",
-                "curlimages/curl",
-                "docker",
-                "docker.n8n.io/n8nio/n8n",
-                "docker/dockerfile",
-                "gerbera/gerbera",
-                "ghcr.io/gethomepage/homepage",
-                "hashicorp/terraform",
-                "moss/xelatex",
-                "node",
-                "nodejs/node",
-                "pandoc/core",
-                "quay.io/linuxserver.io/jellyfin",
-                "quay.io/linuxserver.io/prowlarr",
-                "quay.io/linuxserver.io/radarr",
-                "quay.io/linuxserver.io/sonarr",
-                "quay.io/linuxserver.io/syncthing",
-                "quay.io/prometheus/prometheus",
-                "renovate/renovate",
-                "surnet/alpine-wkhtmltopdf",
-            ],
-            "matchUpdateTypes": ["minor"],
-            "automerge": true,
-        },
+        // Never automerge docker images using calver
         {
             "matchDatasources": ["docker"],
             "matchDepNames": [
@@ -86,23 +48,7 @@
             ],
             "automerge": false,
         },
-        {
-            "matchDepTypes": ["action"],
-            "matchUpdateTypes": ["minor"],
-            "pinDigests": true,
-            "automerge": true,
-        },
-        {
-            "matchDepTypes": ["orb"],
-            "matchUpdateTypes": ["minor"],
-            "automerge": true,
-        },
-        {
-            "matchDatasources": ["pypi"],
-            "matchUpdateTypes": ["minor"],
-            "matchJsonata": ["isBreaking != true"],
-            "automerge": true,
-        },
+        // Never automerge pypi packages using calver
         {
             "matchDatasources": ["pypi"],
             "matchDepNames": [
@@ -110,31 +56,14 @@
             ],
             "automerge": false,
         },
+        // Slow down automerge for packages with rapid release schedules
+        // TODO: consider selective scheduling instead
+        // https://docs.renovatebot.com/noise-reduction/#selective-scheduling
         {
-            "matchDatasources": ["terraform-module", "terraform-provider"],
             "matchDepNames": [
-                "cloudflare",
-                "confluent",
-                "confluentinc/confluent",
-                "github",
-                "google",
-                "grafana",
-                "hashicorp/cloudflare",
-                "hashicorp/google",
-                "hashicorp/grafana",
-                "hashicorp/kubernetes",
-                "integrations/github",
-                "kubernetes",
-                "random",
+                "hypothesis",
             ],
-            "matchUpdateTypes": ["minor"],
-            "automerge": true,
+            "minimumReleaseAge": "3 days",
         },
-        {
-            "matchManagers": ["pre-commit"],
-            "matchDatasources": ["github-releases", "github-tags", "pypi"],
-            "matchUpdateTypes": ["minor"],
-            "automerge": true,
-        }
-      ]
+    ],
 }
