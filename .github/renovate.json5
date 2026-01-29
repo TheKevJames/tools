@@ -25,7 +25,7 @@
         {
             "matchFileNames": [
                 ".circleci/config.yml",
-                ".pre-commit-config.yml",
+                ".pre-commit-config.yaml",
             ],
             "matchDepNames": [
                 "python",
