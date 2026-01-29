@@ -51,9 +51,10 @@
         // 2. add a comment above specifying the datsource and depName:
         //        # renovate: datasource=pypi depName=poetry
         {
-            "description": "Update dependencies in .circleci/config.yml job parameters",
+            "description": "Update dependencies in CI job parameters",
             "fileMatch": [
                 "^.circleci/config.yml$",
+                "^.github/workflows/*.yml$",
             ],
             "customType": "regex",
             "matchStrings": [
