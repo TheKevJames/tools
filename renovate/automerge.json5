@@ -15,6 +15,16 @@
             "matchJsonata": ["isBreaking != true"],
             "automerge": true,
         },
+        // Don't count Python minors as non-breaking
+        {
+            "matchUpdateTypes": ["minor"],
+            "matchDepNames": [
+                "cimg/python",
+                "python",
+                "python/cpython",
+            ],
+            "automerge": false,
+        },
         // Automerge patch and lesser bumps
         {
             "matchUpdateTypes": ["patch", "pin", "digest"],
