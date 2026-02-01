@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # renovate: datasource=pypi depName=poetry
-ARG POETRY_VERSION=2.3.1
+ARG POETRY_VERSION=2.3.2
 # renovate: datasource=pypi depName=poetry-plugin-export
 ARG POETRYPLUGINEXPORT_VERSION=1.10.0
 # renovate: datasource=github-releases depName=eficode/wait-for
