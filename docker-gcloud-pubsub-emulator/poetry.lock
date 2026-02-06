@@ -200,14 +200,14 @@ urllib3 = ["packaging", "urllib3"]
 
 [[package]]
 name = "google-cloud-pubsub"
-version = "2.34.0"
+version = "2.35.0"
 description = "Google Cloud Pub/Sub API client library"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "google_cloud_pubsub-2.34.0-py3-none-any.whl", hash = "sha256:aa11b2471c6d509058b42a103ed1b3643f01048311a34fd38501a16663267206"},
-    {file = "google_cloud_pubsub-2.34.0.tar.gz", hash = "sha256:25f98c3ba16a69871f9ebbad7aece3fe63c8afe7ba392aad2094be730d545976"},
+    {file = "google_cloud_pubsub-2.35.0-py3-none-any.whl", hash = "sha256:c32e4eb29e532ec784b5abb5d674807715ec07895b7c022b9404871dec09970d"},
+    {file = "google_cloud_pubsub-2.35.0.tar.gz", hash = "sha256:2c0d1d7ccda52fa12fb73f34b7eb9899381e2fd931c7d47b10f724cdfac06f95"},
 ]
 
 [package.dependencies]
@@ -219,8 +219,8 @@ grpcio = [
     {version = ">=1.75.1,<2.0.0", markers = "python_version >= \"3.14\""},
 ]
 grpcio-status = ">=1.33.2"
-opentelemetry-api = {version = ">=1.27.0", markers = "python_version >= \"3.8\""}
-opentelemetry-sdk = {version = ">=1.27.0", markers = "python_version >= \"3.8\""}
+opentelemetry-api = ">=1.27.0"
+opentelemetry-sdk = ">=1.27.0"
 proto-plus = [
     {version = ">=1.25.0,<2.0.0", markers = "python_version >= \"3.13\""},
     {version = ">=1.22.2,<2.0.0", markers = "python_version >= \"3.11\" and python_version < \"3.13\""},
@@ -603,4 +603,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "439c0d4921c1d6cf3f87cff6dac9884bcf2a7f9f9f176ed2897b82dd89bff3c5"
+content-hash = "4b269bd5c5bf74608d9bc707340bb4d6e08cabbd242596ae3f71921dd507f9a8"
