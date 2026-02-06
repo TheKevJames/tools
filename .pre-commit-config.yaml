@@ -143,7 +143,7 @@ repos:
         language: python
         additional_dependencies:
           - aiohttp==3.13.3
-          - google-cloud-pubsub==2.34.0
+          - google-cloud-pubsub==2.35.0
         args:
           - --show-error-codes
           - --strict
