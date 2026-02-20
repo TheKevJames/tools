@@ -42,8 +42,8 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean && \
 # TODO: figure out which other deps we need, add them, then do --no-install-recommends
 # TODO: figure out how to properly pin these versions and have renovate update them
 # hadolint ignore=DL3015
-RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update -qy && \
     apt-get upgrade -qy && \
     apt-get install -qy \
