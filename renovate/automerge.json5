@@ -55,6 +55,7 @@
             "matchDatasources": ["docker"],
             "matchDepNames": [
                 "docker.io/cloudflare/cloudflared",
+                "docker.io/pihole/pihole",
             ],
             "automerge": false,
         },
