@@ -12,7 +12,6 @@ class Settings:
 
     def __init__(self) -> None:
         self.fnames = [
-            pathlib.Path.home() / 'sync' / 'work' / 'vimwiki' / 'todos.md',
             pathlib.Path.home() / 'sync' / 'vimwiki' / 'todos.md',
         ]
 
