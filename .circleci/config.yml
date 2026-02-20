@@ -8,6 +8,10 @@ executors:
     docker:
       - image: docker:29.2.1
     resource_class: medium
+  node:
+    docker:
+      - image: cimg/node:20.11
+    resource_class: medium
   pandoc:
     docker:
       - image: pandoc/core:3.9.0
@@ -171,6 +175,41 @@ jobs:
           paths:
             - README.md
 
+  deploy-autodecline-meetings:
+    executor: node
+    steps:
+      - checkout
+      - run:
+          name: Detect lib/ changes in this commit
+          command: |
+            git fetch --depth=2 origin "${CIRCLE_BRANCH}"
+            CHANGED=$(git diff --name-only HEAD^ HEAD -- autodecline-meetings/ | wc -l | tr -d ' ')
+            if [ "$CHANGED" = "0" ]; then
+              circleci step halt
+            fi
+      - run: sudo npm install -g @google/clasp
+      - run:
+          name: Configure clasp auth (~/.clasprc.json)
+          command: echo "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+      - run:
+          command: clasp push --force
+          working_directory: autodecline-meetings
+      - run:
+          name: create version and update deployment
+          command: |
+            OUT=$(clasp version "CI ${CIRCLE_SHA1}")
+            echo "$OUT"
+
+            VERSION=$(echo "$OUT" | grep -Eo 'Created version [0-9]+' | grep -Eo '[0-9]+' | tail -n 1)
+            if [ -z "$VERSION" ]; then
+              echo "Could not parse version number from clasp output" >&2
+              exit 1
+            fi
+
+            echo "Created version: $VERSION"
+            clasp deploy -i "AKfycbz2NELCTdz4o83toWdcOoSJGNyV4lPC__99VzS9Ty2i_DVO5ftHeJL4rvTp97Ru99CE" -v "${VERSION}"
+          working_directory: autodecline-meetings
+
 workflows:
   # TODO: test workflow: cargo build cctui/etc
 
@@ -215,3 +254,7 @@ workflows:
                 - gcloud-pubsub-emulator
           requires:
             - docker-build-readme-<<matrix.ident>>
+      - deploy-autodecline-meetings:
+          filters:
+            branches:
+              only: master

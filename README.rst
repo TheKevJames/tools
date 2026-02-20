@@ -8,6 +8,7 @@ completely forgotten about.
 
 - `32-bit Ubuntu Docker Images`_
 - `ATC1441 OpenMetrics Exporter`_
+- `Autodecline Meetings`_
 - `CCTUI`_
 - `CSS UserStyles`_
 - `DDTUI`_
@@ -22,6 +23,7 @@ completely forgotten about.
 
 .. _32-bit Ubuntu Docker Images: https://github.com/TheKevJames/tools/tree/master/docker-ubuntu32
 .. _ATC1441 OpenMetrics Exporter: https://github.com/TheKevJames/tools/tree/master/docker-atc1441-exporter
+.. _Autodecline Meetings: https://github.com/TheKevJames/tools/tree/master/autodecline-meetings
 .. _CCTUI: https://github.com/TheKevJames/tools/tree/master/cctui
 .. _CSS UserStyles: https://github.com/TheKevJames/tools/tree/master/userstyles
 .. _DDTUI: https://github.com/TheKevJames/tools/tree/master/ddtui
