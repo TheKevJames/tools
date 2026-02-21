@@ -205,7 +205,7 @@ repos:
           # IMR241: When using 'from', import submodules not elements.
           - --ignore=E501,E741,W503,IMR200,IMR241
   - repo: https://github.com/dosisod/refurb
-    rev: v2.2.0
+    rev: v2.3.0
     hooks:
       # - id: refurb
       #   name: refurb-docker-atc1441-exporter
