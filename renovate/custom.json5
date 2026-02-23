@@ -62,5 +62,22 @@
             ],
             "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}",
         },
+        // See https://github.com/renovatebot/renovate/discussions/10452
+        {
+            "description": "Update _VERSION configs for alpine packages when OS version changes",
+            "fileMatch": [
+                "(^|/|\\.)Dockerfile$",
+                "(^|/)Dockerfile\\.[^/]*$",
+            ],
+            "customType": "regex",
+            "matchStrings": [
+                "# renovate: datasource=repology depName=alpine_(?<currentValue>\\d+[._]\\d+)"
+            ],
+            "currentValueTemplate": "{{{ replace '_' '.' currentValue }}}",
+            "datasourceTemplate": "docker",
+            "depNameTemplate": "docker.io/library/alpine",
+            "versioningTemplate": "regex:^(?<major>\\d+)[._](?<minor>\\d+)$",
+            "autoReplaceStringTemplate": "# renovate: datasource=repology depName=alpine_{{{newMajor}}}_{{{newMinor}}}"
+        }
     ],
 }
