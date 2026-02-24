@@ -127,6 +127,13 @@
             ],
         },
         {
+            "groupName": "n8n",
+            "matchDepPatterns": [
+                "^docker.io/n8nio/runners$",
+                "^docker.n8n.io/n8nio/n8n$",
+            ],
+        },
+        {
             "groupName": "python",
             "matchDepPatterns": [
                 "^cimg/python$",
