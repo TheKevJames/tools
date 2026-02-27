@@ -3,8 +3,18 @@
     "packageRules": [
         {
             "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["anyio"],
+            "allowedVersions": "4.5.2",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["blinker"],
+            "allowedVersions": "1.8.2",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
             "packageNames": ["click"],
-            "allowedVersions": "8.1.7",
+            "allowedVersions": "8.1.8",
         },
         {
             "matchFileNames": ["{{arg0}}"],
@@ -18,13 +28,18 @@
         },
         {
             "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["exceptiongroup"],
+            "allowedVersions": "1.3.0",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
             "packageNames": ["flask", "Flask"],
-            "allowedVersions": "2.2.5",
+            "allowedVersions": "3.0.3",
         },
         {
             "matchFileNames": ["{{arg0}}"],
             "packageNames": ["functions-framework"],
-            "allowedVersions": "3.8.2",
+            "allowedVersions": "3.9.1",
         },
         {
             "matchFileNames": ["{{arg0}}"],
@@ -33,13 +48,23 @@
         },
         {
             "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["h11"],
+            "allowedVersions": "0.16.0",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["idna"],
+            "allowedVersions": "3.10",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
             "packageNames": ["importlib-metadata"],
-            "allowedVersions": "6.7.0",
+            "allowedVersions": "8.5.0",
         },
         {
             "matchFileNames": ["{{arg0}}"],
             "packageNames": ["itsdangerous"],
-            "allowedVersions": "2.1.2",
+            "allowedVersions": "2.2.0",
         },
         {
             "matchFileNames": ["{{arg0}}"],
@@ -54,27 +79,47 @@
         {
             "matchFileNames": ["{{arg0}}"],
             "packageNames": ["packaging"],
-            "allowedVersions": "24.0",
+            "allowedVersions": "25.0",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["sniffio"],
+            "allowedVersions": "1.3.1",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["starlette"],
+            "allowedVersions": "0.49.1",
         },
         {
             "matchFileNames": ["{{arg0}}"],
             "packageNames": ["typing_extensions", "typing-extensions"],
-            "allowedVersions": "4.7.1",
+            "allowedVersions": "4.13.2",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["uvicorn"],
+            "allowedVersions": "0.33.0",
+        },
+        {
+            "matchFileNames": ["{{arg0}}"],
+            "packageNames": ["uvicorn-worker"],
+            "allowedVersions": "0.2.0",
         },
         {
             "matchFileNames": ["{{arg0}}"],
             "packageNames": ["watchdog"],
-            "allowedVersions": "3.0.0",
+            "allowedVersions": "4.0.2",
         },
         {
             "matchFileNames": ["{{arg0}}"],
             "packageNames": ["werkzeug", "Werkzeug"],
-            "allowedVersions": "2.2.3",
+            "allowedVersions": "3.0.6",
         },
         {
             "matchFileNames": ["{{arg0}}"],
             "packageNames": ["zipp"],
-            "allowedVersions": "3.15.0",
+            "allowedVersions": "3.20.2",
         },
     ],
 }
