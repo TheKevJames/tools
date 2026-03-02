@@ -16,7 +16,6 @@ completely forgotten about.
 - `Dockerized Fava`_
 - `Dockerized gcloud Pubsub Emulator`_
 - `Dockerized MySQLTuner`_
-- `Dockerized Nox`_
 - `Dockerized Tuning-Primer`_
 - `Renovate Shared Configurations`_
 - `Slack Notifier`_
@@ -29,7 +28,6 @@ completely forgotten about.
 .. _DDTUI: https://github.com/TheKevJames/tools/tree/master/ddtui
 .. _Dockerized Fava: https://github.com/TheKevJames/tools/tree/master/docker-fava
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
-.. _Dockerized Nox: https://github.com/TheKevJames/tools/tree/master/docker-nox
 .. _Dockerized Tuning-Primer: https://github.com/TheKevJames/tools/tree/master/docker-tuning-primer
 .. _Dockerized caddy + caddy-security: https://github.com/TheKevJames/tools/tree/master/docker-caddy-security
 .. _Dockerized gcloud Pubsub Emulator: https://github.com/TheKevJames/tools/tree/master/docker-gcloud-pubsub-emulator

@@ -65,12 +65,6 @@ commands:
                 echo "${MYSQLTUNER_VERSION}" >/tmp/custom-tag
       - when:
           condition:
-            equal: ["nox", <<parameters.ident>>]
-          steps:
-            - run: |
-                echo "latest" >/tmp/custom-tag
-      - when:
-          condition:
             equal: ["tuning-primer", <<parameters.ident>>]
           steps:
             - run: |
@@ -227,7 +221,6 @@ workflows:
                 - fava
                 - gcloud-pubsub-emulator
                 - mysqltuner
-                - nox
                 - tuning-primer
           requires:
             - linter/pre-commit
@@ -241,7 +234,6 @@ workflows:
                 - caddy-security
                 - fava
                 - mysqltuner
-                - nox
                 - tuning-primer
           requires:
             - docker-build-readme-<<matrix.ident>>

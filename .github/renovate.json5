@@ -33,21 +33,5 @@
             ],
             "allowedVersions": "3.11",
         },
-        {
-            "matchManagers": ["pip_requirements"],
-            "matchDepNames": [
-                "nox",
-            ],
-            "automerge": true,
-        },
-        {
-            "matchFileNames": ["docker-nox/Dockerfile"],
-            "matchManagers": ["dockerfile"],
-            "matchDepNames": [
-                "ubuntu",
-            ],
-            // TODO: https://github.com/TheKevJames/tools/issues/861
-            "enabled": false,
-        },
     ],
 }
