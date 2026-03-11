@@ -8,6 +8,7 @@
         "github>thekevjames/tools//renovate/custom.json5",
         "github>thekevjames/tools//renovate/deprecated.json5",
         "github>thekevjames/tools//renovate/groups.json5",
+        "github>thekevjames/tools//renovate/pins.json5",
         "github>thekevjames/tools//renovate/semantic-commits.json5",
         "github>thekevjames/tools//renovate/versioning.json5"
     ],

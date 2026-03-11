@@ -1,0 +1,15 @@
+{
+    "packageRules": [
+        // Until the licensing issue is determined, using a more recent chardet is unsafe.
+        // Besides that, relying on a 100% AI-generated codebase for something
+        // so deeply integrated with so many things is terrifying.
+        // https://github.com/chardet/chardet/issues/327
+        {
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^chardet$",
+            ],
+            "allowedVersions": "<7.0.0",
+        },
+    ],
+}
