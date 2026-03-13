@@ -6,7 +6,8 @@
     "ignoreTests": false,
     "ignoreUnstable": true,
     "lockFileMaintenance": {
-        "automerge": true
+        "automerge": true,
+        "enabled": true
     },
     "packageRules": [
         // Automerge minor bumps when they are non-breaking (eg. v1 or greater for semver)
