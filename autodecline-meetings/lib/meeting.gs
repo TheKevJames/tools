@@ -7,13 +7,19 @@
  */
 function cancelMeeting(calendarId, meetingName) {
   var now = new Date();
-  var events = Calendar.Events.list(calendarId, {
-    timeMin: now.toISOString(),
-    singleEvents: false,
-    showDeleted: false,
-    q: meetingName,
-    maxResults: 20
-  });
+  try {
+    var events = Calendar.Events.list(calendarId, {
+      timeMin: now.toISOString(),
+      singleEvents: false,
+      showDeleted: false,
+      q: meetingName,
+      maxResults: 20
+    });
+  } catch (e) {
+    Logger.log('list failed with exception: %s', e);
+    return;
+  }
+
   if (events.items) {
     for (var i = 0; i < events.items.length; i++) {
       var event = events.items[i];
