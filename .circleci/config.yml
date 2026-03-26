@@ -6,7 +6,7 @@ orbs:
 executors:
   docker:
     docker:
-      - image: docker:29.3.0
+      - image: docker:29.3.1
     resource_class: medium
   node:
     docker:
