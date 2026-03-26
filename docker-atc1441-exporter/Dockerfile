@@ -57,7 +57,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # python3 -m pip install -r /tmp/requirements.txt --break-system-packages
 
 # TODO: update to solve the below note, or consider using bleak or bless
-# pybluez wont compile with the newer version of setuptools so use fixed version
+# pybluez won't compile with the newer version of setuptools so use fixed
+# version
 ARG PROMETHEUSCLIENT_VERSION
 ARG PYBLUEZ_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip \

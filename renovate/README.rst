@@ -77,9 +77,9 @@ The full list of available configs is as follows:
     (or vice-versa, using ``version-as-lib`` as a baseline, then applying a
     file-based ``version-file-as-app`` override).
 
-* ``//renovate/automerge.json5``: my prefered automerge rules, eg. for packages
-  which I trust to have non-breaking changes. Roughly maps to automerging
-  ``minor`` and ``patch`` versions, with the following exceptions:
+* ``//renovate/automerge.json5``: my preferred automerge rules, eg. for
+  packages which I trust to have non-breaking changes. Roughly maps to
+  automerging ``minor`` and ``patch`` versions, with the following exceptions:
 
   * treat ``0.x`` minor updates as potentially breaking
   * denylist some packages which are not well-behaved (eg. maintainers who
