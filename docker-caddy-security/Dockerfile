@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # renovate: datasource=github-releases depName=greenpau/caddy-security
-ARG CADDYSECURITY_VERSION=v1.1.60
+ARG CADDYSECURITY_VERSION=v1.1.61
 
 
 FROM docker.io/library/caddy:2.11.2-builder-alpine AS builder
