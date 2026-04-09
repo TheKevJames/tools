@@ -7,7 +7,7 @@ ARG POETRY_VERSION=2.3.3
 # renovate: datasource=pypi depName=poetry-plugin-export
 ARG POETRYPLUGINEXPORT_VERSION=1.10.0
 # renovate: datasource=pypi depName=prometheus-client
-ARG PROMETHEUSCLIENT_VERSION=0.24.1
+ARG PROMETHEUSCLIENT_VERSION=0.25.0
 # renovate: datasource=pypi depName=pybluez
 ARG PYBLUEZ_VERSION=0.23
 
