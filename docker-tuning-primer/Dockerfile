@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM alpine:3.23.3
+FROM alpine:3.23.4
 
 # TODO: figure out how to properly pin these versions and have renovate update them
 RUN --mount=type=cache,target=/var/cache/apk \
