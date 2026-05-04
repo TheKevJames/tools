@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # renovate: datasource=pypi depName=pip
-ARG PIP_VERSION=26.0.1
+ARG PIP_VERSION=26.1.1
 # renovate: datasource=pypi depName=poetry
 ARG POETRY_VERSION=2.4.0
 # renovate: datasource=pypi depName=poetry-plugin-export
