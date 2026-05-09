@@ -3,7 +3,7 @@
 # renovate: datasource=pypi depName=pip
 ARG PIP_VERSION=26.1.1
 # renovate: datasource=pypi depName=poetry
-ARG POETRY_VERSION=2.4.0
+ARG POETRY_VERSION=2.4.1
 # renovate: datasource=pypi depName=poetry-plugin-export
 ARG POETRYPLUGINEXPORT_VERSION=1.10.0
 # renovate: datasource=pypi depName=prometheus-client
