@@ -139,8 +139,12 @@ def main() -> None:
             sock,
             handler,
             filter_mac_addrs=tuple(sensors.keys()),
-            # TODO: debug me
-            # filter_packet_length=32,
+            # filter_packet_length=32, was reverted when testing against
+            # multiple devices with varying adv packet lengths; some reported
+            # 32 consistently, others varied even for the same device over time
+            # TODO(perf): filter on BLE address type (ADV_NONCONN_IND) in
+            # parse_le_advertising_events instead; this bypasses the length
+            # variability issue entirely while still dropping non-ATC packets
         )
     except KeyboardInterrupt:
         pass

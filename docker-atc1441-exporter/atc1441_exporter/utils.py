@@ -169,6 +169,9 @@ def parse_le_advertising_events(
                 'plen': plen,
             }
 
+            # TODO(perf): filter on BLE address type (ADV_NONCONN_IND) instead
+            # of packet length; this bypasses the length variability issue
+            # entirely while still dropping non-ATC advertising reports
             if filter_packet_length and plen != filter_packet_length:
                 logger.debug(
                     'packet with non-matching length: %s',
