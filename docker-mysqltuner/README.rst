@@ -35,7 +35,7 @@ Releasing
 ---------
 
 Whenever a new release of MySQLTuner is pushed, this library is updated
-accordingly (run ``make VERSION=1.2.3``).
+accordingly (update ``Makefile``, then run ``make``).
 
 .. _MySQLTuner Homepage: http://mysqltuner.pl/
 .. _this Github repo: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
