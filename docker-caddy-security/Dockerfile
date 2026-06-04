@@ -4,13 +4,13 @@
 ARG CADDYSECURITY_VERSION=v1.1.62
 
 
-FROM docker.io/library/caddy:2.11.3-builder-alpine AS builder
+FROM docker.io/library/caddy:2.11.4-builder-alpine AS builder
 
 ARG CADDYSECURITY_VERSION
 RUN GOTOOLCHAIN=auto xcaddy build \
     --with "github.com/greenpau/caddy-security@${CADDYSECURITY_VERSION}"
 
 
-FROM docker.io/library/caddy:2.11.3-alpine
+FROM docker.io/library/caddy:2.11.4-alpine
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
