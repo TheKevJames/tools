@@ -15,7 +15,7 @@ circle-ci = { repository = "TheKevJames/tools", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-chrono = "=0.4.44"
+chrono = "=0.4.45"
 config = { version = "=0.15.23", features = ["yaml"] }
 crossterm = "=0.29.0"
 fern = "=0.7.1"
