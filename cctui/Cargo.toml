@@ -19,7 +19,7 @@ chrono = "=0.4.45"
 config = { version = "=0.15.24", features = ["yaml"] }
 crossterm = "=0.29.0"
 fern = "=0.7.1"
-log = "=0.4.32"
+log = "=0.4.33"
 ratatui = "=0.30.2"
 reqwest = { version = "=0.13.4", features = ["blocking", "json"] }
 serde = { version = "=1.0.228", features = ["derive"] }
