@@ -39,7 +39,7 @@
         {
             "matchFileNames": ["{{arg0}}"],
             "packageNames": ["functions-framework"],
-            "allowedVersions": "3.9.1",
+            "allowedVersions": "3.10.2",
         },
         {
             "matchFileNames": ["{{arg0}}"],
@@ -54,7 +54,7 @@
         {
             "matchFileNames": ["{{arg0}}"],
             "packageNames": ["idna"],
-            "allowedVersions": "3.10",
+            "allowedVersions": "3.15",
         },
         {
             "matchFileNames": ["{{arg0}}"],
@@ -89,7 +89,7 @@
         {
             "matchFileNames": ["{{arg0}}"],
             "packageNames": ["starlette"],
-            "allowedVersions": "0.49.1",
+            "allowedVersions": "1.3.1",
         },
         {
             "matchFileNames": ["{{arg0}}"],
