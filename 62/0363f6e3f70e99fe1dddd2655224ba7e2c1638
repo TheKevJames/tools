@@ -1,0 +1,19 @@
+renovate/groups.json5
+  s_14433f3ebc90aa::t_79773f0070bddd 72-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "620363f6e3f70e99fe1dddd2655224ba7e2c1638",
+  "prompts": {},
+  "sessions": {
+    "s_14433f3ebc90aa": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f6c1d-ff01-7689-a71e-7615863dd78a",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Kevin James <KevinJames@thekev.in>"
+    }
+  }
+}
