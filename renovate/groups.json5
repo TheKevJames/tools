@@ -69,12 +69,15 @@
             ],
         },
         {
-            "groupName": "opentelemetry-instrumentation monorepo",
+            // Merge builtin `opentelemetry-python` and
+            // `opentelemetry-python-contrib` groups, since they have exact
+            // version pins on each other.
+            // If/when they start doing wider ranges, delete this group.
+            "groupName": "opentelemetry",
             "matchDatasources": ["pypi"],
             "matchDepPatterns": [
-                "^opentelemetry-distro$",
-                "^opentelemetry-instrumentation-",
-                "^opentelemetry-semantic-conventions$",
+                "^opentelemetry-",
+                "^opentelemetry$",
             ],
             "ignoreUnstable": false,
         },
