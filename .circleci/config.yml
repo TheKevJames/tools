@@ -226,24 +226,16 @@ workflows:
             - linter/pre-commit
       - docker-workflow:
           name: docker-workflow-<<matrix.ident>>
-          platforms: "linux/amd64"
+          platforms: "linux/amd64,linux/arm64"
           matrix:
             parameters:
               ident:
                 - atc1441-exporter
                 - caddy-security
                 - fava
+                - gcloud-pubsub-emulator
                 - mysqltuner
                 - tuning-primer
-          requires:
-            - docker-build-readme-<<matrix.ident>>
-      - docker-workflow:
-          name: docker-workflow-<<matrix.ident>>
-          platforms: "linux/amd64,linux/arm64"
-          matrix:
-            parameters:
-              ident:
-                - gcloud-pubsub-emulator
           requires:
             - docker-build-readme-<<matrix.ident>>
       - deploy-autodecline-meetings:
