@@ -1,0 +1,19 @@
+docker-caddy-security/Dockerfile
+  s_e877650ee26368::t_d90f59d840b8d1 7-10,12-13,15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "3c6d23e386bae372f4de175d3132f6a60c65f288",
+  "prompts": {},
+  "sessions": {
+    "s_e877650ee26368": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "019f709c-405d-7ee0-adf2-72e27c1d2cfa",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Kevin James <KevinJames@thekev.in>"
+    }
+  }
+}
