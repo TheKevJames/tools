@@ -4,10 +4,12 @@
 ARG CADDYSECURITY_VERSION=v1.1.64
 
 
-FROM docker.io/library/caddy:2.11.4-builder-alpine AS builder
+FROM --platform=$BUILDPLATFORM docker.io/library/caddy:2.11.4-builder-alpine AS builder
 
+ARG TARGETOS
+ARG TARGETARCH
 ARG CADDYSECURITY_VERSION
-RUN GOTOOLCHAIN=auto xcaddy build \
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH GOTOOLCHAIN=auto xcaddy build \
     --with "github.com/greenpau/caddy-security@${CADDYSECURITY_VERSION}"
 
 
