@@ -1,0 +1,100 @@
+version: 2.1
+description: "Tools for running lint commands"
+
+executors:
+  python-latest:
+    docker:
+      - image: python:latest
+    resource_class: small
+
+commands:
+  pre-commit:
+    description: |
+      Runs pre-commit hooks against the current repo. Must be run in an
+      executor with pre-commit installed.
+    parameters:
+      cache_prefix:
+        default: ''
+        description: >
+          Optional cache prefix to be used on CircleCI. Can be used for cache
+          busting or to ensure multiple jobs use different caches.
+        type: string
+      config_file:
+        default: '.pre-commit-config.yaml'
+        description: >
+          Optional alternate config file.
+        type: string
+      args:
+        default: --all-files --show-diff-on-failure
+        description: >
+          Pre-commit parameters
+        type: string
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - cache-pre-commit-<<parameters.cache_prefix>>-{{ checksum "<<parameters.config_file>>" }}
+      - run: pre-commit install-hooks -c <<parameters.config_file>>
+      - save_cache:
+          key: cache-pre-commit-<<parameters.cache_prefix>>-{{ checksum "<<parameters.config_file>>" }}
+          paths:
+            - ~/.cache/pre-commit
+      - run: pre-commit run <<parameters.args>> -c <<parameters.config_file>>
+
+jobs:
+  pre-commit:
+    description: |
+      Runs pre-commit hooks against the current repo.
+    executor: <<parameters.executor>>
+    parameters:
+      args:
+        default: --all-files --show-diff-on-failure
+        description: >
+          Pre-commit parameters
+        type: string
+      cache_prefix:
+        default: ''
+        description: >
+          Optional cache prefix to be used on CircleCI. Can be used for cache
+          busting or to ensure multiple jobs use different caches.
+        type: string
+      config_file:
+        default: '.pre-commit-config.yaml'
+        description: >
+          Optional alternate config file.
+        type: string
+      executor:
+        default: python-latest
+        description: >
+          Executor for the job. Must have python3 installed and support
+          ${BASH_ENV} updates. To use your own custom executor, see
+          `https://circleci.com/docs/2.0/reusing-config/#authoring-reusable-executors`.
+          For alpine support, see
+          `https://circleci.com/docs/env-vars#alpine-linux`.
+          Defaults to a small python:latest docker image.
+        type: executor
+      version:
+        default: latest
+        description: >
+          Pre-commit package version.
+        type: string
+    steps:
+      - run:
+          name: create and activate venv
+          command: |
+            python3 -m venv /venv
+            echo "source /venv/bin/activate" >> ${BASH_ENV}
+      - when:
+          condition:
+            equal: [<<parameters.version>>, latest]
+          steps:
+            - run: python3 -m pip install --progress-bar=off pre-commit
+      - unless:
+          condition:
+            equal: [<<parameters.version>>, latest]
+          steps:
+            - run: python3 -m pip install --progress-bar=off "pre-commit==<<parameters.version>>"
+      - pre-commit:
+          cache_prefix: <<parameters.cache_prefix>>
+          config_file: <<parameters.config_file>>
+          args: <<parameters.args>>
