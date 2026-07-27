@@ -209,7 +209,7 @@ workflows:
 
   run-jobs:
     jobs:
-      - pre-commit/run:
+      - pre-commit/pre-commit:
           executor: python
       - docker-build-readme:
           name: docker-build-readme-<<matrix.ident>>
@@ -223,7 +223,7 @@ workflows:
                 - mysqltuner
                 - tuning-primer
           requires:
-            - pre-commit/run
+            - pre-commit/pre-commit
       - docker-workflow:
           name: docker-workflow-<<matrix.ident>>
           platforms: "linux/amd64,linux/arm64"
