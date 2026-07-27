@@ -1,0 +1,71 @@
+version: 2.1
+
+executors:
+  python-latest:
+    docker:
+      - image: python:latest
+    resource_class: small
+
+commands:
+  run:
+    parameters:
+      cache_prefix:
+        default: ''
+        type: string
+      config_file:
+        default: '.pre-commit-config.yaml'
+        type: string
+      args:
+        default: --all-files --show-diff-on-failure
+        type: string
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - cache-pre-commit-<<parameters.cache_prefix>>-{{ checksum "<<parameters.config_file>>" }}
+      - run: pre-commit install-hooks -c <<parameters.config_file>>
+      - save_cache:
+          key: cache-pre-commit-<<parameters.cache_prefix>>-{{ checksum "<<parameters.config_file>>" }}
+          paths:
+            - ~/.cache/pre-commit
+      - run: pre-commit run <<parameters.args>> -c <<parameters.config_file>>
+
+jobs:
+  run:
+    executor: <<parameters.executor>>
+    parameters:
+      args:
+        default: --all-files --show-diff-on-failure
+        type: string
+      cache_prefix:
+        default: ''
+        type: string
+      config_file:
+        default: '.pre-commit-config.yaml'
+        type: string
+      executor:
+        default: python-latest
+        type: executor
+      version:
+        default: latest
+        type: string
+    steps:
+      - run:
+          name: create and activate venv
+          command: |
+            python3 -m venv /venv
+            echo "source /venv/bin/activate" >> ${BASH_ENV}
+      - when:
+          condition:
+            equal: [<<parameters.version>>, latest]
+          steps:
+            - run: python3 -m pip install --progress-bar=off pre-commit
+      - unless:
+          condition:
+            equal: [<<parameters.version>>, latest]
+          steps:
+            - run: python3 -m pip install --progress-bar=off "pre-commit==<<parameters.version>>"
+      - pre-commit:
+          cache_prefix: <<parameters.cache_prefix>>
+          config_file: <<parameters.config_file>>
+          args: <<parameters.args>>
