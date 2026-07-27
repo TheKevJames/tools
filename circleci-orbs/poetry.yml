@@ -1,0 +1,198 @@
+version: 2.1
+description: "Tools for running poetry commands."
+
+executors:
+  python-latest:
+    docker:
+      - image: python:latest
+    resource_class: small
+
+commands:
+  install:
+    description: >
+      Install poetry. Requires a pre-existing Python 3.x installation.
+      Currently supported package managers: apk, apt-get.
+    parameters:
+      allow_preview:
+        default: false
+        description: >
+          Allow prerelease versions of Poetry to be installed.
+        type: boolean
+      version:
+        default: latest
+        description: >
+          Specify the version of poetry to install. Must be either an "x.y.z"
+          version or "latest".
+        type: string
+    steps:
+      - run:
+          name: install curl
+          command: |
+            if which apk >/dev/null; then
+              apk add --no-cache --no-progress curl
+            elif which apt-get >/dev/null; then
+              apt-get update -qy
+              apt-get install -qy curl
+            else
+              echo >&2 "ERROR: could not find supported package manager"
+              exit 1
+            fi
+      - unless:
+          condition:
+            equal: [ <<parameters.version>>, "latest" ]
+          steps:
+            - run: echo "export POETRY_VERSION=<<parameters.version>>" >> ${BASH_ENV}
+      - when:
+          condition: <<parameters.allow_preview>>
+          steps:
+            - run: echo "export POETRY_PREVIEW=1" >> ${BASH_ENV}
+      - run: curl -sSL https://install.python-poetry.org | python3
+      - run: echo 'export PATH="/root/.local/bin:${PATH}"' >> ${BASH_ENV}
+
+jobs:
+  run:
+    description: >
+      Run an arbitrary command within your poetry environment.
+    executor: <<parameters.executor>>
+    parameters:
+      commands:
+        description: >
+          The step (or steps) you want to run. For example:
+          ```
+          - run: poetry build
+          - run: poetry run pytest
+          ```
+        type: steps
+        default: []
+      configure_poetry:
+        description: >
+          If there are any configurations that must occur prior to running
+          poetry, use this parameter to specify them over pre-steps. This
+          parameter runs immediately after poetry's installation, but before
+          any business logic.
+
+          In other words, you may want to set this value to something like:
+          ```
+          - run: poetry self add keyrings.google-artifactregistry-auth
+          - run: poetry config http-basic.repo-name username password
+          - run: poetry config repositories.backup-repo url
+          ```
+        type: steps
+        default: []
+      cwd:
+        default: '.'
+        description: >
+          Working directory for your package. Should point to a folder
+          containing your pyproject.toml file.
+        type: string
+      executor:
+        default: python-latest
+        description: >
+          Executor for the job. Must have a working Python version installed.
+          To use your own custom executor, see
+          `https://circleci.com/docs/2.0/reusing-config/#authoring-reusable-executors`.
+          Defaults to a small python:latest docker image.
+        type: executor
+      install_flags:
+        default: ''
+        description: >
+          Extra flags to add to `poetry install` command.
+        type: string
+      version:
+        default: latest
+        description: >
+          Specify the version of poetry to use. Must be either an "x.y.z"
+          version or "latest".
+        type: string
+    steps:
+      - install:
+          version: <<parameters.version>>
+      - steps: <<parameters.configure_poetry>>
+      - checkout
+      - run:
+          command: poetry install -n --no-ansi <<parameters.install_flags>>
+          working_directory: <<parameters.cwd>>
+      - steps: <<parameters.commands>>
+
+  publish:
+    description: >
+      Publishes your package to the specified repository.
+    executor: <<parameters.executor>>
+    parameters:
+      build:
+        description: >
+          If false, skip the 'poetry build' step. Useful for
+          workflows with complicated build processes.
+        type: boolean
+        default: true
+      build_timeout:
+        description: >
+          Sets the timeout value for 'poetry build' step. Useful for
+          workflows with longer build times.
+        type: string
+        default: 10m
+      cwd:
+        default: '.'
+        description: >
+          Working directory for your package. Should point to a folder
+          containing your pyproject.toml file.
+        type: string
+      executor:
+        default: python-latest
+        description: >
+          Executor for the job. Must have a working Python version installed.
+          To use your own custom executor, see
+          `https://circleci.com/docs/2.0/reusing-config/#authoring-reusable-executors`.
+          Defaults to a small python:latest docker image.
+        type: executor
+      password:
+        description: >
+          Password to be used for authenticating against the specified
+          repository. Note that some indexes such as Gemfury use the username
+          field for your personal access token; in that case, set this value to
+          the same value as the username.
+        type: string
+      repository:
+        default: pypi
+        description: >
+          Name of the repository you wish to upload to. If using a non-default
+          repository, you'll need to define it in your pyproject.toml or
+          provide a URL with the repository_url parameters.
+        type: string
+      repository_url:
+        default: ''
+        description: >
+          URL of repository not provided in pyproject.toml. Uses repository
+          parameter as name of repository for configuration.
+        type: string
+      username:
+        description: >
+          Username to be used for authenticating against the specified
+          repository.
+        type: string
+    steps:
+      - install
+      - checkout
+      - run:
+          name: validate tag matches pyproject.toml
+          command:
+            if [[ "${CIRCLE_TAG}" != *"$(poetry version | cut -d ' ' -f2)"* ]]; then
+                echo "Version $(poetry version) does not match tag ${CIRCLE_TAG}";
+                exit 1;
+            fi
+          working_directory: <<parameters.cwd>>
+      - when:
+          condition: <<parameters.build>>
+          steps:
+            - run:
+                command: poetry build
+                no_output_timeout: <<parameters.build_timeout>>
+                working_directory: <<parameters.cwd>>
+      - when:
+          condition: << parameters.repository_url >>
+          steps:
+            - run: poetry config repositories.<<parameters.repository>> <<parameters.repository_url>>
+      - run:
+          name: poetry publish
+          command: poetry publish -r <<parameters.repository>> -u <<parameters.username>> -p <<parameters.password>>
+          working_directory: <<parameters.cwd>>
