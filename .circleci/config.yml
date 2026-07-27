@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  linter: talkiq/linter@4.0.1
+  linter: https://raw.githubusercontent.com/TheKevJames/tools/refs/heads/master/circleci-orbs/linter.yml
 
 executors:
   docker:
@@ -15,10 +15,6 @@ executors:
   pandoc:
     docker:
       - image: pandoc/core:3.10.0
-    resource_class: medium
-  python:
-    docker:
-      - image: python:3.11.15
     resource_class: medium
 
 commands:
@@ -209,8 +205,7 @@ workflows:
 
   run-jobs:
     jobs:
-      - linter/pre-commit:
-          executor: python
+      - linter/prek
       - docker-build-readme:
           name: docker-build-readme-<<matrix.ident>>
           matrix:
@@ -223,7 +218,7 @@ workflows:
                 - mysqltuner
                 - tuning-primer
           requires:
-            - linter/pre-commit
+            - linter/prek
       - docker-workflow:
           name: docker-workflow-<<matrix.ident>>
           platforms: "linux/amd64,linux/arm64"
