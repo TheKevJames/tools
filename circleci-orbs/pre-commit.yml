@@ -7,7 +7,7 @@ executors:
     resource_class: small
 
 commands:
-  run:
+  pre-commit:
     parameters:
       cache_prefix:
         default: ''
@@ -31,7 +31,7 @@ commands:
       - run: pre-commit run <<parameters.args>> -c <<parameters.config_file>>
 
 jobs:
-  run:
+  pre-commit:
     executor: <<parameters.executor>>
     parameters:
       args:
