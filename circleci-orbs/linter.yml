@@ -2,6 +2,10 @@ version: 2.1
 description: "Tools for running lint commands"
 
 executors:
+  prek-latest:
+    docker:
+      - image: ghcr.io/j178/prek
+    resource_class: small
   python-latest:
     docker:
       - image: python:latest
@@ -98,3 +102,39 @@ jobs:
           cache_prefix: <<parameters.cache_prefix>>
           config_file: <<parameters.config_file>>
           args: <<parameters.args>>
+
+  prek:
+    description: Runs prek hooks against the current repo
+    executor: <<parameters.executor>>
+    parameters:
+      args:
+        default: '-a --show-diff-on-failure'
+        Optional: >
+          Args passed to `prek` command
+        type: string
+      cache_prefix:
+        default: ''
+        description: >
+          Optional cache prefix for CI jobs; can be used for cache busting.
+        type: string
+      config_file:
+        default: '.pre-commit-config.yaml'
+        description: >
+          Config file path.
+        type: string
+      executor:
+        default: prek-latest
+        description: >
+          Job executor. Must have prek pre-installed. Defaults to `ghcr.io/j178/prek:latest`.
+        type: executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - cache-prek-<<parameters.cache_prefix>>-{{ checksum "<<parameters.config_file>>" }}
+      - run: prek install-hooks -c <<parameters.config_file>>
+      - save_cache:
+          key: cache-prek-<<parameters.cache_prefix>>-{{ checksum "<<parameters.config_file>>" }}
+          paths:
+            - ~/.cache/prek
+      - run: prek run <<parameters.args>> -c <<parameters.config_file>>
