@@ -109,7 +109,7 @@ jobs:
     parameters:
       args:
         default: '-a --show-diff-on-failure'
-        Optional: >
+        description: >
           Args passed to `prek` command
         type: string
       cache_prefix:
