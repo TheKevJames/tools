@@ -3,7 +3,7 @@ version: 2.1
 executors:
   prek-latest:
     docker:
-      - image: ghcr.io/j178/prek:latest
+      - image: ghcr.io/j178/prek:alpine
     resource_class: small
 
 jobs:
