@@ -359,32 +359,32 @@ urllib3 = ["packaging (>=20.0)", "urllib3 (>=1.26.15,<3.0.0)"]
 
 [[package]]
 name = "google-cloud-pubsub"
-version = "2.39.0"
+version = "2.39.1"
 description = "Google Cloud Pub/Sub API client library"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "google_cloud_pubsub-2.39.0-py3-none-any.whl", hash = "sha256:7210d691a46d7a66559696899ebe6eb731e63de29b624964b3be4dd2d12d3e19"},
-    {file = "google_cloud_pubsub-2.39.0.tar.gz", hash = "sha256:eed65e25f57f95bf3e02d96d7ee171688b23922471f9f21b5a91ed90e1282c0f"},
+    {file = "google_cloud_pubsub-2.39.1-py3-none-any.whl", hash = "sha256:b40347cff2df3c4b33747bfdf8a8d74942754c5a6752592acd51a20fec316b56"},
+    {file = "google_cloud_pubsub-2.39.1.tar.gz", hash = "sha256:dacead1fa0aca7b2015f1acc88d279cd4b12852087908f426fbecf71985940e8"},
 ]
 
 [package.dependencies]
-google-api-core = {version = ">=2.17.1,<3.0.0", extras = ["grpc"]}
+google-api-core = {version = ">=2.25.0,<3.0.0", extras = ["grpc"]}
 google-auth = ">=2.14.1,<2.24.0 || >2.24.0,<2.25.0 || >2.25.0,<3.0.0"
-grpc-google-iam-v1 = ">=0.14.0,<1.0.0"
+grpc-google-iam-v1 = ">=0.14.2,<1.0.0"
 grpcio = [
-    {version = ">=1.51.3,<2.0.0", markers = "python_version < \"3.14\""},
+    {version = ">=1.59.0,<2.0.0", markers = "python_version < \"3.14\""},
     {version = ">=1.75.1,<2.0.0", markers = "python_version >= \"3.14\""},
 ]
-grpcio-status = ">=1.51.3"
+grpcio-status = [
+    {version = ">=1.59.0,<2.0.0"},
+    {version = ">=1.75.1,<2.0.0", markers = "python_version >= \"3.14\""},
+]
 opentelemetry-api = ">=1.27.0"
 opentelemetry-sdk = ">=1.27.0"
-proto-plus = [
-    {version = ">=1.22.3,<2.0.0", markers = "python_version < \"3.13\""},
-    {version = ">=1.25.0,<2.0.0", markers = "python_version >= \"3.13\""},
-]
-protobuf = ">=4.25.8,<8.0.0"
+proto-plus = ">=1.26.1,<2.0.0"
+protobuf = ">=6.33.5,<8.0.0"
 
 [package.extras]
 libcst = ["libcst (>=0.3.10)"]
@@ -706,4 +706,4 @@ zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "6129da2f6e00c2439bbf3952663e993ebac17ab3a929b982ec51f23853eade06"
+content-hash = "2152d44fd9c7272c6787065aade38dab275d7470d90d9c491d6cd4196c4ec4fb"
