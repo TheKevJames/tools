@@ -1,4 +1,4 @@
-VERSION=V2.9.0
+VERSION=v2.9.1
 
 .PHONY: root/basic_passwords.txt root/mysqltuner.pl root/vulnerabilities.csv
 all: root/basic_passwords.txt root/mysqltuner.pl root/vulnerabilities.csv
