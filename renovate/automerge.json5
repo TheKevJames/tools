@@ -9,6 +9,19 @@
         "automerge": true,
         "enabled": true
     },
+    // defaults to 10, but in cases of large repos / many dependencies, there
+    // might be a valid reason for having a bunch left open. Like *HourlyLimit,
+    // the branch value defaults to 0 (unlimited) and it's not super valuable
+    // to have the pr value lower than the branch value.
+    "prConcurrentLimit": 0,
+    // commitHourlyLimit controls concurrency and therefore spend/etc -- it
+    // defaults to 0 (unlimited). It doesn't really make much sense to have the
+    // prHourlyCount be lower, since all that really does is have renovate/CI
+    // do all the work but then not submit it for review/merging. Setting this
+    // too low often means we'll miss scheduled updates (eg. lockfile
+    // maintenance triggers "before 4am on mondays", when there are multiple
+    // updates required we will often skip that update).
+    "prHourlyLimit": 0,
     "packageRules": [
         // Automerge minor bumps when they are non-breaking (eg. v1 or greater for semver)
         // TODO: PyTorch minors should be considered breaking changes
