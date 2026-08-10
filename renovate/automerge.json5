@@ -83,14 +83,14 @@
             ],
             "automerge": false,
         },
-        // Slow down automerge for packages with rapid release schedules
-        // TODO: consider selective scheduling instead
+        // For packages with rapid release schedules, trigger only on Mondays
+        // to reduce noise.
         // https://docs.renovatebot.com/noise-reduction/#selective-scheduling
         {
             "matchDepNames": [
                 "hypothesis",
             ],
-            "minimumReleaseAge": "3 days",
+            "schedule": ["* * * * 1"],
         },
     ],
 }
