@@ -1,0 +1,18 @@
+docker-mysqltuner/Makefile
+  h_b8efbacaba1c31 1
+docker-mysqltuner/root/mysqltuner.pl
+  h_b8efbacaba1c31 2,70,303-308,542-545,897-900,1580-1744,1771-1960,1962-1963,2701-2705,2767-2771,3311,3314-3315,3676,3692,4442-4478,4569-4572,4583-4602,4621-4668,5807,7765-7766,10336-10348,11393-11493,12252-12445,13110-13114,13912-13914,13943-14097,14159-14161,14743,16420,16448,16463
+docker-mysqltuner/root/vulnerabilities.csv
+  h_b8efbacaba1c31 499-527,1524-1530,1773-1776
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "5f565badccf9311312410d8b8ec67cc9a056a2ff",
+  "prompts": {},
+  "humans": {
+    "h_b8efbacaba1c31": {
+      "author": "Kevin James <KevinJames@thekev.in>"
+    }
+  }
+}
