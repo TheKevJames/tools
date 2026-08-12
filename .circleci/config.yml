@@ -32,14 +32,14 @@ commands:
             equal: ["atc1441-exporter", <<parameters.ident>>]
           steps:
             - run: |
-                export ATC1441_VERSION=$(awk -F'= ' '/^version =/ {print substr($2, 2, length($2)-2)}'  docker-atc1441-exporter/pyproject.toml)
+                export ATC1441_VERSION=$(awk -F'= ' '/^version =/ {print substr($2, 2, length($2)-2)}' docker-atc1441-exporter/pyproject.toml)
                 echo "${ATC1441_VERSION}" >/tmp/custom-tag
       - when:
           condition:
             equal: ["caddy-security", <<parameters.ident>>]
           steps:
             - run: |
-                export CADDY_VERSION=$(awk -F':|-' '/builder-alpine/ {print $2}' docker-caddy-security/Dockerfile)
+                export CADDY_VERSION=$(awk -F':|-' '/builder-alpine/ {print $4}' docker-caddy-security/Dockerfile)
                 export SECURITY_VERSION=$(awk -F'=' '/ARG CADDYSECURITY_VERSION=/ {print substr($2, 2, length($2))}' docker-caddy-security/Dockerfile)
                 echo "${CADDY_VERSION}-${SECURITY_VERSION}" >/tmp/custom-tag
       - when:
