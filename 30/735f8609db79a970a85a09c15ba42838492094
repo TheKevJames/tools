@@ -1,0 +1,14 @@
+.circleci/config.yml
+  h_b8efbacaba1c31 35,42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "30735f8609db79a970a85a09c15ba42838492094",
+  "prompts": {},
+  "humans": {
+    "h_b8efbacaba1c31": {
+      "author": "Kevin James <KevinJames@thekev.in>"
+    }
+  }
+}
