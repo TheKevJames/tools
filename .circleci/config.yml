@@ -18,7 +18,7 @@ executors:
     resource_class: medium
   python:
     docker:
-      - image: python:3.11.15
+      - image: python:3.11.16
     resource_class: small
 
 commands:
