@@ -9,7 +9,7 @@ from . import files
 from . import schema
 
 
-app = typer.Typer()
+app = typer.Typer(add_completion=False)
 
 Ago = Annotated[int, typer.Option('-a', '--ago')]
 Days = Annotated[int, typer.Option('-d', '--days')]
