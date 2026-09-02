@@ -3,8 +3,8 @@ import enum
 import re
 from collections.abc import Iterable
 from collections.abc import Iterator
-from typing import assert_never
 from typing import Self
+from typing import assert_never
 
 import pydantic
 
@@ -137,7 +137,7 @@ class Task(pydantic.BaseModel, extra='forbid'):
 
             if self.details.shift:
                 new_task.details.next_ = self.details.interval.apply(
-                    datetime.date.today() - datetime.timedelta(days=ago),
+                    datetime.date.today() - datetime.timedelta(days=ago)
                 )
             else:
                 next_ = self.details.interval.apply(self.details.next_)
@@ -155,14 +155,13 @@ class Task(pydantic.BaseModel, extra='forbid'):
         elif self.details:
             if self.details.interval and not self.details.shift:
                 raise AssertionError(
-                    'periodic tasks with shift=false cannot be delayed',
+                    'periodic tasks with shift=false cannot be delayed'
                 )
         else:
             assert False, 'impossible task state'
 
-        new_task.details.next_ = (
-            datetime.date.today()
-            + datetime.timedelta(days=days)
+        new_task.details.next_ = datetime.date.today() + datetime.timedelta(
+            days=days
         )
         return new_task
 
@@ -185,7 +184,7 @@ class Filter(pydantic.BaseModel, extra='forbid'):
                 continue
 
             match = re.match(
-                r'(?P<target>[^!=~]+)(?P<op>!?[=~])(?P<data>.*)', filter_,
+                r'(?P<target>[^!=~]+)(?P<op>!?[=~])(?P<data>.*)', filter_
             )
             assert match, f'{filter_} is not a valid filter'
             op = match.group('op')

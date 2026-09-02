@@ -24,7 +24,8 @@ def sort(tasks: Iterable[Task], order: SortOrder) -> Iterator[Task]:
         lhs = (t for t in tasks if t.details is None)
         rhs: Iterable[Task] = (t for t in tasks if t.details is not None)
         rhs = sorted(
-            rhs, key=lambda t: t.details.next_,  # type: ignore[union-attr]
+            rhs,
+            key=lambda t: t.details.next_,  # type: ignore[union-attr]
         )
         tasks = itertools.chain(lhs, rhs)
     elif order == SortOrder.ident:
@@ -36,11 +37,11 @@ def sort(tasks: Iterable[Task], order: SortOrder) -> Iterator[Task]:
 
 
 def load(
-        tasks: Iterable[Task],
-        filter_: str = '',
-        days: int = -1,
-        limit: int = -1,
-        order: SortOrder = SortOrder.ident,
+    tasks: Iterable[Task],
+    filter_: str = '',
+    days: int = -1,
+    limit: int = -1,
+    order: SortOrder = SortOrder.ident,
 ) -> Iterator[Task]:
     tasks = functools.reduce(Filter.apply, Filter.parse(filter_), tasks)
     tasks = (x for x in tasks if filter_max_ahead(x, days))
@@ -51,11 +52,11 @@ def load(
 
 
 def load_with_next(
-        tasks: Iterable[Task],
-        filter_: str = '',
-        days: int = -1,
-        limit: int = -1,
-        order: SortOrder = SortOrder.ident,
+    tasks: Iterable[Task],
+    filter_: str = '',
+    days: int = -1,
+    limit: int = -1,
+    order: SortOrder = SortOrder.ident,
 ) -> Iterator[Task]:
     tasks = load(tasks, filter_, days, -1)
     tasks = (x for x in tasks if x.details)

@@ -5,7 +5,6 @@ from collections.abc import Iterator
 
 from .schema import Task
 
-
 TASK_FILE = pathlib.Path(os.environ['TASK_FILE'])
 
 

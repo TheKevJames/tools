@@ -26,6 +26,7 @@ Credit:
 
     This script was based on: https://github.com/prep/pubsubc
 """
+
 import dataclasses
 import json
 import os
@@ -36,6 +37,7 @@ from typing import Any
 from typing import Optional
 
 from google.cloud import pubsub_v1  # type: ignore[import-untyped]
+
 # TODO: https://github.com/googleapis/python-pubsub/issues/536
 
 
@@ -64,37 +66,43 @@ class SubscriptionConfig:
     def from_json(cls, data: dict[str, Any]) -> 'SubscriptionConfig':
         push_config = (
             pubsub_v1.types.PushConfig(data.get('push_config', {}))
-            if data.get('push_config') else None
+            if data.get('push_config')
+            else None
         )
         if data.get('push_endpoint'):
             pprint('WARN: `$.push_endpoint` is deprecated, please nest ')
             pprint('      settings under the `push_config` block.')
-            push_config = (
-                pubsub_v1.types.PushConfig(push_endpoint=data['push_endpoint'])
+            push_config = pubsub_v1.types.PushConfig(
+                push_endpoint=data['push_endpoint']
             )
         bigquery_config = (
             pubsub_v1.types.BigQueryConfig(data.get('bigquery_config', {}))
-            if data.get('bigquery_config') else None
+            if data.get('bigquery_config')
+            else None
         )
         cloud_storage_config = (
             pubsub_v1.types.CloudStorageConfig(
-                data.get('cloud_storage_config', {}),
+                data.get('cloud_storage_config', {})
             )
-            if data.get('cloud_storage_config') else None
+            if data.get('cloud_storage_config')
+            else None
         )
         expiration_policy = (
             pubsub_v1.types.ExpirationPolicy(data.get('expiration_policy', {}))
-            if data.get('expiration_policy') else None
+            if data.get('expiration_policy')
+            else None
         )
         dead_letter_policy = (
             pubsub_v1.types.DeadLetterPolicy(
-                data.get('dead_letter_policy', {}),
+                data.get('dead_letter_policy', {})
             )
-            if data.get('dead_letter_policy') else None
+            if data.get('dead_letter_policy')
+            else None
         )
         retry_policy = (
             pubsub_v1.types.RetryPolicy(data.get('retry_policy', {}))
-            if data.get('retry_policy') else None
+            if data.get('retry_policy')
+            else None
         )
 
         return cls(
@@ -113,12 +121,12 @@ class SubscriptionConfig:
             retry_policy=retry_policy,
             detached=data.get('detached'),
             enable_exactly_once_delivery=data.get(
-                'enable_exactly_once_delivery',
+                'enable_exactly_once_delivery'
             ),
         )
 
-    def to_args(self) -> dict[str, Any]:
-        # pylint: disable=too-complex,too-many-branches
+    def to_args(self) -> dict[str, Any]:  # noqa: C901
+        # pylint: disable=too-many-branches
         pprint(f'  - creating subscription: {self.name}')
 
         data: dict[str, Any] = {}
@@ -164,7 +172,7 @@ class TopicConfig:
     name: str
     project: str
     subscriptions: list[SubscriptionConfig] = dataclasses.field(
-        default_factory=list,
+        default_factory=list
     )
 
 
@@ -246,14 +254,10 @@ def create(topic: TopicConfig) -> None:
         args = subscription.to_args()
 
         subscription_name = subscriber.subscription_path(
-            topic.project,
-            subscription.name,
+            topic.project, subscription.name
         )
         subscriber.create_subscription(
-            request={
-                'name': subscription_name,
-                'topic': topic_name,
-            } | args,
+            request={'name': subscription_name, 'topic': topic_name} | args
         )
 
 

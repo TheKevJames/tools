@@ -15,7 +15,6 @@ from .utils import parse_le_advertising_events
 from .utils import raw_packet_to_str
 from .utils import toggle_device
 
-
 BATTERY = prometheus_client.Gauge('atc_battery', 'Battery', ['name'])
 HUMIDITY = prometheus_client.Gauge('atc_humidity', 'Humidity', ['name'])
 TEMPERATURE = prometheus_client.Gauge('atc_temperature', 'Temp.', ['name'])
@@ -36,9 +35,7 @@ class Measurement:
 
 
 def decode_data_atc1441(
-        adv_cache: dict[str, str],
-        mac: str,
-        data_str: str,
+    adv_cache: dict[str, str], mac: str, data_str: str
 ) -> Optional[Measurement]:
     preamble = '161a18'
     data_idx = data_str.find(preamble)
@@ -69,7 +66,7 @@ def decode_data_atc1441(
     return Measurement(
         battery=batteryPercent,
         humidity=humidity,
-        temperature=temp / 10.,
+        temperature=temp / 10.0,
         voltage=batteryVoltage,
     )
 
@@ -90,11 +87,7 @@ def main() -> None:
         default=0,
     )
     parser.add_argument(
-        '--port',
-        '-p',
-        help='OpenMetrics listen port',
-        type=int,
-        default=8000,
+        '--port', '-p', help='OpenMetrics listen port', type=int, default=8000
     )
     parser.add_argument('filename', help='Specify a device list file')
     args = parser.parse_args()

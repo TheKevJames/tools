@@ -8,17 +8,17 @@ from collections.abc import Sequence
 from typing import Optional
 from typing import Protocol
 
-from bluetooth._bluetooth import ba2str
-from bluetooth._bluetooth import btsocket
 from bluetooth._bluetooth import HCI_EVENT_PKT
 from bluetooth._bluetooth import HCI_FILTER
+from bluetooth._bluetooth import HCIDEVDOWN
+from bluetooth._bluetooth import HCIDEVUP
+from bluetooth._bluetooth import SOL_HCI
+from bluetooth._bluetooth import ba2str
+from bluetooth._bluetooth import btsocket
 from bluetooth._bluetooth import hci_filter_new
 from bluetooth._bluetooth import hci_filter_set_event
 from bluetooth._bluetooth import hci_filter_set_ptype
 from bluetooth._bluetooth import hci_send_cmd
-from bluetooth._bluetooth import HCIDEVDOWN
-from bluetooth._bluetooth import HCIDEVUP
-from bluetooth._bluetooth import SOL_HCI
 
 # TODO: find a more recent bluetooth library which gives us the above
 
@@ -60,8 +60,7 @@ logger = logging.getLogger(__name__)
 
 
 class Handler(Protocol):
-    def __call__(self, mac: str, adv: int, data: bytes, rssi: int) -> None:
-        ...
+    def __call__(self, mac: str, adv: int, data: bytes, rssi: int) -> None: ...
 
 
 def raw_packet_to_str(pkt: bytes) -> str:
@@ -75,11 +74,11 @@ def disable_le_scan(sock: btsocket) -> None:
 
 
 def enable_le_scan(
-        sock: btsocket,
-        interval: int = 0x0800,
-        window: int = 0x0800,
-        filter_policy: int = FILTER_POLICY_NO_ALLOWLIST,
-        filter_duplicates: bool = False,
+    sock: btsocket,
+    interval: int = 0x0800,
+    window: int = 0x0800,
+    filter_policy: int = FILTER_POLICY_NO_ALLOWLIST,
+    filter_duplicates: bool = False,
 ) -> None:
     """
     Enable LE passive scan (with filtering of duplicate packets enabled).
@@ -100,20 +99,27 @@ def enable_le_scan(
 
     # N.B. does not work with LE_RANDOM_ADDRESS
     cmd_pkt = struct.pack(
-        '<BHHBB', SCAN_TYPE_PASSIVE, interval, window, LE_PUBLIC_ADDRESS,
+        '<BHHBB',
+        SCAN_TYPE_PASSIVE,
+        interval,
+        window,
+        LE_PUBLIC_ADDRESS,
         filter_policy,
     )
     hci_send_cmd(sock, OGF_LE_CTL, OCF_LE_SET_SCAN_PARAMETERS, cmd_pkt)
     logger.debug(
         'enabling le scan: %s',
-        str({
-            'interval': f'{interval * 0.625:.3f}ms',
-            'window': f'{window * 0.625:.3f}ms',
-            'allowlist': filter_policy in (
-                FILTER_POLICY_SCAN_ALLOWLIST,
-                FILTER_POLICY_SCAN_AND_CONN_ALLOWLIST,
-            ),
-        }),
+        str(
+            {
+                'interval': f'{interval * 0.625:.3f}ms',
+                'window': f'{window * 0.625:.3f}ms',
+                'allowlist': filter_policy
+                in (
+                    FILTER_POLICY_SCAN_ALLOWLIST,
+                    FILTER_POLICY_SCAN_AND_CONN_ALLOWLIST,
+                ),
+            }
+        ),
     )
     scan_filter = SCAN_FILTER_DUPLICATES if filter_duplicates else 0x00
     cmd_pkt = struct.pack('<BB', SCAN_ENABLE, scan_filter)
@@ -121,10 +127,10 @@ def enable_le_scan(
 
 
 def parse_le_advertising_events(
-        sock: btsocket,
-        handler: Handler,
-        filter_mac_addrs: Optional[Sequence[str]] = None,
-        filter_packet_length: Optional[int] = None,
+    sock: btsocket,
+    handler: Handler,
+    filter_mac_addrs: Optional[Sequence[str]] = None,
+    filter_packet_length: Optional[int] = None,
 ) -> None:
     """
     Parse and report LE advertisements.
@@ -155,7 +161,7 @@ def parse_le_advertising_events(
                 logger.error('received invalid event: %s', event)
                 continue
 
-            sub_event, = struct.unpack('B', pkt[3:4])
+            (sub_event,) = struct.unpack('B', pkt[3:4])
             if sub_event != EVT_LE_ADVERTISING_REPORT:
                 logger.debug('not an EVT_LE_ADVERTISING_REPORT')
                 continue
@@ -180,7 +186,7 @@ def parse_le_advertising_events(
                 continue
 
             data = body[9:-1]
-            rssi = struct.unpack('b', pkt[len(pkt) - 1:len(pkt)])[0]
+            rssi = struct.unpack('b', pkt[len(pkt) - 1 : len(pkt)])[0]
             log_context['rssi'] = rssi
 
             if filter_mac_addrs and mac_addr not in filter_mac_addrs:
@@ -219,9 +225,7 @@ def toggle_device(interface: int, enable: bool) -> None:
     request = array.array('b', struct.pack('H', interface))
     try:
         fcntl.ioctl(
-            sock.fileno(),
-            HCIDEVUP if enable else HCIDEVDOWN,
-            request[0],
+            sock.fileno(), HCIDEVUP if enable else HCIDEVDOWN, request[0]
         )
     except OSError as e:
         if e.errno != errno.EALREADY:

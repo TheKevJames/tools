@@ -8,15 +8,12 @@ from . import command
 from . import files
 from . import schema
 
-
 app = typer.Typer(add_completion=False)
 
 Ago = Annotated[int, typer.Option('-a', '--ago')]
 Days = Annotated[int, typer.Option('-d', '--days')]
 Filter = Annotated[
-    str, typer.Option(
-        '-f', '--filter', help='tag=bar,summary!~bq',
-    ),
+    str, typer.Option('-f', '--filter', help='tag=bar,summary!~bq')
 ]
 Limit = Annotated[int, typer.Option('-l', '--limit')]
 Sort = Annotated[schema.SortOrder, typer.Option('-s', '--sort')]
@@ -30,7 +27,7 @@ def add(task: str) -> None:
     # TODO: allow adding details
     details = None
     added = schema.Task(
-        summary=task, details=details, ident=-1, tag=['## Triage'],
+        summary=task, details=details, ident=-1, tag=['## Triage']
     )
     tasks.append(added)
     files.save(tasks)
@@ -68,8 +65,7 @@ def done(task: str, ago: Ago = 0) -> None:
 
     assert completed.details, 'completed recurring task has no details'
     print(
-        'completed recurring task, next occurrence: '
-        f'{completed.details.next_}',
+        f'completed recurring task, next occurrence: {completed.details.next_}'
     )
     tasks.pop(tasks.index(item))
     tasks.append(completed)
@@ -78,9 +74,7 @@ def done(task: str, ago: Ago = 0) -> None:
 
 @app.command('due')
 def due(
-        filter_: Filter = '',
-        limit: Limit = -1,
-        sort: Sort = schema.SortOrder.due,
+    filter_: Filter = '', limit: Limit = -1, sort: Sort = schema.SortOrder.due
 ) -> None:
     """List tasks that are currently due."""
     # TODO: column-aligned printing
@@ -93,8 +87,7 @@ def due(
 def edit() -> None:
     """Open the task file in $EDITOR."""
     subprocess.run(
-        [os.environ.get('EDITOR', 'vim'), files.TASK_FILE],
-        check=True,
+        [os.environ.get('EDITOR', 'vim'), files.TASK_FILE], check=True
     )
 
 
@@ -108,10 +101,10 @@ def filters() -> None:
 
 @app.command('highpri')
 def highpri(
-        days: Days = -1,
-        filter_: Filter = '',
-        limit: Limit = -1,
-        sort: Sort = schema.SortOrder.due,
+    days: Days = -1,
+    filter_: Filter = '',
+    limit: Limit = -1,
+    sort: Sort = schema.SortOrder.due,
 ) -> None:
     """List high-priority tasks."""
     filt = f'{filter_},tag=highpri'
@@ -121,10 +114,10 @@ def highpri(
 
 @app.command('list')
 def list_(
-        days: Days = 7,
-        filter_: Filter = '',
-        limit: Limit = -1,
-        sort: Sort = schema.SortOrder.ident,
+    days: Days = 7,
+    filter_: Filter = '',
+    limit: Limit = -1,
+    sort: Sort = schema.SortOrder.ident,
 ) -> None:
     """List tasks, by default those due within the next week."""
     for task in command.load(files.load(), filter_, days, limit, sort):
@@ -139,24 +132,24 @@ def rewrite() -> None:
 
 @app.command('soon')
 def soon(
-        days: Days = 3,
-        filter_: Filter = '',
-        limit: Limit = -1,
-        sort: Sort = schema.SortOrder.due,
+    days: Days = 3,
+    filter_: Filter = '',
+    limit: Limit = -1,
+    sort: Sort = schema.SortOrder.due,
 ) -> None:
     """List tasks due soon, by default within three days."""
     for task in command.load_with_next(
-            files.load(), filter_, days, limit, sort,
+        files.load(), filter_, days, limit, sort
     ):
         print(task)
 
 
 @app.command('triage')
 def triage(
-        days: Days = -1,
-        filter_: Filter = '',
-        limit: Limit = -1,
-        sort: Sort = schema.SortOrder.ident,
+    days: Days = -1,
+    filter_: Filter = '',
+    limit: Limit = -1,
+    sort: Sort = schema.SortOrder.ident,
 ) -> None:
     """List tasks tagged for triage."""
     filt = f'{filter_},tag=triage'
