@@ -20,6 +20,7 @@ Sort = Annotated[schema.SortOrder, typer.Option('-s', '--sort')]
 
 @app.command('add')
 def add(idx: int, task: str) -> None:
+    """Add a new task to the file at the given index."""
     conf = files.Settings()
     tasks = list(command.load(files.load()))
 
@@ -35,6 +36,7 @@ def add(idx: int, task: str) -> None:
 
 @app.command('delay')
 def delay(task: str, days: Days) -> None:
+    """Postpone a task by the given number of days."""
     tasks = list(command.load(files.load()))
     item = next((x for x in tasks if str(x.link) == task), None)
     assert item, f'task {task} not found!'
@@ -50,6 +52,7 @@ def delay(task: str, days: Days) -> None:
 
 @app.command('done')
 def done(task: str, ago: Ago = 0) -> None:
+    """Mark a task as completed, optionally some days ago."""
     tasks = list(command.load(files.load()))
     item = next((x for x in tasks if str(x.link) == task), None)
     assert item, f'task {task} not found!'
@@ -77,6 +80,7 @@ def due(
         limit: Limit = -1,
         sort: Sort = schema.SortOrder.due,
 ) -> None:
+    """List tasks that are currently due."""
     # TODO: column-aligned printing
     for task in command.load_with_next(files.load(), filter_, 0, limit, sort):
         print(task)
@@ -86,6 +90,7 @@ def due(
 # TODO: instead of indices, should use ftitle[0].lower()
 @app.command('edit')
 def edit(idx: int) -> None:
+    """Open the task file at the given index in $EDITOR."""
     conf = files.Settings()
     subprocess.run(
         [os.environ.get('EDITOR', 'vim'), conf.fnames[idx]],
@@ -95,6 +100,7 @@ def edit(idx: int) -> None:
 
 @app.command('filters')
 def filters() -> None:
+    """Show the available filter targets."""
     print('Filters:')
     for target in schema.Target:
         print(f'* {target.value}')
@@ -107,6 +113,7 @@ def highpri(
         limit: Limit = -1,
         sort: Sort = schema.SortOrder.due,
 ) -> None:
+    """List high-priority tasks."""
     filt = f'{filter_},tag=highpri'
     for task in command.load(files.load(), filt, days, limit, sort):
         print(task)
@@ -119,18 +126,21 @@ def list_(
         limit: Limit = -1,
         sort: Sort = schema.SortOrder.ident,
 ) -> None:
+    """List tasks, by default those due within the next week."""
     for task in command.load(files.load(), filter_, days, limit, sort):
         print(task)
 
 
 @app.command('rewrite')
 def rewrite() -> None:
+    """Reformat and rewrite the task files in place."""
     files.save(command.load(files.load()))
 
 
 # TODO(feat): split to get/set
 @app.command('settings')
 def settings() -> None:
+    """Show configured task files and their indices."""
     conf = files.Settings()
     for i, fname in enumerate(conf.fnames):
         print(f'{i}\t{fname}')
@@ -143,6 +153,7 @@ def soon(
         limit: Limit = -1,
         sort: Sort = schema.SortOrder.due,
 ) -> None:
+    """List tasks due soon, by default within three days."""
     for task in command.load_with_next(
             files.load(), filter_, days, limit, sort,
     ):
@@ -156,6 +167,7 @@ def triage(
         limit: Limit = -1,
         sort: Sort = schema.SortOrder.ident,
 ) -> None:
+    """List tasks tagged for triage."""
     filt = f'{filter_},tag=triage'
     for task in command.load(files.load(), filt, days, limit, sort):
         print(task)
