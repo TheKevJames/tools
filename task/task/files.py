@@ -1,3 +1,4 @@
+import os
 import pathlib
 from collections.abc import Iterable
 from collections.abc import Iterator
@@ -5,7 +6,7 @@ from collections.abc import Iterator
 from .schema import Task
 
 
-TASK_FILE = pathlib.Path.home() / 'sync' / 'vimwiki' / 'todos.md'
+TASK_FILE = pathlib.Path(os.environ['TASK_FILE'])
 
 
 def task_sort_key(task: Task) -> str:
@@ -37,7 +38,8 @@ def save(tasks: Iterable[Task]) -> None:
 
 def load() -> Iterator[Task]:
     tag: list[str] = []
-    for lineno, line in enumerate(TASK_FILE.read_text().split('\n')):
+    text = TASK_FILE.read_text(encoding='utf-8')
+    for lineno, line in enumerate(text.split('\n')):
         if line.startswith('##'):
             level = len(line.split(maxsplit=1)[0]) - 2
             tag = tag[:level]
