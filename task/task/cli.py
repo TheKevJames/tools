@@ -13,22 +13,24 @@ app = typer.Typer(add_completion=False)
 
 Ago = Annotated[int, typer.Option('-a', '--ago')]
 Days = Annotated[int, typer.Option('-d', '--days')]
-Filter = Annotated[str, typer.Option('-f', '--filter', help='foo=bar,baz!~bq')]
+Filter = Annotated[
+    str, typer.Option(
+        '-f', '--filter', help='tag=bar,summary!~bq',
+    ),
+]
 Limit = Annotated[int, typer.Option('-l', '--limit')]
 Sort = Annotated[schema.SortOrder, typer.Option('-s', '--sort')]
 
 
 @app.command('add')
-def add(idx: int, task: str) -> None:
-    """Add a new task to the file at the given index."""
-    conf = files.Settings()
+def add(task: str) -> None:
+    """Add a new task to the task file."""
     tasks = list(command.load(files.load()))
 
     # TODO: allow adding details
     details = None
-    link = schema.Link(fname=conf.fnames[idx], ftitle='x', lineno=-1)
     added = schema.Task(
-        summary=task, details=details, link=link, tag=['## Triage'],
+        summary=task, details=details, ident=-1, tag=['## Triage'],
     )
     tasks.append(added)
     files.save(tasks)
@@ -38,7 +40,7 @@ def add(idx: int, task: str) -> None:
 def delay(task: str, days: Days) -> None:
     """Postpone a task by the given number of days."""
     tasks = list(command.load(files.load()))
-    item = next((x for x in tasks if str(x.link) == task), None)
+    item = next((x for x in tasks if str(x.ident) == task), None)
     assert item, f'task {task} not found!'
 
     delayed = item.postpone(days)
@@ -54,7 +56,7 @@ def delay(task: str, days: Days) -> None:
 def done(task: str, ago: Ago = 0) -> None:
     """Mark a task as completed, optionally some days ago."""
     tasks = list(command.load(files.load()))
-    item = next((x for x in tasks if str(x.link) == task), None)
+    item = next((x for x in tasks if str(x.ident) == task), None)
     assert item, f'task {task} not found!'
 
     completed = item.complete(ago)
@@ -87,13 +89,11 @@ def due(
 
 
 # TODO: allow editing a task ID? eg. open with cursor on correct line
-# TODO: instead of indices, should use ftitle[0].lower()
 @app.command('edit')
-def edit(idx: int) -> None:
-    """Open the task file at the given index in $EDITOR."""
-    conf = files.Settings()
+def edit() -> None:
+    """Open the task file in $EDITOR."""
     subprocess.run(
-        [os.environ.get('EDITOR', 'vim'), conf.fnames[idx]],
+        [os.environ.get('EDITOR', 'vim'), files.TASK_FILE],
         check=True,
     )
 
@@ -135,15 +135,6 @@ def list_(
 def rewrite() -> None:
     """Reformat and rewrite the task files in place."""
     files.save(command.load(files.load()))
-
-
-# TODO(feat): split to get/set
-@app.command('settings')
-def settings() -> None:
-    """Show configured task files and their indices."""
-    conf = files.Settings()
-    for i, fname in enumerate(conf.fnames):
-        print(f'{i}\t{fname}')
 
 
 @app.command('soon')

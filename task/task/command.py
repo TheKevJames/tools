@@ -28,7 +28,7 @@ def sort(tasks: Iterable[Task], order: SortOrder) -> Iterator[Task]:
         )
         tasks = itertools.chain(lhs, rhs)
     elif order == SortOrder.ident:
-        tasks = sorted(tasks, key=lambda t: t.link)
+        tasks = sorted(tasks, key=lambda t: t.ident)
     elif order == SortOrder.tag:
         tasks = sorted(tasks, key=lambda t: t.tag)
 

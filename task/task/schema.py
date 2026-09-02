@@ -1,10 +1,8 @@
 import datetime
 import enum
-import pathlib
 import re
 from collections.abc import Iterable
 from collections.abc import Iterator
-from typing import Any
 from typing import assert_never
 from typing import Self
 
@@ -99,35 +97,14 @@ class Details(pydantic.BaseModel, extra='forbid'):
         return result
 
 
-class Link(pydantic.BaseModel, extra='forbid'):
-    fname: pathlib.Path
-    ftitle: str
-    lineno: int
-
-    def __str__(self) -> str:
-        return f'{self.ftitle[0].lower()}{self.lineno}'
-
-    def __lt__(self, other: Any) -> bool:
-        if not isinstance(other, Link):
-            raise TypeError(
-                "'<' not supported between instances of 'Link' and "
-                f"'{type(other)}'",
-            )
-
-        if self.ftitle == other.ftitle:
-            return self.lineno < other.lineno
-
-        return self.ftitle < other.ftitle
-
-
 class Task(pydantic.BaseModel, extra='forbid'):
     summary: str
     details: Details | None
-    link: Link
+    ident: int
     tag: list[str]
 
     @classmethod
-    def parse(cls, raw: str, tag: list[str], link: Link) -> Self:
+    def parse(cls, raw: str, tag: list[str], ident: int) -> Self:
         details: Details | None
         groups = re.findall(r'(.*) {(.*)}', raw)
         if groups:
@@ -136,7 +113,7 @@ class Task(pydantic.BaseModel, extra='forbid'):
         else:
             details = None
 
-        return cls(details=details, link=link, summary=raw, tag=tag)
+        return cls(details=details, ident=ident, summary=raw, tag=tag)
 
     @property
     def raw(self) -> str:
@@ -148,7 +125,7 @@ class Task(pydantic.BaseModel, extra='forbid'):
     def __str__(self) -> str:
         result = ''
         result += ' > '.join(x.split(maxsplit=1)[1] for x in self.tag)
-        result += f'\t{self.link}: {self.summary}'
+        result += f'\t{self.ident}: {self.summary}'
         if self.details:
             result += f'\n\t{self.details}'
         return result
@@ -191,7 +168,6 @@ class Task(pydantic.BaseModel, extra='forbid'):
 
 
 class Target(str, enum.Enum):
-    src = 'src'
     summary = 'summary'
     tag = 'tag'
 
@@ -227,8 +203,6 @@ class Filter(pydantic.BaseModel, extra='forbid'):
         return self.data == value
 
     def func(self, task: Task) -> bool:  # pylint: disable=inconsistent-return-statements
-        if self.target == Target.src:
-            return self.match(task.link.ftitle.lower()) is not self.negate
         if self.target == Target.summary:
             return self.match(task.summary.lower()) is not self.negate
         if self.target == Target.tag:
