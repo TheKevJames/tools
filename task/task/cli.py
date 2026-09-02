@@ -13,7 +13,7 @@ app = typer.Typer()
 
 Ago = Annotated[int, typer.Option('-a', '--ago')]
 Days = Annotated[int, typer.Option('-d', '--days')]
-Filter = Annotated[str, typer.Option('-f', '--filter', help='foo=bar,baz!=bq')]
+Filter = Annotated[str, typer.Option('-f', '--filter', help='foo=bar,baz!~bq')]
 Limit = Annotated[int, typer.Option('-l', '--limit')]
 Sort = Annotated[schema.SortOrder, typer.Option('-s', '--sort')]
 

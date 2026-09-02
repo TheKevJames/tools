@@ -199,6 +199,7 @@ class Target(str, enum.Enum):
 class Filter(pydantic.BaseModel, extra='forbid'):
     data: str
     negate: bool
+    contains: bool
     target: Target
 
     @classmethod
@@ -207,22 +208,34 @@ class Filter(pydantic.BaseModel, extra='forbid'):
             if not filter_.strip():
                 continue
 
-            target, data = filter_.split('=')
-            negate = target.endswith('!')
-            target = target.rstrip('!')
+            match = re.match(
+                r'(?P<target>[^!=~]+)(?P<op>!?[=~])(?P<data>.*)', filter_,
+            )
+            assert match, f'{filter_} is not a valid filter'
+            op = match.group('op')
 
-            yield cls(data=data, negate=negate, target=Target(target))
+            yield cls(
+                data=match.group('data'),
+                negate=op.startswith('!'),
+                contains=op.endswith('~'),
+                target=Target(match.group('target')),
+            )
+
+    def match(self, value: str) -> bool:
+        if self.contains:
+            return self.data in value
+        return self.data == value
 
     def func(self, task: Task) -> bool:  # pylint: disable=inconsistent-return-statements
         if self.target == Target.src:
-            return (self.data in task.link.ftitle.lower()) is not self.negate
+            return self.match(task.link.ftitle.lower()) is not self.negate
         if self.target == Target.summary:
-            return (self.data in task.summary.lower()) is not self.negate
+            return self.match(task.summary.lower()) is not self.negate
         if self.target == Target.tag:
-            return any(
-                (self.data in t.lower()) is not self.negate
-                for t in task.tag
+            matched = any(
+                self.match(t.split(maxsplit=1)[1].lower()) for t in task.tag
             )
+            return matched is not self.negate
 
         assert_never(self.target)
 
