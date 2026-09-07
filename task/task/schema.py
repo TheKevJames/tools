@@ -202,6 +202,40 @@ class Task(pydantic.BaseModel, extra='forbid'):
             elif field is ClearableField.shift:
                 self.details.shift = False
 
+    def render_detail(self) -> str:
+        rows = [
+            ('Summary', self.summary),
+            ('ID', str(self.ident)),
+            ('Tag', ' > '.join(x.split(maxsplit=1)[1] for x in self.tag)),
+        ]
+        if self.details:
+            rows.append(('Due', self._render_due()))
+            if self.details.interval:
+                anchor = (
+                    'after completion'
+                    if self.details.shift
+                    else 'since last deadline'
+                )
+                rows.append(
+                    ('Recurrence', f'{self.details.interval} {anchor}')
+                )
+
+        width = max(len(label) for label, _ in rows)
+        return '\n'.join(
+            f'{label + ":":<{width + 2}} {value}' for label, value in rows
+        )
+
+    def _render_due(self) -> str:
+        assert self.details, 'due row requires details'
+        diff = (self.details.next_ - datetime.date.today()).days
+        if diff > 0:
+            status = f'{diff} {"day" if diff == 1 else "days"}'
+        elif diff == 0:
+            status = 'due today'
+        else:
+            status = 'overdue'
+        return f'{self.details.next_} ({status})'
+
 
 class Target(str, enum.Enum):
     summary = 'summary'

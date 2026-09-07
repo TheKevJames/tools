@@ -121,7 +121,7 @@ def add(
 @app.command('show', rich_help_panel=SUBJECT_PANEL)
 def show(ident: int) -> None:
     """Show a task's full details and status."""
-    print(require(list(command.load(files.load())), ident))
+    print(require(list(command.load(files.load())), ident).render_detail())
 
 
 @app.command('done', rich_help_panel=SUBJECT_PANEL)
