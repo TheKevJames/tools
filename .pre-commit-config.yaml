@@ -136,7 +136,7 @@ repos:
           - '3.9'
   # TODO: add more rules from https://docs.astral.sh/ruff/rules/
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.5
+    rev: v0.16.6
     hooks:
       - id: ruff
         args:
@@ -234,7 +234,7 @@ repos:
 
 # docker
   - repo: https://github.com/AleksaC/hadolint-py
-    rev: v2.14.0
+    rev: v2.15.1
     hooks:
       - id: hadolint
         args:
@@ -261,7 +261,7 @@ repos:
 
 # terraform
   - repo: https://github.com/AleksaC/terraform-py
-    rev: v1.16.0
+    rev: v1.16.1
     hooks:
       - id: tf-validate
   - repo: https://github.com/AleksaC/tffumpt
@@ -281,7 +281,7 @@ repos:
 #       - id: bashate
 #         args: [--max-line-length=80]
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
+    rev: v0.11.0.1-1
     hooks:
       - id: shellcheck
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
