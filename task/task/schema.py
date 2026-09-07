@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 import enum
 import re
@@ -165,6 +166,42 @@ class Task(pydantic.BaseModel, extra='forbid'):
         )
         return new_task
 
+    def update(
+        self,
+        *,
+        summary: str | None = None,
+        tag: str | None = None,
+        next_: str | None = None,
+        interval: str | None = None,
+        shift: bool | None = None,
+    ) -> None:
+        if summary is not None:
+            self.summary = summary
+        if tag is not None:
+            self.tag = [f'## {tag}']
+
+        if next_ is not None or interval is not None or shift is not None:
+            if self.details is None:
+                seed = next_ or datetime.date.today().isoformat()
+                self.details = Details.model_validate({'next': seed})
+            if next_ is not None:
+                self.details.next_ = datetime.date.fromisoformat(next_)
+            if interval is not None:
+                self.details.interval = Interval(raw=interval)
+            if shift is not None:
+                self.details.shift = shift
+
+    def clear(self, fields: Iterable['ClearableField']) -> None:
+        for field in fields:
+            if field is ClearableField.next:
+                self.details = None
+            elif self.details is None:
+                continue
+            elif field is ClearableField.interval:
+                self.details.interval = None
+            elif field is ClearableField.shift:
+                self.details.shift = False
+
 
 class Target(str, enum.Enum):
     summary = 'summary'
@@ -222,3 +259,34 @@ class SortOrder(str, enum.Enum):
     ident = 'id'
     due = 'due'
     tag = 'tag'
+
+
+class ClearableField(str, enum.Enum):
+    interval = 'interval'
+    next = 'next'
+    shift = 'shift'
+
+
+class Preset(str, enum.Enum):
+    due = 'due'
+    soon = 'soon'
+    highpri = 'highpri'
+    triage = 'triage'
+    all = 'all'
+
+
+@dataclasses.dataclass(frozen=True)
+class PresetConfig:
+    days: int
+    filter: str
+    sort: SortOrder
+    due_only: bool
+
+
+PRESETS = {
+    Preset.due: PresetConfig(0, '', SortOrder.due, True),
+    Preset.soon: PresetConfig(3, '', SortOrder.due, True),
+    Preset.highpri: PresetConfig(-1, 'tag=highpri', SortOrder.due, False),
+    Preset.triage: PresetConfig(-1, 'tag=triage', SortOrder.ident, False),
+    Preset.all: PresetConfig(-1, '', SortOrder.ident, False),
+}

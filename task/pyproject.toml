@@ -1,6 +1,6 @@
 [project]
 name = "task"
-version = "1.2.0"
+version = "2.0.0"
 description = "Simple personal task manager"
 requires-python = ">=3.11,<4.0"
 license = {text = "MIT"}

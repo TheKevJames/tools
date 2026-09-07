@@ -1,60 +1,134 @@
 import os
 import subprocess
+from typing import TYPE_CHECKING
 from typing import Annotated
 
 import typer
+from typer.core import TyperGroup
 
 from . import command
 from . import files
 from . import schema
 
-app = typer.Typer(add_completion=False)
+if TYPE_CHECKING:
+    import click
+
+
+class SubjectGroup(TyperGroup):
+    """
+    Enable `task <id> <cmd>` by rewriting an integer-led invocation.
+
+    A leading integer is the task id (the subject); it is moved to sit behind
+    the command so ordinary Typer parsing applies. A bare integer means `show`.
+    With no command at all, default to `list`; leading global flags likewise
+    route to `list`.
+    """
+
+    def parse_args(self, ctx: 'click.Context', args: list[str]) -> list[str]:
+        if not args:
+            args = ['list']
+        elif args[0].lstrip('-').isdigit():
+            if len(args) == 1:
+                args = ['show', args[0]]
+            else:
+                ident, cmd, *rest = args
+                if cmd in self.commands:
+                    args = [cmd, ident, *rest]
+                else:
+                    args = ['show', ident, cmd, *rest]
+        elif args[0] not in self.commands and args[0] != '--help':
+            args = ['list', *args]
+        return super().parse_args(ctx, args)
+
+
+app = typer.Typer(
+    cls=SubjectGroup, add_completion=False, no_args_is_help=False
+)
+file_app = typer.Typer(
+    add_completion=False, help='Operate on the whole task file.'
+)
+app.add_typer(file_app, name='file')
 
 Ago = Annotated[int, typer.Option('-a', '--ago')]
-Days = Annotated[int, typer.Option('-d', '--days')]
+Days = Annotated[int | None, typer.Option('-d', '--days')]
 Filter = Annotated[
-    str, typer.Option('-f', '--filter', help='tag=bar,summary!~bq')
+    str | None, typer.Option('-f', '--filter', help='tag=bar,summary!~bq')
 ]
-Limit = Annotated[int, typer.Option('-l', '--limit')]
-Sort = Annotated[schema.SortOrder, typer.Option('-s', '--sort')]
+Limit = Annotated[int | None, typer.Option('-l', '--limit')]
+Preset = Annotated[schema.Preset, typer.Option('-p', '--preset')]
+Sort = Annotated[schema.SortOrder | None, typer.Option('-s', '--sort')]
+
+# Shared detail flags: `add` and `set` funnel these into Task.update, keeping a
+# single source of truth for task modifications.
+Summary = Annotated[str | None, typer.Option('--summary')]
+Tag = Annotated[str | None, typer.Option('--tag')]
+Next = Annotated[str | None, typer.Option('--next')]
+Interval = Annotated[str | None, typer.Option('--interval')]
+Shift = Annotated[bool | None, typer.Option('--shift/--no-shift')]
+
+
+# Per-task commands are invoked as `task <id> <cmd>`; group them under their
+# own help panel so they don't read as bare top-level commands.
+SUBJECT_PANEL = 'Task commands (use as: task <id> <cmd>)'
+
+
+def require(tasks: list[schema.Task], ident: int) -> schema.Task:
+    item = next((x for x in tasks if x.ident == ident), None)
+    assert item, f'task {ident} not found!'
+    return item
+
+
+@app.command('list')
+def list_(
+    preset: Preset = schema.Preset.due,
+    days: Days = None,
+    filter_: Filter = None,
+    limit: Limit = None,
+    sort: Sort = None,
+) -> None:
+    """List tasks using a preset view; explicit flags override the preset."""
+    cfg = schema.PRESETS[preset]
+    filt = ','.join(x for x in (filter_ or '', cfg.filter) if x)
+    reader = command.load_with_next if cfg.due_only else command.load
+    for task in reader(
+        files.load(),
+        filt,
+        cfg.days if days is None else days,
+        -1 if limit is None else limit,
+        cfg.sort if sort is None else sort,
+    ):
+        print(task)
 
 
 @app.command('add')
-def add(task: str) -> None:
-    """Add a new task to the task file."""
+def add(
+    summary: str,
+    tag: Tag = None,
+    next_: Next = None,
+    interval: Interval = None,
+    shift: Shift = None,
+) -> None:
+    """Add a new task, optionally with schedule details."""
     tasks = list(command.load(files.load()))
-
-    # TODO: allow adding details
-    details = None
-    added = schema.Task(
-        summary=task, details=details, ident=-1, tag=['## Triage']
+    task = schema.Task(
+        summary=summary, details=None, ident=-1, tag=['## Triage']
     )
-    tasks.append(added)
+    task.update(tag=tag, next_=next_, interval=interval, shift=shift)
+    tasks.append(task)
     files.save(tasks)
 
 
-@app.command('delay')
-def delay(task: str, days: Days) -> None:
-    """Postpone a task by the given number of days."""
-    tasks = list(command.load(files.load()))
-    item = next((x for x in tasks if str(x.ident) == task), None)
-    assert item, f'task {task} not found!'
-
-    delayed = item.postpone(days)
-    assert delayed.details, 'delayed task has no details'
-    print(f'delayed task, next occurrence: {delayed.details.next_}')
-
-    tasks.pop(tasks.index(item))
-    tasks.append(delayed)
-    files.save(tasks)
+@app.command('show', rich_help_panel=SUBJECT_PANEL)
+def show(ident: int) -> None:
+    """Show a task's full details and status."""
+    print(require(list(command.load(files.load())), ident))
 
 
-@app.command('done')
-def done(task: str, ago: Ago = 0) -> None:
+@app.command('done', rich_help_panel=SUBJECT_PANEL)
+def done(ident: int, ago: Ago = 0) -> None:
     """Mark a task as completed, optionally some days ago."""
     tasks = list(command.load(files.load()))
-    item = next((x for x in tasks if str(x.ident) == task), None)
-    assert item, f'task {task} not found!'
+    item = require(tasks, ident)
 
     completed = item.complete(ago)
     if not completed:
@@ -72,89 +146,58 @@ def done(task: str, ago: Ago = 0) -> None:
     files.save(tasks)
 
 
-@app.command('due')
-def due(
-    filter_: Filter = '', limit: Limit = -1, sort: Sort = schema.SortOrder.due
+@app.command('delay', rich_help_panel=SUBJECT_PANEL)
+def delay(ident: int, days: int) -> None:
+    """Postpone a task by the given number of days."""
+    tasks = list(command.load(files.load()))
+    item = require(tasks, ident)
+
+    delayed = item.postpone(days)
+    assert delayed.details, 'delayed task has no details'
+    print(f'delayed task, next occurrence: {delayed.details.next_}')
+
+    tasks.pop(tasks.index(item))
+    tasks.append(delayed)
+    files.save(tasks)
+
+
+@app.command('set', rich_help_panel=SUBJECT_PANEL)
+def set_(
+    ident: int,
+    summary: Summary = None,
+    tag: Tag = None,
+    next_: Next = None,
+    interval: Interval = None,
+    shift: Shift = None,
 ) -> None:
-    """List tasks that are currently due."""
-    # TODO: column-aligned printing
-    for task in command.load_with_next(files.load(), filter_, 0, limit, sort):
-        print(task)
+    """Edit a task's summary, section, or schedule details."""
+    tasks = list(command.load(files.load()))
+    require(tasks, ident).update(
+        summary=summary, tag=tag, next_=next_, interval=interval, shift=shift
+    )
+    files.save(tasks)
 
 
-# TODO: allow editing a task ID? eg. open with cursor on correct line
-@app.command('edit')
-def edit() -> None:
+@app.command('unset', rich_help_panel=SUBJECT_PANEL)
+def unset(ident: int, fields: list[schema.ClearableField]) -> None:
+    """Clear schedule details from a task."""
+    tasks = list(command.load(files.load()))
+    require(tasks, ident).clear(fields)
+    files.save(tasks)
+
+
+@file_app.command('edit')
+def file_edit() -> None:
     """Open the task file in $EDITOR."""
     subprocess.run(
         [os.environ.get('EDITOR', 'vim'), files.TASK_FILE], check=True
     )
 
 
-@app.command('filters')
-def filters() -> None:
-    """Show the available filter targets."""
-    print('Filters:')
-    for target in schema.Target:
-        print(f'* {target.value}')
-
-
-@app.command('highpri')
-def highpri(
-    days: Days = -1,
-    filter_: Filter = '',
-    limit: Limit = -1,
-    sort: Sort = schema.SortOrder.due,
-) -> None:
-    """List high-priority tasks."""
-    filt = f'{filter_},tag=highpri'
-    for task in command.load(files.load(), filt, days, limit, sort):
-        print(task)
-
-
-@app.command('list')
-def list_(
-    days: Days = 7,
-    filter_: Filter = '',
-    limit: Limit = -1,
-    sort: Sort = schema.SortOrder.ident,
-) -> None:
-    """List tasks, by default those due within the next week."""
-    for task in command.load(files.load(), filter_, days, limit, sort):
-        print(task)
-
-
-@app.command('rewrite')
-def rewrite() -> None:
-    """Reformat and rewrite the task files in place."""
+@file_app.command('rewrite')
+def file_rewrite() -> None:
+    """Reformat and rewrite the task file in place."""
     files.save(command.load(files.load()))
-
-
-@app.command('soon')
-def soon(
-    days: Days = 3,
-    filter_: Filter = '',
-    limit: Limit = -1,
-    sort: Sort = schema.SortOrder.due,
-) -> None:
-    """List tasks due soon, by default within three days."""
-    for task in command.load_with_next(
-        files.load(), filter_, days, limit, sort
-    ):
-        print(task)
-
-
-@app.command('triage')
-def triage(
-    days: Days = -1,
-    filter_: Filter = '',
-    limit: Limit = -1,
-    sort: Sort = schema.SortOrder.ident,
-) -> None:
-    """List tasks tagged for triage."""
-    filt = f'{filter_},tag=triage'
-    for task in command.load(files.load(), filt, days, limit, sort):
-        print(task)
 
 
 def cli() -> None:
