@@ -5,7 +5,7 @@ from collections.abc import Iterator
 
 from .schema import Task
 
-TASK_FILE = pathlib.Path(os.environ['TASK_FILE'])
+TASK_FILE = pathlib.Path(os.environ['TASK_FOLDER']) / 'todos.md'
 
 
 def task_sort_key(task: Task) -> str:
