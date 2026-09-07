@@ -1,5 +1,7 @@
 import os
+import pathlib
 import subprocess
+import tempfile
 from typing import TYPE_CHECKING
 from typing import Annotated
 
@@ -65,6 +67,7 @@ Tag = Annotated[str | None, typer.Option('--tag')]
 Next = Annotated[str | None, typer.Option('--next')]
 Interval = Annotated[str | None, typer.Option('--interval')]
 Shift = Annotated[bool | None, typer.Option('--shift/--no-shift')]
+Description = Annotated[str | None, typer.Option('--description')]
 
 
 # Per-task commands are invoked as `task <id> <cmd>`; group them under their
@@ -107,13 +110,18 @@ def add(
     next_: Next = None,
     interval: Interval = None,
     shift: Shift = None,
+    description: Description = None,
 ) -> None:
     """Add a new task, optionally with schedule details."""
     tasks = list(command.load(files.load()))
-    task = schema.Task(
-        summary=summary, details=None, ident=-1, tag=['## Triage']
+    task = schema.Task(summary=summary, details=None, tag=['## Triage'])
+    task.update(
+        tag=tag,
+        next_=next_,
+        interval=interval,
+        shift=shift,
+        description=description,
     )
-    task.update(tag=tag, next_=next_, interval=interval, shift=shift)
     tasks.append(task)
     files.save(tasks)
 
@@ -169,12 +177,37 @@ def set_(
     next_: Next = None,
     interval: Interval = None,
     shift: Shift = None,
+    description: Description = None,
 ) -> None:
     """Edit a task's summary, section, or schedule details."""
     tasks = list(command.load(files.load()))
     require(tasks, ident).update(
-        summary=summary, tag=tag, next_=next_, interval=interval, shift=shift
+        summary=summary,
+        tag=tag,
+        next_=next_,
+        interval=interval,
+        shift=shift,
+        description=description,
     )
+    files.save(tasks)
+
+
+@app.command('describe', rich_help_panel=SUBJECT_PANEL)
+def describe(ident: int) -> None:
+    """Edit a task's description in $EDITOR."""
+    tasks = list(command.load(files.load()))
+    item = require(tasks, ident)
+
+    with tempfile.NamedTemporaryFile(
+        'w', suffix='.md', delete=False, encoding='utf-8'
+    ) as f:
+        f.write(item.description or '')
+        path = pathlib.Path(f.name)
+
+    subprocess.run([os.environ.get('EDITOR', 'vim'), path], check=True)
+    item.update(description=path.read_text(encoding='utf-8'))
+    path.unlink()
+
     files.save(tasks)
 
 
@@ -190,7 +223,7 @@ def unset(ident: int, fields: list[schema.ClearableField]) -> None:
 def file_edit() -> None:
     """Open the task file in $EDITOR."""
     subprocess.run(
-        [os.environ.get('EDITOR', 'vim'), files.TASK_FILE], check=True
+        [os.environ.get('EDITOR', 'vim'), files.INDEX_FILE], check=True
     )
 
 

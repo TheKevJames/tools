@@ -101,11 +101,20 @@ class Details(pydantic.BaseModel, extra='forbid'):
 class Task(pydantic.BaseModel, extra='forbid'):
     summary: str
     details: Details | None
-    ident: int
+    ident: int | None = None
     tag: list[str]
+    description: str | None = None
 
     @classmethod
-    def parse(cls, raw: str, tag: list[str], ident: int) -> Self:
+    def parse(
+        cls, raw: str, tag: list[str], description: str | None = None
+    ) -> Self:
+        ident: int | None = None
+        match = re.match(r'\[(\d+)\] (.*)', raw)
+        if match:
+            ident = int(match.group(1))
+            raw = match.group(2)
+
         details: Details | None
         groups = re.findall(r'(.*) {(.*)}', raw)
         if groups:
@@ -114,11 +123,18 @@ class Task(pydantic.BaseModel, extra='forbid'):
         else:
             details = None
 
-        return cls(details=details, ident=ident, summary=raw, tag=tag)
+        return cls(
+            description=description,
+            details=details,
+            ident=ident,
+            summary=raw,
+            tag=tag,
+        )
 
     @property
     def raw(self) -> str:
-        result = self.summary
+        assert self.ident is not None, 'task id has not been assigned'
+        result = f'[{self.ident}] {self.summary}'
         if self.details:
             result += f' {{{self.details.raw}}}'
         return result
@@ -127,6 +143,8 @@ class Task(pydantic.BaseModel, extra='forbid'):
         result = ''
         result += ' > '.join(x.split(maxsplit=1)[1] for x in self.tag)
         result += f'\t{self.ident}: {self.summary}'
+        if self.description:
+            result += ' +'
         if self.details:
             result += f'\n\t{self.details}'
         return result
@@ -174,11 +192,14 @@ class Task(pydantic.BaseModel, extra='forbid'):
         next_: str | None = None,
         interval: str | None = None,
         shift: bool | None = None,
+        description: str | None = None,
     ) -> None:
         if summary is not None:
             self.summary = summary
         if tag is not None:
             self.tag = [f'## {tag}']
+        if description is not None:
+            self.description = description.strip() or None
 
         if next_ is not None or interval is not None or shift is not None:
             if self.details is None:
@@ -195,6 +216,8 @@ class Task(pydantic.BaseModel, extra='forbid'):
         for field in fields:
             if field is ClearableField.next:
                 self.details = None
+            elif field is ClearableField.description:
+                self.description = None
             elif self.details is None:
                 continue
             elif field is ClearableField.interval:
@@ -221,9 +244,12 @@ class Task(pydantic.BaseModel, extra='forbid'):
                 )
 
         width = max(len(label) for label, _ in rows)
-        return '\n'.join(
+        header = '\n'.join(
             f'{label + ":":<{width + 2}} {value}' for label, value in rows
         )
+        if self.description:
+            return f'{header}\n---\n{self.description}'
+        return header
 
     def _render_due(self) -> str:
         assert self.details, 'due row requires details'
@@ -296,6 +322,7 @@ class SortOrder(str, enum.Enum):
 
 
 class ClearableField(str, enum.Enum):
+    description = 'description'
     interval = 'interval'
     next = 'next'
     shift = 'shift'
