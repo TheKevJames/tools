@@ -215,9 +215,9 @@ def toggle_device(interface: int, enable: bool) -> None:
     # TODO: figure out how to tell mypy this is a bluetooth socket
     # pylint: disable=no-member
     sock = socket.socket(
-        socket.AF_BLUETOOTH,  # type: ignore[attr-defined]
+        socket.AF_BLUETOOTH,  # type: ignore[attr-defined, unused-ignore]
         socket.SOCK_RAW,
-        socket.BTPROTO_HCI,  # type: ignore[attr-defined]
+        socket.BTPROTO_HCI,  # type: ignore[attr-defined, unused-ignore]
     )
     # pylint: enable=no-member
 
