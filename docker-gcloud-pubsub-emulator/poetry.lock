@@ -359,17 +359,18 @@ urllib3 = ["packaging (>=20.0)", "urllib3 (>=1.26.15,<3.0.0)"]
 
 [[package]]
 name = "google-cloud-pubsub"
-version = "2.39.2"
+version = "2.40.0"
 description = "Google Cloud Pub/Sub API client library"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "google_cloud_pubsub-2.39.2-py3-none-any.whl", hash = "sha256:b1295c6641032aff1dabbddf495b10642a5b547f6783ee4c6bb3365682e71354"},
+    {file = "google_cloud_pubsub-2.40.0-py3-none-any.whl", hash = "sha256:ec4a6488d5da741499902c55eeb5273812c414013d32b1e0c5548179f31cd934"},
+    {file = "google_cloud_pubsub-2.40.0.tar.gz", hash = "sha256:fe7d7eb76f753f6aebcdda2f4dff536748d1999147f64d955a554f572abb1585"},
 ]
 
 [package.dependencies]
-google-api-core = {version = ">=2.25.0,<3.0.0", extras = ["grpc"]}
+google-api-core = {version = ">=2.28.0,<3.0.0", extras = ["grpc"]}
 google-auth = ">=2.14.1,<2.24.0 || >2.24.0,<2.25.0 || >2.25.0,<3.0.0"
 grpc-google-iam-v1 = ">=0.14.2,<1.0.0"
 grpcio = [
@@ -705,4 +706,4 @@ zstd = ["backports-zstd (>=1.0.0) ; python_version < \"3.14\""]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "003519a132c5bf6a6c2b0a6bf83c95b69577a64196c00ecfc8fa00aabd68ca96"
+content-hash = "c2cdde0fc161cf1f6a12b78d64cd2fe32043887c4fbae6698a695d44641ce123"
