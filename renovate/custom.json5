@@ -58,7 +58,7 @@
             ],
             "customType": "regex",
             "matchStrings": [
-                "# renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s+version: (?<currentValue>.+?)\\s",
+                "# renovate: datasource=(?<datasource>.+?) depName=(?<depName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s+.*version: (?<currentValue>.+?)\\s",
             ],
             "versioningTemplate": "{{#if versioning}}{{versioning}}{{else}}semver{{/if}}",
         },
