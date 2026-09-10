@@ -1,9 +1,12 @@
 version: 2.1
 
 executors:
-  prek-latest:
+  # glibc base: prek delegates python management to uv, and uv-managed
+  # python-build-standalone interpreters cannot load musl native-extension
+  # wheels (eg. rpds-py via check-jsonschema). Alpine breaks those hooks.
+  default:
     docker:
-      - image: ghcr.io/j178/prek:alpine
+      - image: cimg/base:current
     resource_class: small
 
 jobs:
@@ -20,10 +23,17 @@ jobs:
         default: '.pre-commit-config.yaml'
         type: string
       executor:
-        default: prek-latest
+        default: default
         type: executor
     steps:
       - checkout
+      - run:
+          name: install uv and prek
+          command: |
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$BASH_ENV"
+            source "$BASH_ENV"
+            uv tool install prek
       - restore_cache:
           keys:
             - cache-prek-<<parameters.cache_prefix>>-{{ checksum "<<parameters.config_file>>" }}
