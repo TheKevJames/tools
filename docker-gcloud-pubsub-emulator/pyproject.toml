@@ -5,9 +5,7 @@ description = "Google PubSub topic and subscription creator"
 requires-python = ">=3.11,<4.0"
 license = { text = "MIT" }
 
-authors = [
-    { name = "Kevin James", email = "KevinJames@thekev.in" },
-]
+authors = [{ name = "Kevin James", email = "KevinJames@thekev.in" }]
 
 dependencies = [
     "google-cloud-pubsub==2.40.0",
@@ -16,10 +14,21 @@ dependencies = [
 [project.urls]
 repository = "https://github.com/TheKevJames/tools"
 
-[tool.poetry]
-requires-poetry = ">=2.0"
-package-mode = false
+[dependency-groups]
+dev = [
+    "flake8-broken-line==1.0.0",
+    "flake8-complicated-walrus==2.1.0",
+    "flake8-import-restrictions==2.1",
+    "flake8-requirements==2.3.0",
+    "flake8==7.3.0",
+    "pylint==4.0.8",
+]
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.ty.rules]
+dynamic-function-decorator-return = "error"
+missing-type-argument = "error"
+possibly-unresolved-reference = "warn"
+unsound-return-statement = "error"
+
+[tool.uv]
+package = false

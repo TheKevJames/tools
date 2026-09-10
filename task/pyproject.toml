@@ -3,15 +3,13 @@ name = "task"
 version = "2.0.0"
 description = "Simple personal task manager"
 requires-python = ">=3.11,<4.0"
-license = {text = "MIT"}
+license = { text = "MIT" }
 
-authors = [
-    {name = "Kevin James",email = "KevinJames@thekev.in"}
-]
+authors = [{ name = "Kevin James", email = "KevinJames@thekev.in" }]
 
 dependencies = [
-    "pydantic (==2.13.5)",
-    "typer (==0.27.2)",
+    "pydantic==2.13.5",
+    "typer==0.27.2",
 ]
 
 [project.urls]
@@ -20,19 +18,22 @@ repository = "https://github.com/TheKevJames/tools"
 [project.scripts]
 task = "task.cli:cli"
 
-[tool.poetry]
-requires-poetry = ">=2.0"
-package-mode = true
-
-[[tool.poetry.source]]
-name = "pypi"
-priority = "primary"
-
-[tool.mypy]
-plugins = [
-    "pydantic.mypy",
+[dependency-groups]
+dev = [
+    "flake8-broken-line==1.0.0",
+    "flake8-complicated-walrus==2.1.0",
+    "flake8-import-restrictions==2.1",
+    "flake8-requirements==2.3.0",
+    "flake8==7.3.0",
+    "pylint==4.0.8",
 ]
 
+[tool.ty.rules]
+dynamic-function-decorator-return = "error"
+missing-type-argument = "error"
+possibly-unresolved-reference = "warn"
+unsound-return-statement = "error"
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

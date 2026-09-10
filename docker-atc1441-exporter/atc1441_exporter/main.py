@@ -9,11 +9,7 @@ from typing import Optional
 import bluetooth._bluetooth as bluez
 import prometheus_client
 
-from .utils import disable_le_scan
-from .utils import enable_le_scan
-from .utils import parse_le_advertising_events
-from .utils import raw_packet_to_str
-from .utils import toggle_device
+from . import utils  # noqa: IMR241
 
 BATTERY = prometheus_client.Gauge('atc_battery', 'Battery', ['name'])
 HUMIDITY = prometheus_client.Gauge('atc_humidity', 'Humidity', ['name'])
@@ -99,7 +95,7 @@ def main() -> None:
         logger.exception('could not parse device list file')
         raise
 
-    toggle_device(args.interface, True)
+    utils.toggle_device(args.interface, True)
 
     try:
         sock = bluez.hci_open_dev(args.interface)
@@ -107,8 +103,10 @@ def main() -> None:
         logger.exception('could not open bluetooth device %i', args.interface)
         raise
 
-    signal.signal(signal.SIGINT, lambda _sig, _frame: disable_le_scan(sock))
-    enable_le_scan(sock)
+    signal.signal(
+        signal.SIGINT, lambda _sig, _frame: utils.disable_le_scan(sock)
+    )
+    utils.enable_le_scan(sock)
 
     prometheus_client.start_http_server(args.port)
 
@@ -117,7 +115,7 @@ def main() -> None:
 
         def handler(mac: str, adv: int, data: bytes, rssi: int) -> None:
             # pylint: disable=unused-argument
-            data_str = raw_packet_to_str(data)
+            data_str = utils.raw_packet_to_str(data)
             measurement = decode_data_atc1441(adv_cache, mac, data_str)
             if not measurement:
                 return
@@ -128,7 +126,7 @@ def main() -> None:
             TEMPERATURE.labels(name).set(measurement.temperature)
             VOLTAGE.labels(name).set(measurement.voltage)
 
-        parse_le_advertising_events(
+        utils.parse_le_advertising_events(
             sock,
             handler,
             filter_mac_addrs=tuple(sensors.keys()),
@@ -142,7 +140,7 @@ def main() -> None:
     except KeyboardInterrupt:
         pass
     finally:
-        disable_le_scan(sock)
+        utils.disable_le_scan(sock)
 
 
 if __name__ == '__main__':

@@ -263,7 +263,7 @@ class Task(pydantic.BaseModel, extra='forbid'):
         return f'{self.details.next_} ({status})'
 
 
-class Target(str, enum.Enum):
+class Target(enum.StrEnum):
     summary = 'summary'
     tag = 'tag'
 
@@ -315,20 +315,20 @@ class Filter(pydantic.BaseModel, extra='forbid'):
         yield from (x for x in tasks if self.func(x))
 
 
-class SortOrder(str, enum.Enum):
+class SortOrder(enum.StrEnum):
     ident = 'id'
     due = 'due'
     tag = 'tag'
 
 
-class ClearableField(str, enum.Enum):
+class ClearableField(enum.StrEnum):
     description = 'description'
     interval = 'interval'
     next = 'next'
     shift = 'shift'
 
 
-class Preset(str, enum.Enum):
+class Preset(enum.StrEnum):
     due = 'due'
     soon = 'soon'
     highpri = 'highpri'

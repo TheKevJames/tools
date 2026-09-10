@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# pybluez's `bluetooth` C extension is Linux/BlueZ-only and is not installed on
+# macOS (see the sys_platform marker in pyproject.toml), so ty cannot resolve
+# the import there. Ignore unresolved imports on macOS only; on Linux the module
+# is installed and checked as-is. The Linux `python-platform` assumption lives in
+# pyproject.toml so Linux-only socket members resolve on either host.
+extra=()
+if [ "$(uname -s)" = Darwin ]; then
+    extra=(--ignore unresolved-import)
+fi
+
+exec uv run --frozen --with ty==0.0.79 ty check "${extra[@]}" "$@"

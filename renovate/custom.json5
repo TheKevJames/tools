@@ -49,7 +49,7 @@
         //          version:
         //            type: string
         // 2. add a comment above specifying the datsource and depName:
-        //        # renovate: datasource=pypi depName=poetry
+        //        # renovate: datasource=pypi depName=coveralls
         {
             "description": "Update dependencies in CI job parameters",
             "fileMatch": [

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# pybluez's `bluetooth` C extension is Linux/BlueZ-only and is not installed on
+# macOS (see the sys_platform marker in pyproject.toml), so pylint cannot
+# resolve it there. Ignore that module on macOS only; on Linux the import
+# resolves and is linted as-is.
+extra=()
+if [ "$(uname -s)" = Darwin ]; then
+    extra=(--ignored-modules=bluetooth)
+fi
+
+exec uv run --frozen pylint "${extra[@]}" "$@"

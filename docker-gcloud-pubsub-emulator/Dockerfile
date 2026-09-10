@@ -1,9 +1,5 @@
 # syntax=docker/dockerfile:1
 
-# renovate: datasource=pypi depName=poetry
-ARG POETRY_VERSION=2.4.3
-# renovate: datasource=pypi depName=poetry-plugin-export
-ARG POETRYPLUGINEXPORT_VERSION=1.10.0
 # renovate: datasource=github-releases depName=eficode/wait-for
 ARG WAITFOR_VERSION=2.2.4
 
@@ -33,26 +29,11 @@ RUN --mount=type=cache,sharing=locked,target=/var/cache/apt,id=apt-cache-$TARGET
 
 FROM base AS builder
 
-ARG TARGETPLATFORM
-
-# TODO: figure out how to properly pin these versions and have renovate update them
-RUN --mount=type=cache,sharing=locked,target=/var/cache/apt,id=apt-cache-$TARGETPLATFORM \
-    --mount=type=cache,sharing=locked,target=/var/lib/apt,id=apt-lib-$TARGETPLATFORM \
-    apt-get install -qy --no-install-recommends \
-        "python3-venv" && \
-    python3 -m venv /opt/poetry
-
-ARG POETRY_VERSION
-ARG POETRYPLUGINEXPORT_VERSION
-RUN --mount=type=cache,target=/root/.cache/pip \
-    /opt/poetry/bin/pip install \
-        "poetry==${POETRY_VERSION}" \
-        "poetry-plugin-export==${POETRYPLUGINEXPORT_VERSION}" && \
-    /opt/poetry/bin/poetry config virtualenvs.options.no-pip true
+COPY --from=ghcr.io/astral-sh/uv:0.12.9 /uv /usr/local/bin/uv
 
 WORKDIR /app
-COPY pyproject.toml poetry.lock ./
-RUN /opt/poetry/bin/poetry export -f requirements.txt --output /tmp/requirements.txt
+COPY pyproject.toml uv.lock ./
+RUN uv export --frozen --no-emit-project --no-dev -o /tmp/requirements.txt
 
 
 FROM base

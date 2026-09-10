@@ -4,7 +4,7 @@ import pathlib
 import re
 from collections.abc import Iterable
 
-from .schema import Task
+from . import schema
 
 TASK_FOLDER = pathlib.Path(os.environ['TASK_FOLDER'])
 INDEX_FILE = TASK_FOLDER / 'index.md'
@@ -12,7 +12,7 @@ INDEX_FILE = TASK_FOLDER / 'index.md'
 IDENT_FILE_RE = re.compile(r'^(\d+)\.md$')
 
 
-def task_sort_key(task: Task) -> str:
+def task_sort_key(task: schema.Task) -> str:
     key = ' > '.join(x.split(maxsplit=1)[1] for x in task.tag)
     if key == 'Triage':
         key = '0'
@@ -28,7 +28,7 @@ def _ident_files() -> list[tuple[int, pathlib.Path]]:
     return sorted(result)
 
 
-def _load_index() -> list[Task]:
+def _load_index() -> list[schema.Task]:
     if not INDEX_FILE.exists():
         return []
 
@@ -41,11 +41,11 @@ def _load_index() -> list[Task]:
             assert len(tag) >= level, 'error parsing tags'
             tag.append(line)
         elif line.startswith('* '):
-            tasks.append(Task.parse(line[2:], tag))
+            tasks.append(schema.Task.parse(line[2:], tag))
     return tasks
 
 
-def _load_ident_file(ident: int, path: pathlib.Path) -> Task:
+def _load_ident_file(ident: int, path: pathlib.Path) -> schema.Task:
     tag: list[str] = []
     lines = path.read_text(encoding='utf-8').split('\n')
     for lineno, line in enumerate(lines):
@@ -59,7 +59,7 @@ def _load_ident_file(ident: int, path: pathlib.Path) -> Task:
             while rest and not rest[0].strip():
                 rest = rest[1:]
             description = '\n'.join(rest).strip() or None
-            task = Task.parse(line[2:], tag, description=description)
+            task = schema.Task.parse(line[2:], tag, description=description)
             assert task.ident in (None, ident), f'{path}: id mismatch'
             task.ident = ident
             return task
@@ -67,7 +67,7 @@ def _load_ident_file(ident: int, path: pathlib.Path) -> Task:
     raise AssertionError(f'{path}: no task found')
 
 
-def _assign_idents(tasks: list[Task]) -> None:
+def _assign_idents(tasks: list[schema.Task]) -> None:
     taken = {t.ident for t in tasks if t.ident is not None}
     taken |= {ident for ident, _ in _ident_files()}
     counter = max(taken, default=0)
@@ -77,7 +77,7 @@ def _assign_idents(tasks: list[Task]) -> None:
             task.ident = counter
 
 
-def _check_duplicates(tasks: Iterable[Task]) -> None:
+def _check_duplicates(tasks: Iterable[schema.Task]) -> None:
     seen: set[int] = set()
     for task in tasks:
         if task.ident is None:
@@ -86,7 +86,7 @@ def _check_duplicates(tasks: Iterable[Task]) -> None:
         seen.add(task.ident)
 
 
-def _write_index(tasks: Iterable[Task]) -> None:
+def _write_index(tasks: Iterable[schema.Task]) -> None:
     xs = sorted(tasks, key=task_sort_key)
     with INDEX_FILE.open('w', encoding='utf-8') as f:
         f.write('# TODOs\n')
@@ -104,14 +104,14 @@ def _write_index(tasks: Iterable[Task]) -> None:
             f.write(f'* {task.raw}\n')
 
 
-def _write_ident_file(task: Task) -> None:
+def _write_ident_file(task: schema.Task) -> None:
     path = TASK_FOLDER / f'{task.ident}.md'
     lines = [f'{t}\n' for t in task.tag]
     lines.extend((f'* {task.raw}\n', '\n', f'{task.description}\n'))
     path.write_text(''.join(lines), encoding='utf-8')
 
 
-def load() -> list[Task]:
+def load() -> list[schema.Task]:
     index_tasks = _load_index()
     ident_tasks = list(itertools.starmap(_load_ident_file, _ident_files()))
     tasks = index_tasks + ident_tasks
@@ -127,7 +127,7 @@ def load() -> list[Task]:
     return tasks
 
 
-def save(tasks: Iterable[Task]) -> None:
+def save(tasks: Iterable[schema.Task]) -> None:
     tasks = list(tasks)
     _assign_idents(tasks)
     _check_duplicates(tasks)

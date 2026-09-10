@@ -1,11 +1,5 @@
 # syntax=docker/dockerfile:1
 
-# renovate: datasource=pypi depName=pip
-ARG PIP_VERSION=26.2.1
-# renovate: datasource=pypi depName=poetry
-ARG POETRY_VERSION=2.4.3
-# renovate: datasource=pypi depName=poetry-plugin-export
-ARG POETRYPLUGINEXPORT_VERSION=1.10.0
 # renovate: datasource=pypi depName=prometheus-client
 ARG PROMETHEUSCLIENT_VERSION=0.26.0
 # renovate: datasource=pypi depName=pybluez
@@ -15,23 +9,11 @@ ARG PYBLUEZ_VERSION=0.23
 # TODO: update to newer python
 FROM python:3.9.22-slim AS builder
 
-RUN python3 -m venv /opt/poetry
-
-ARG PIP_VERSION
-RUN --mount=type=cache,target=/root/.cache/pip \
-    /opt/poetry/bin/pip install --upgrade "pip==${PIP_VERSION}"
-
-ARG POETRY_VERSION
-ARG POETRYPLUGINEXPORT_VERSION
-RUN --mount=type=cache,target=/root/.cache/pip \
-    /opt/poetry/bin/pip install \
-        "poetry==${POETRY_VERSION}" \
-        "poetry-plugin-export==${POETRYPLUGINEXPORT_VERSION}" && \
-    /opt/poetry/bin/poetry config virtualenvs.options.no-pip true
+COPY --from=ghcr.io/astral-sh/uv:0.12.9 /uv /usr/local/bin/uv
 
 WORKDIR /app
-COPY pyproject.toml poetry.lock ./
-RUN /opt/poetry/bin/poetry export -f requirements.txt --output /tmp/requirements.txt
+COPY pyproject.toml uv.lock ./
+RUN uv export --frozen --no-emit-project --no-dev -o /tmp/requirements.txt
 
 
 # TODO: update to a newer python

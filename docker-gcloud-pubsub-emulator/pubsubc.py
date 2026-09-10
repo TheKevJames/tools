@@ -34,11 +34,9 @@ import sys
 import traceback
 from collections.abc import Iterator
 from typing import Any
-from typing import Optional
 
 from google.cloud import pubsub_v1  # type: ignore[import-untyped]
-
-# TODO: https://github.com/googleapis/python-pubsub/issues/536
+from google.pubsub_v1 import types as pubsub_types
 
 
 @dataclasses.dataclass
@@ -47,60 +45,58 @@ class SubscriptionConfig:
     name: str
 
     # https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.subscriptions/create?rep_location=global#request-body
-    push_config: Optional[pubsub_v1.types.PushConfig] = None
-    bigquery_config: Optional[pubsub_v1.types.BigQueryConfig] = None
-    cloud_storage_config: Optional[pubsub_v1.types.CloudStorageConfig] = None
-    ack_deadline_seconds: Optional[int] = None
-    retain_acked_messages: Optional[bool] = None
-    message_retention_duration: Optional[str] = None
-    labels: Optional[dict[str, str]] = None
-    enable_message_ordering: Optional[bool] = None
-    expiration_policy: Optional[pubsub_v1.types.ExpirationPolicy] = None
-    filter_: Optional[str] = None
-    dead_letter_policy: Optional[pubsub_v1.types.DeadLetterPolicy] = None
-    retry_policy: Optional[pubsub_v1.types.RetryPolicy] = None
-    detached: Optional[bool] = None
-    enable_exactly_once_delivery: Optional[bool] = None
+    push_config: pubsub_types.PushConfig | None = None
+    bigquery_config: pubsub_types.BigQueryConfig | None = None
+    cloud_storage_config: pubsub_types.CloudStorageConfig | None = None
+    ack_deadline_seconds: int | None = None
+    retain_acked_messages: bool | None = None
+    message_retention_duration: str | None = None
+    labels: dict[str, str] | None = None
+    enable_message_ordering: bool | None = None
+    expiration_policy: pubsub_types.ExpirationPolicy | None = None
+    filter_: str | None = None
+    dead_letter_policy: pubsub_types.DeadLetterPolicy | None = None
+    retry_policy: pubsub_types.RetryPolicy | None = None
+    detached: bool | None = None
+    enable_exactly_once_delivery: bool | None = None
 
     @classmethod
     def from_json(cls, data: dict[str, Any]) -> 'SubscriptionConfig':
         push_config = (
-            pubsub_v1.types.PushConfig(data.get('push_config', {}))
+            pubsub_types.PushConfig(data.get('push_config', {}))
             if data.get('push_config')
             else None
         )
         if data.get('push_endpoint'):
             pprint('WARN: `$.push_endpoint` is deprecated, please nest ')
             pprint('      settings under the `push_config` block.')
-            push_config = pubsub_v1.types.PushConfig(
+            push_config = pubsub_types.PushConfig(
                 push_endpoint=data['push_endpoint']
             )
         bigquery_config = (
-            pubsub_v1.types.BigQueryConfig(data.get('bigquery_config', {}))
+            pubsub_types.BigQueryConfig(data.get('bigquery_config', {}))
             if data.get('bigquery_config')
             else None
         )
         cloud_storage_config = (
-            pubsub_v1.types.CloudStorageConfig(
+            pubsub_types.CloudStorageConfig(
                 data.get('cloud_storage_config', {})
             )
             if data.get('cloud_storage_config')
             else None
         )
         expiration_policy = (
-            pubsub_v1.types.ExpirationPolicy(data.get('expiration_policy', {}))
+            pubsub_types.ExpirationPolicy(data.get('expiration_policy', {}))
             if data.get('expiration_policy')
             else None
         )
         dead_letter_policy = (
-            pubsub_v1.types.DeadLetterPolicy(
-                data.get('dead_letter_policy', {})
-            )
+            pubsub_types.DeadLetterPolicy(data.get('dead_letter_policy', {}))
             if data.get('dead_letter_policy')
             else None
         )
         retry_policy = (
-            pubsub_v1.types.RetryPolicy(data.get('retry_policy', {}))
+            pubsub_types.RetryPolicy(data.get('retry_policy', {}))
             if data.get('retry_policy')
             else None
         )

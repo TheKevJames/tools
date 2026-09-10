@@ -2,21 +2,18 @@ import os
 import pathlib
 import subprocess
 import tempfile
-from typing import TYPE_CHECKING
 from typing import Annotated
 
 import typer
-from typer.core import TyperGroup
+from typer import _click
+from typer import core
 
 from . import command
 from . import files
 from . import schema
 
-if TYPE_CHECKING:
-    import click
 
-
-class SubjectGroup(TyperGroup):
+class SubjectGroup(core.TyperGroup):
     """
     Enable `task <id> <cmd>` by rewriting an integer-led invocation.
 
@@ -26,7 +23,7 @@ class SubjectGroup(TyperGroup):
     route to `list`.
     """
 
-    def parse_args(self, ctx: 'click.Context', args: list[str]) -> list[str]:
+    def parse_args(self, ctx: _click.Context, args: list[str]) -> list[str]:
         if not args:
             args = ['list']
         elif args[0].lstrip('-').isdigit():
