@@ -159,5 +159,12 @@
                 "^terraform$",
             ],
         },
+        {
+            "groupName": "uv",
+            "matchDepPatterns": [
+                "^astral-sh/uv$",
+                "^ghcr.io/astral-sh/uv$",
+            ],
+        },
     ],
 }
