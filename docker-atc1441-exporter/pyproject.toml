@@ -37,10 +37,11 @@ unsound-return-statement = "error"
 
 [tool.uv]
 package = false
-
-[tool.uv.extra-build-dependencies]
-# pybluez's setup.py uses use_2to3 (removed in setuptools 58)
-pybluez = ["setuptools<58"]
+# pybluez 0.23's setup.py uses use_2to3 (removed in setuptools 58) and predates
+# modern wheel, so constrain the build toolchain to the last compatible versions
+# for it to build on Linux CI. (macOS never installs pybluez; see the marker
+# above.)
+build-constraint-dependencies = ["setuptools<58", "wheel<0.38"]
 
 # pybluez's sdist metadata lists pyobjc (macOS-only) as an unconditional
 # dependency, but pyobjc cannot build on Linux and is never needed there. This

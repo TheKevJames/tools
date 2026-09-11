@@ -9,6 +9,10 @@ resolution-markers = [
 ]
 
 [manifest]
+build-constraints = [
+    { name = "setuptools", specifier = "<58" },
+    { name = "wheel", specifier = "<0.38" },
+]
 
 [[manifest.dependency-metadata]]
 name = "pybluez"
