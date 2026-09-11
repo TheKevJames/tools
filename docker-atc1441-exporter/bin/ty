@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-exec uv run --frozen --with ty==0.0.79 ty check "$@"

@@ -1,21 +1,17 @@
 repos:
-  - repo: local
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.80
     hooks:
       - id: ty
-        name: ty
-        entry: bin/ty
-        language: system
-        pass_filenames: false
-        require_serial: true
-        types: [python]
+  - repo: local
+    hooks:
       - id: pylint
         name: pylint
-        entry: bin/pylint
+        entry: uv run --frozen pylint
         language: system
         types: [python]
         require_serial: true
         args:
-          - --py-version=3.11
           - --max-line-length=79
           - --max-module-lines=500
           - --max-positional-arguments=10
@@ -41,7 +37,7 @@ repos:
           - --select=FCW,I90,IMR,N400
           - --ignore=IMR200
           - --per-file-ignores=tests/*:I900
-          - --imr241_exclude=typing,collections.abc
+          - --imr241_exclude=__future__,collections.abc,typing
       - id: disallow-untyped-imports
         name: disallow-untyped-imports
         entry: bash -c
@@ -51,7 +47,7 @@ repos:
         types: [python]
         # Allowlist packages below which are known to have no third-party typestubs.
         args:
-          - uvx mypy . --python-version 3.11 --python-executable .venv/bin/python --follow-imports=skip --no-error-summary --no-color-output 2>&1 | grep -E '\[import-untyped\]' | grep -vE '"(some_legacy_pkg)"' | { ! grep .; }
+          - uvx mypy . --python-executable .venv/bin/python --follow-imports=skip --no-error-summary --no-color-output 2>&1 | grep -E '\[import-untyped\]' | grep -vE '"(some_legacy_pkg)"' | { ! grep .; }
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.7
     hooks:
