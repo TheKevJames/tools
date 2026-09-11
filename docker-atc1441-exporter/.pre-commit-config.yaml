@@ -53,7 +53,7 @@ repos:
         args:
           - uvx mypy . --python-executable .venv/bin/python --follow-imports=skip --no-error-summary --no-color-output 2>&1 | grep -E '\[import-untyped\]' | grep -vE '"(some_legacy_pkg)"' | { ! grep .; }
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.6
+    rev: v0.16.7
     hooks:
       - id: ruff-check
         args:
@@ -82,7 +82,7 @@ repos:
           - --config
           - lint.isort.split-on-trailing-comma = false
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.11
+    rev: 0.12.13
     hooks:
       - id: uv-audit
       - id: uv-lock

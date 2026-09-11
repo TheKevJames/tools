@@ -2,6 +2,10 @@ name: dependency-review
 
 on: [pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   pull-requests: write
@@ -9,7 +13,6 @@ permissions:
 jobs:
   dependency-review:
     runs-on: ubuntu-latest
-    name: dependency-review
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: actions/dependency-review-action@v5.0.0
