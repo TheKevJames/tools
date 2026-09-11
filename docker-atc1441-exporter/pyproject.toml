@@ -24,7 +24,7 @@ dev = [
     "flake8-requirements==2.3.0",
     "flake8==7.3.0",
     "pylint==3.3.9",
-    "pytest==9.0.3",
+    "pytest==9.1.1",
 ]
 
 [tool.pytest.ini_options]
