@@ -2,14 +2,15 @@
 name = "atc1441-exporter"
 version = "0.1.8"
 description = "ATC1441 (passive) Sensor data OpenMetrics Exporter"
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.11,<4.0"
 license = { text = "MIT" }
 
 authors = [{ name = "Kevin James", email = "KevinJames@thekev.in" }]
 
+# BLE scanning uses a vendored, pruned subset of aioblescan (pure-Python, raw
+# HCI socket) at atc1441_exporter/_aioblescan.py; it has no runtime dependency.
 dependencies = [
     "prometheus-client==0.26.0",
-    "pybluez==0.23; sys_platform == 'linux'",
 ]
 
 [project.urls]
@@ -23,11 +24,19 @@ dev = [
     "flake8-requirements==2.3.0",
     "flake8==7.3.0",
     "pylint==3.3.9",
+    "pytest==9.0.3",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
 
 [tool.ty.environment]
 python-platform = "linux"
-python-version = "3.9"
+python-version = "3.11"
+
+[tool.ty.src]
+# vendored third-party parser; kept as-is rather than modernised
+exclude = ["atc1441_exporter/_aioblescan.py"]
 
 [tool.ty.rules]
 dynamic-function-decorator-return = "error"
@@ -37,16 +46,3 @@ unsound-return-statement = "error"
 
 [tool.uv]
 package = false
-# pybluez 0.23's setup.py uses use_2to3 (removed in setuptools 58) and predates
-# modern wheel, so constrain the build toolchain to the last compatible versions
-# for it to build on Linux CI. (macOS never installs pybluez; see the marker
-# above.)
-build-constraint-dependencies = ["setuptools<58", "wheel<0.38"]
-
-# pybluez's sdist metadata lists pyobjc (macOS-only) as an unconditional
-# dependency, but pyobjc cannot build on Linux and is never needed there. This
-# project only installs pybluez on Linux, so drop the bogus deps entirely.
-[[tool.uv.dependency-metadata]]
-name = "pybluez"
-version = "0.23"
-requires-dist = []

@@ -10,7 +10,9 @@ Heavily inspired by `MiTemperature2`_, `xiaomi-sensor-exporter`_, and
 `atc-prometheus-exporter`_; this script combines the passive/low-power scanning
 from former with the OpenMetrics scrapability of the latter two.
 
-Special thank you as well to `py-bluetooth-utils`_, which has been vendored in.
+Special thank you as well to `aioblescan`_, a pruned subset of which has been
+vendored in (see ``atc1441_exporter/_aioblescan.py``) to handle passive BLE
+scanning and advertising-report parsing over a raw HCI socket.
 
 Usage
 -----
@@ -60,9 +62,9 @@ There are a few optional flags you can pass in the command::
     --port | -p             OpenMetrics listen port [default: 8000]
 
 .. _MiTemperature2: https://github.com/JsBergbau/MiTemperature2
+.. _aioblescan: https://github.com/frawau/aioblescan
 .. _atc-prometheus-exporter: https://github.com/kroemeke/atc-prometheus-exporter
 .. _pvvx/ATC_MiThermometer: https://github.com/pvvx/ATC_MiThermometer
-.. _py-bluetooth-utils: https://github.com/colin-guyon/py-bluetooth-utils
 .. _xiaomi-sensor-exporter: https://github.com/vicziani/xiaomi-sensor-exporter
 
 .. |dockerpulls| image:: https://img.shields.io/docker/pulls/thekevjames/atc1441-exporter.svg?style=flat-square

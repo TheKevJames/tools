@@ -8,9 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-      # docker-atc1441-exporter builds pybluez from source to lint it, which
-      # needs the BlueZ headers (bluetooth/bluetooth.h).
-      - run: sudo apt-get update && sudo apt-get install -y libbluetooth-dev
       - uses: astral-sh/setup-uv@v10.1.0
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
@@ -22,3 +19,15 @@ jobs:
           # renovate: datasource=pypi depName=prek
           prek-version: 0.5.2
           extra-args: --all-files
+
+  test:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          # renovate: datasource=github-releases depName=astral-sh/uv
+          version: 0.12.13
+      - run: uv run --frozen pytest
+        working-directory: docker-atc1441-exporter

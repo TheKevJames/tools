@@ -98,6 +98,7 @@ repos:
     rev: v2.3.1
     hooks:
       - id: refurb
+        exclude: '^docker-atc1441-exporter/atc1441_exporter/_aioblescan\.py$'
         args:
           - --python-version
           - '3.9'

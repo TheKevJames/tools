@@ -1,20 +1,27 @@
 import argparse
+import asyncio
 import configparser
+import contextlib
 import dataclasses
 import logging
 import os
-import signal
-from typing import Optional
+import socket
+from collections.abc import Callable
+from typing import cast
 
-import bluetooth._bluetooth as bluez
 import prometheus_client
 
-from . import utils  # noqa: IMR241
+from . import _aioblescan as aiobs
+from . import utils
 
 BATTERY = prometheus_client.Gauge('atc_battery', 'Battery', ['name'])
 HUMIDITY = prometheus_client.Gauge('atc_humidity', 'Humidity', ['name'])
 TEMPERATURE = prometheus_client.Gauge('atc_temperature', 'Temp.', ['name'])
 VOLTAGE = prometheus_client.Gauge('atc_voltage', 'Voltage', ['name'])
+
+# ATC1441 service data marker: AD type 0x16 (service data, 16-bit UUID)
+# followed by UUID 0x181A on the wire (little-endian bytes 1a 18).
+ATC_PREAMBLE = '161a18'
 
 DEBUG = os.environ.get('DEBUG', '').lower() == 'true'
 
@@ -32,15 +39,14 @@ class Measurement:
 
 def decode_data_atc1441(
     adv_cache: dict[str, str], mac: str, data_str: str
-) -> Optional[Measurement]:
-    preamble = '161a18'
-    data_idx = data_str.find(preamble)
+) -> Measurement | None:
+    data_idx = data_str.find(ATC_PREAMBLE)
     if data_idx == -1:
         logger.debug('dropping packet with missing preamble')
         return None
 
-    offset = data_idx + len(preamble)
-    stripped_data_str = data_str[offset:]
+    offset = data_idx + len(ATC_PREAMBLE)
+    stripped_data_str = data_str[offset : offset + 26]
     if len(stripped_data_str) != 26:
         logger.debug('dropping packet with invalid length')
         return None
@@ -56,15 +62,100 @@ def decode_data_atc1441(
     temp_bytes = bytearray.fromhex(stripped_data_str[12:16])
     temp = int.from_bytes(temp_bytes, byteorder='big', signed=True)
     humidity = int(stripped_data_str[16:18], 16)
-    batteryVoltage = int(stripped_data_str[20:24], 16) / 1000
-    batteryPercent = int(stripped_data_str[18:20], 16)
+    battery_voltage = int(stripped_data_str[20:24], 16) / 1000
+    battery_percent = int(stripped_data_str[18:20], 16)
 
     return Measurement(
-        battery=batteryPercent,
+        battery=battery_percent,
         humidity=humidity,
         temperature=temp / 10.0,
-        voltage=batteryVoltage,
+        voltage=battery_voltage,
     )
+
+
+async def _open_scanner(
+    loop: asyncio.AbstractEventLoop, sock: socket.socket
+) -> tuple[asyncio.BaseTransport, aiobs.BLEScanRequester]:
+    # asyncio's public loop.create_connection rejects the SOCK_RAW HCI
+    # socket, so we use the private _create_connection_transport that
+    # aioblescan relies on. Isolated here (via getattr) so a future CPython
+    # change is a one-line fix.
+    create_transport = getattr(loop, '_create_connection_transport')
+    transport, protocol = await create_transport(
+        sock, aiobs.BLEScanRequester, None, None
+    )
+    return (
+        cast('asyncio.BaseTransport', transport),
+        cast('aiobs.BLEScanRequester', protocol),
+    )
+
+
+def _build_processor(
+    sensors: configparser.ConfigParser,
+) -> Callable[[bytes], None]:
+    adv_cache: dict[str, str] = {}
+
+    def process(data: bytes) -> None:
+        event = aiobs.HCI_Event()
+        try:
+            event.decode(data)
+        except Exception:
+            logger.exception('could not decode HCI event')
+            return
+
+        if event.raw_data is None:
+            return
+
+        peers = event.retrieve('peer')
+        if not peers:
+            return
+        mac = peers[0].val
+        if mac not in sensors:
+            return
+
+        measurement = decode_data_atc1441(adv_cache, mac, event.raw_data.hex())
+        if not measurement:
+            return
+
+        name = sensors[mac]['name']
+        BATTERY.labels(name).set(measurement.battery)
+        HUMIDITY.labels(name).set(measurement.humidity)
+        TEMPERATURE.labels(name).set(measurement.temperature)
+        VOLTAGE.labels(name).set(measurement.voltage)
+
+    return process
+
+
+async def _run(interface: int, port: int, filename: str) -> None:
+    try:
+        sensors = configparser.ConfigParser()
+        sensors.read(filename)
+    except Exception:
+        logger.exception('could not parse device list file')
+        raise
+
+    utils.toggle_device(interface, True)
+
+    try:
+        sock = aiobs.create_bt_socket(interface)
+    except Exception:
+        logger.exception('could not open bluetooth device %i', interface)
+        raise
+
+    loop = asyncio.get_running_loop()
+    transport, btctrl = await _open_scanner(loop, sock)
+    # process is a callback slot on BLEScanRequester (defaults to a no-op);
+    # override it with our advertisement handler.
+    setattr(btctrl, 'process', _build_processor(sensors))
+
+    prometheus_client.start_http_server(port)
+
+    await btctrl.send_scan_request()
+    try:
+        await asyncio.Event().wait()  # scan until cancelled
+    finally:
+        await btctrl.stop_scan_request()
+        transport.close()
 
 
 def main() -> None:
@@ -88,59 +179,8 @@ def main() -> None:
     parser.add_argument('filename', help='Specify a device list file')
     args = parser.parse_args()
 
-    try:
-        sensors = configparser.ConfigParser()
-        sensors.read(args.filename)
-    except Exception:
-        logger.exception('could not parse device list file')
-        raise
-
-    utils.toggle_device(args.interface, True)
-
-    try:
-        sock = bluez.hci_open_dev(args.interface)
-    except Exception:
-        logger.exception('could not open bluetooth device %i', args.interface)
-        raise
-
-    signal.signal(
-        signal.SIGINT, lambda _sig, _frame: utils.disable_le_scan(sock)
-    )
-    utils.enable_le_scan(sock)
-
-    prometheus_client.start_http_server(args.port)
-
-    try:
-        adv_cache: dict[str, str] = {}
-
-        def handler(mac: str, adv: int, data: bytes, rssi: int) -> None:
-            # pylint: disable=unused-argument
-            data_str = utils.raw_packet_to_str(data)
-            measurement = decode_data_atc1441(adv_cache, mac, data_str)
-            if not measurement:
-                return
-
-            name = sensors[mac]['name']
-            BATTERY.labels(name).set(measurement.battery)
-            HUMIDITY.labels(name).set(measurement.humidity)
-            TEMPERATURE.labels(name).set(measurement.temperature)
-            VOLTAGE.labels(name).set(measurement.voltage)
-
-        utils.parse_le_advertising_events(
-            sock,
-            handler,
-            filter_mac_addrs=tuple(sensors.keys()),
-            # filter_packet_length=32, was reverted when testing against
-            # multiple devices with varying adv packet lengths; some reported
-            # 32 consistently, others varied even for the same device over time
-            # TODO(perf): filter on BLE address type (ADV_NONCONN_IND) in
-            # parse_le_advertising_events instead; this bypasses the length
-            # variability issue entirely while still dropping non-ATC packets
-        )
-    except KeyboardInterrupt:
-        pass
-    finally:
-        utils.disable_le_scan(sock)
+    with contextlib.suppress(KeyboardInterrupt):
+        asyncio.run(_run(args.interface, args.port, args.filename))
 
 
 if __name__ == '__main__':
