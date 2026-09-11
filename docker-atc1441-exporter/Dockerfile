@@ -9,7 +9,7 @@ ARG PYBLUEZ_VERSION=0.23
 # TODO: update to newer python
 FROM python:3.9.22-slim AS builder
 
-COPY --from=ghcr.io/astral-sh/uv:0.12.9 /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.12.13 /uv /usr/local/bin/uv
 
 WORKDIR /app
 COPY pyproject.toml uv.lock ./

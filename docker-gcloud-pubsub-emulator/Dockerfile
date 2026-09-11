@@ -29,7 +29,7 @@ RUN --mount=type=cache,sharing=locked,target=/var/cache/apt,id=apt-cache-$TARGET
 
 FROM base AS builder
 
-COPY --from=ghcr.io/astral-sh/uv:0.12.9 /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.12.13 /uv /usr/local/bin/uv
 
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
