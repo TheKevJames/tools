@@ -8,6 +8,12 @@ resolution-markers = [
     "python_full_version < '3.10'",
 ]
 
+[manifest]
+
+[[manifest.dependency-metadata]]
+name = "pybluez"
+version = "0.23"
+
 [[package]]
 name = "astpretty"
 version = "3.0.0"
@@ -225,10 +231,6 @@ wheels = [
 name = "pybluez"
 version = "0.23"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pyobjc-core" },
-    { name = "pyobjc-framework-cocoa" },
-]
 sdist = { url = "https://files.pythonhosted.org/packages/08/9f/e9d93b266d2d1ea988780a52a696073ba0a65df65a532165fdf6ff90d0ed/PyBluez-0.23.tar.gz", hash = "sha256:c8f04d2e78951eaa9de486b4d49381704e8943d0a6e6e58f55fcd7b8582e90de", size = 97562, upload-time = "2019-12-28T01:04:09.293Z" }
 
 [[package]]
@@ -269,21 +271,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/04/9d/81c84a312d1fa8133
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1a/a7/69460c4a6af7575449e615144aa2205b89408dc2969b87bc3df2f262ad0b/pylint-3.3.9-py3-none-any.whl", hash = "sha256:01f9b0462c7730f94786c283f3e52a1fbdf0494bbe0971a78d7277ef46a751e7", size = 523465, upload-time = "2025-10-05T18:41:41.766Z" },
 ]
-
-[[package]]
-name = "pyobjc-core"
-version = "5.3"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/13/ca/a37de1773e22cd4924549afaf188e783492f0c315ce06970dd816d84eb97/pyobjc-core-5.3.tar.gz", hash = "sha256:07554c7fb02a980a2a648f567441cd0bf031a15a7afe284cda197bd4d8b443e3", size = 811139, upload-time = "2019-10-16T16:24:08.15Z" }
-
-[[package]]
-name = "pyobjc-framework-cocoa"
-version = "5.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pyobjc-core" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ff/86/acf828be23970164440c9a3591ae4ace703f707a348f544941272ace52ff/pyobjc-framework-Cocoa-5.3.tar.gz", hash = "sha256:0b2d2f4a95d2634d1545c2d5cc949cb1b1bbfd73393d3c3b483be2a18906e568", size = 3808584, upload-time = "2019-10-16T16:24:35.568Z" }
 
 [[package]]
 name = "tomli"

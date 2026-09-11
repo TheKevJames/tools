@@ -41,7 +41,11 @@ package = false
 [tool.uv.extra-build-dependencies]
 # pybluez's setup.py uses use_2to3 (removed in setuptools 58)
 pybluez = ["setuptools<58"]
-# pyobjc-core (its macOS dep) needs pkg_resources (removed in setuptools 81)
-pyobjc-core = ["setuptools<81"]
-# pyobjc-framework-cocoa (a transitive macOS dep) also needs pkg_resources
-pyobjc-framework-cocoa = ["setuptools<81"]
+
+# pybluez's sdist metadata lists pyobjc (macOS-only) as an unconditional
+# dependency, but pyobjc cannot build on Linux and is never needed there. This
+# project only installs pybluez on Linux, so drop the bogus deps entirely.
+[[tool.uv.dependency-metadata]]
+name = "pybluez"
+version = "0.23"
+requires-dist = []
