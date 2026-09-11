@@ -14,7 +14,6 @@ repos:
         language: system
         types: [python]
         require_serial: true
-        exclude: '^atc1441_exporter/_aioblescan\.py$'
         args:
           - --py-version=3.11
           - --max-line-length=79
@@ -38,7 +37,6 @@ repos:
         language: system
         types: [python]
         require_serial: true
-        exclude: '^atc1441_exporter/_aioblescan\.py$'
         args:
           - --select=FCW,I90,IMR,N400
           - --ignore=IMR200
@@ -58,7 +56,6 @@ repos:
     rev: v0.16.7
     hooks:
       - id: ruff-check
-        exclude: '^atc1441_exporter/_aioblescan\.py$'
         args:
           - --fix
           - --target-version
@@ -75,7 +72,6 @@ repos:
           - --ignore
           - D1,D203,D205,D212,D400,D401,D404,D407,D412,D413,E501,E741,TRY003,TRY301
       - id: ruff-format
-        exclude: '^atc1441_exporter/_aioblescan\.py$'
         args:
           - --config
           - line-length = 79

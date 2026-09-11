@@ -34,10 +34,6 @@ pythonpath = ["."]
 python-platform = "linux"
 python-version = "3.11"
 
-[tool.ty.src]
-# vendored third-party parser; kept as-is rather than modernised
-exclude = ["atc1441_exporter/_aioblescan.py"]
-
 [tool.ty.rules]
 dynamic-function-decorator-return = "error"
 missing-type-argument = "error"

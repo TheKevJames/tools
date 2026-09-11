@@ -1,7 +1,7 @@
 import pytest
 
-from atc1441_exporter import _aioblescan as aiobs
 from atc1441_exporter import main
+from atc1441_exporter._aioblescan import events
 
 # A real-shape ATC1441 LE advertising-report HCI event: sensor
 # A4:C1:38:D8:F8:9D reporting 23.4 C, 48 %RH, 85 % battery, 2.950 V,
@@ -14,7 +14,7 @@ ATC_EVENT = bytes.fromhex(
 
 
 def test_vendored_parser_extracts_advert_fields() -> None:
-    event = aiobs.HCI_Event()
+    event = events.HCI_Event()
     event.decode(ATC_EVENT)
 
     assert event.retrieve('peer')[0].val == 'a4:c1:38:d8:f8:9d'
@@ -24,7 +24,7 @@ def test_vendored_parser_extracts_advert_fields() -> None:
 
 
 def test_decode_data_atc1441_end_to_end() -> None:
-    event = aiobs.HCI_Event()
+    event = events.HCI_Event()
     event.decode(ATC_EVENT)
     assert event.raw_data is not None
 
@@ -38,7 +38,7 @@ def test_decode_data_atc1441_end_to_end() -> None:
 
 
 def test_decode_data_atc1441_dedupes_by_advertising_counter() -> None:
-    event = aiobs.HCI_Event()
+    event = events.HCI_Event()
     event.decode(ATC_EVENT)
     assert event.raw_data is not None
     mac = event.retrieve('peer')[0].val

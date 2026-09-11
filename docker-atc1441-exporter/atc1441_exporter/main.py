@@ -11,8 +11,9 @@ from typing import cast
 
 import prometheus_client
 
-from . import _aioblescan as aiobs
 from . import utils
+from ._aioblescan import events
+from ._aioblescan import scanner
 
 BATTERY = prometheus_client.Gauge('atc_battery', 'Battery', ['name'])
 HUMIDITY = prometheus_client.Gauge('atc_humidity', 'Humidity', ['name'])
@@ -75,18 +76,18 @@ def decode_data_atc1441(
 
 async def _open_scanner(
     loop: asyncio.AbstractEventLoop, sock: socket.socket
-) -> tuple[asyncio.BaseTransport, aiobs.BLEScanRequester]:
+) -> tuple[asyncio.BaseTransport, scanner.BLEScanRequester]:
     # asyncio's public loop.create_connection rejects the SOCK_RAW HCI
     # socket, so we use the private _create_connection_transport that
     # aioblescan relies on. Isolated here (via getattr) so a future CPython
     # change is a one-line fix.
     create_transport = getattr(loop, '_create_connection_transport')
     transport, protocol = await create_transport(
-        sock, aiobs.BLEScanRequester, None, None
+        sock, scanner.BLEScanRequester, None, None
     )
     return (
         cast('asyncio.BaseTransport', transport),
-        cast('aiobs.BLEScanRequester', protocol),
+        cast('scanner.BLEScanRequester', protocol),
     )
 
 
@@ -96,7 +97,7 @@ def _build_processor(
     adv_cache: dict[str, str] = {}
 
     def process(data: bytes) -> None:
-        event = aiobs.HCI_Event()
+        event = events.HCI_Event()
         try:
             event.decode(data)
         except Exception:
@@ -137,16 +138,14 @@ async def _run(interface: int, port: int, filename: str) -> None:
     utils.toggle_device(interface, True)
 
     try:
-        sock = aiobs.create_bt_socket(interface)
+        sock = scanner.create_bt_socket(interface)
     except Exception:
         logger.exception('could not open bluetooth device %i', interface)
         raise
 
     loop = asyncio.get_running_loop()
     transport, btctrl = await _open_scanner(loop, sock)
-    # process is a callback slot on BLEScanRequester (defaults to a no-op);
-    # override it with our advertisement handler.
-    setattr(btctrl, 'process', _build_processor(sensors))
+    btctrl.process = _build_processor(sensors)
 
     prometheus_client.start_http_server(port)
 
