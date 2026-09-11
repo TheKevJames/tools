@@ -43,3 +43,5 @@ package = false
 pybluez = ["setuptools<58"]
 # pyobjc-core (its macOS dep) needs pkg_resources (removed in setuptools 81)
 pyobjc-core = ["setuptools<81"]
+# pyobjc-framework-cocoa (a transitive macOS dep) also needs pkg_resources
+pyobjc-framework-cocoa = ["setuptools<81"]
