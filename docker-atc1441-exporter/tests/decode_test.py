@@ -1,3 +1,5 @@
+import configparser
+
 import pytest
 
 from atc1441_exporter import main
@@ -48,6 +50,24 @@ def test_decode_data_atc1441_dedupes_by_advertising_counter() -> None:
     assert main.decode_data_atc1441(cache, mac, data_str) is not None
     # same advertising counter -> deduplicated
     assert main.decode_data_atc1441(cache, mac, data_str) is None
+
+
+def test_processor_matches_uppercase_config_sections() -> None:
+    # The vendored parser emits lowercase MACs; users write uppercase section
+    # headers per the README, so the processor must match case-insensitively.
+    sensors = configparser.ConfigParser()
+    sensors['A4:C1:38:D8:F8:9D'] = {'name': 'Living Room'}
+
+    process = main._build_processor(sensors)  # pylint: disable=protected-access
+    process(ATC_EVENT)
+
+    (sample,) = [
+        s
+        for metric in main.TEMPERATURE.collect()
+        for s in metric.samples
+        if s.labels == {'name': 'Living Room'}
+    ]
+    assert sample.value == 23.4
 
 
 @pytest.mark.parametrize(

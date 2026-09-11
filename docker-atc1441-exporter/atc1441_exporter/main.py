@@ -96,6 +96,13 @@ def _build_processor(
 ) -> Callable[[bytes], None]:
     adv_cache: dict[str, str] = {}
 
+    # The vendored parser emits lowercase MACs, so normalise the configured
+    # section names to match regardless of how the user cased config.ini.
+    names_by_mac = {
+        section.lower(): sensors[section]['name']
+        for section in sensors.sections()
+    }
+
     def process(data: bytes) -> None:
         event = events.HCI_Event()
         try:
@@ -111,14 +118,15 @@ def _build_processor(
         if not peers:
             return
         mac = peers[0].val
-        if mac not in sensors:
+        name = names_by_mac.get(mac)
+        if name is None:
+            logger.debug('dropping packet for untracked device: %s', mac)
             return
 
         measurement = decode_data_atc1441(adv_cache, mac, event.raw_data.hex())
         if not measurement:
             return
 
-        name = sensors[mac]['name']
         BATTERY.labels(name).set(measurement.battery)
         HUMIDITY.labels(name).set(measurement.humidity)
         TEMPERATURE.labels(name).set(measurement.temperature)

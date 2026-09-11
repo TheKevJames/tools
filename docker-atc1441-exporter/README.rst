@@ -28,10 +28,10 @@ the last two bytes and add the relevant colons). Mine looks like:
 
 .. code-block:: ini
 
-    [A4:C1:38:D8:F8:9D]
+    [a4:c1:38:d8:f8:9d]
     name=Living Room
 
-    [A4:C1:38:BF:95:E9]
+    [a4:c1:38:bf:95:e9]
     name=Studio
 
 Once this file exists, you can run the app. The easiest thing to do is to run
