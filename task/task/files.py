@@ -1,3 +1,4 @@
+import functools
 import itertools
 import os
 import pathlib
@@ -6,10 +7,17 @@ from collections.abc import Iterable
 
 from . import schema
 
-TASK_FOLDER = pathlib.Path(os.environ['TASK_FOLDER'])
-INDEX_FILE = TASK_FOLDER / 'index.md'
-
 IDENT_FILE_RE = re.compile(r'^(\d+)\.md$')
+
+
+@functools.cache
+def task_folder() -> pathlib.Path:
+    return pathlib.Path(os.environ['TASK_FOLDER'])
+
+
+@functools.cache
+def index_file() -> pathlib.Path:
+    return task_folder() / 'index.md'
 
 
 def task_sort_key(task: schema.Task) -> str:
@@ -21,7 +29,7 @@ def task_sort_key(task: schema.Task) -> str:
 
 def _ident_files() -> list[tuple[int, pathlib.Path]]:
     result = []
-    for path in TASK_FOLDER.glob('*.md'):
+    for path in task_folder().glob('*.md'):
         match = IDENT_FILE_RE.match(path.name)
         if match:
             result.append((int(match.group(1)), path))
@@ -29,12 +37,12 @@ def _ident_files() -> list[tuple[int, pathlib.Path]]:
 
 
 def _load_index() -> list[schema.Task]:
-    if not INDEX_FILE.exists():
+    if not index_file().exists():
         return []
 
     tasks = []
     tag: list[str] = []
-    for line in INDEX_FILE.read_text(encoding='utf-8').split('\n'):
+    for line in index_file().read_text(encoding='utf-8').split('\n'):
         if line.startswith('##'):
             level = len(line.split(maxsplit=1)[0]) - 2
             tag = tag[:level]
@@ -88,7 +96,7 @@ def _check_duplicates(tasks: Iterable[schema.Task]) -> None:
 
 def _write_index(tasks: Iterable[schema.Task]) -> None:
     xs = sorted(tasks, key=task_sort_key)
-    with INDEX_FILE.open('w', encoding='utf-8') as f:
+    with index_file().open('w', encoding='utf-8') as f:
         f.write('# TODOs\n')
         lasttag: list[str] = []
         for task in xs:
@@ -105,7 +113,7 @@ def _write_index(tasks: Iterable[schema.Task]) -> None:
 
 
 def _write_ident_file(task: schema.Task) -> None:
-    path = TASK_FOLDER / f'{task.ident}.md'
+    path = task_folder() / f'{task.ident}.md'
     lines = [f'{t}\n' for t in task.tag]
     lines.extend((f'* {task.raw}\n', '\n', f'{task.description}\n'))
     path.write_text(''.join(lines), encoding='utf-8')
@@ -132,7 +140,7 @@ def save(tasks: Iterable[schema.Task]) -> None:
     _assign_idents(tasks)
     _check_duplicates(tasks)
 
-    print(f'Writing to {INDEX_FILE}')
+    print(f'Writing to {index_file()}')
     _write_index(t for t in tasks if not t.description)
 
     keep = set()

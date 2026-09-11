@@ -220,7 +220,7 @@ def unset(ident: int, fields: list[schema.ClearableField]) -> None:
 def file_edit() -> None:
     """Open the task file in $EDITOR."""
     subprocess.run(
-        [os.environ.get('EDITOR', 'vim'), files.INDEX_FILE], check=True
+        [os.environ.get('EDITOR', 'vim'), files.index_file()], check=True
     )
 
 

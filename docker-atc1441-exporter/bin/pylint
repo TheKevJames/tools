@@ -10,4 +10,8 @@ if [ "$(uname -s)" = Darwin ]; then
     extra=(--ignored-modules=bluetooth)
 fi
 
-exec uv run --frozen pylint "${extra[@]}" "$@"
+# pybluez==0.23 only builds under setuptools<58, which itself cannot run on
+# Python 3.13+. Pin the interpreter to the project's floor (3.9) so the venv
+# builds; --python overrides an inherited UV_PYTHON (set to a newer version in
+# CI).
+exec uv run --python 3.9 --frozen pylint "${extra[@]}" "$@"
