@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
+      # docker-atc1441-exporter builds pybluez from source to lint it, which
+      # needs the BlueZ headers (bluetooth/bluetooth.h).
+      - run: sudo apt-get update && sudo apt-get install -y libbluetooth-dev
       - uses: astral-sh/setup-uv@v10.1.0
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
