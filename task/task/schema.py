@@ -330,7 +330,7 @@ class ClearableField(enum.StrEnum):
 
 class Preset(enum.StrEnum):
     due = 'due'
-    soon = 'soon'
+    ready = 'ready'
     highpri = 'highpri'
     triage = 'triage'
     all = 'all'
@@ -346,7 +346,7 @@ class PresetConfig:
 
 PRESETS = {
     Preset.due: PresetConfig(0, '', SortOrder.due, True),
-    Preset.soon: PresetConfig(3, '', SortOrder.due, True),
+    Preset.ready: PresetConfig(0, '', SortOrder.due, False),
     Preset.highpri: PresetConfig(-1, 'tag=highpri', SortOrder.due, False),
     Preset.triage: PresetConfig(-1, 'tag=triage', SortOrder.ident, False),
     Preset.all: PresetConfig(-1, '', SortOrder.ident, False),
