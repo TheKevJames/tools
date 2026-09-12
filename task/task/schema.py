@@ -346,8 +346,8 @@ class PresetConfig:
 
 PRESETS = {
     Preset.due: PresetConfig(0, '', SortOrder.due, True),
-    Preset.ready: PresetConfig(0, '', SortOrder.due, False),
+    Preset.ready: PresetConfig(0, '', SortOrder.tag, False),
     Preset.highpri: PresetConfig(-1, 'tag=highpri', SortOrder.due, False),
-    Preset.triage: PresetConfig(-1, 'tag=triage', SortOrder.ident, False),
-    Preset.all: PresetConfig(-1, '', SortOrder.ident, False),
+    Preset.triage: PresetConfig(-1, 'tag=triage', SortOrder.tag, False),
+    Preset.all: PresetConfig(-1, '', SortOrder.tag, False),
 }
