@@ -78,7 +78,7 @@ repos:
           - --config
           - lint.isort.split-on-trailing-comma = false
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.17
+    rev: 0.12.18
     hooks:
       - id: uv-audit
       - id: uv-lock
