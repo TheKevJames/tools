@@ -70,7 +70,7 @@ repos:
           - -d wrong-import-order  # conflicts with ruff isort
         exclude: '(^docker-atc1441-exporter/.*)|(^docker-gcloud-pubsub-emulator/.*)|(^task/.*)'
   - repo: https://github.com/PyCQA/flake8
-    rev: 7.3.0
+    rev: 7.4.1
     hooks:
       - id: flake8
         language: python
