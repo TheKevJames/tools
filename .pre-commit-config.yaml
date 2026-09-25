@@ -49,7 +49,7 @@ repos:
       - id: check-docstring-first
       - id: name-tests-test
   - repo: https://github.com/PyCQA/pylint
-    rev: v4.0.8
+    rev: v4.0.9
     hooks:
       - id: pylint
         args:
