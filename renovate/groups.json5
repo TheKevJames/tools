@@ -8,6 +8,73 @@
             ],
         },
         {
+            "groupName": "elasticsearch",
+            "matchDepPatterns": [
+                "^docker.elastic.co/kibana/kibana",
+                "^elasticsearch",
+                "^org.elasticsearch.client",
+            ],
+        },
+        {
+            "groupName": "gcsfs",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^fsspec$",
+                "^gcsfs$",
+            ],
+        },
+        {
+            "groupName": "google",
+            "matchDatasources": ["terraform-module", "terraform-provider"],
+            "matchDepPatterns": [
+                "^google$",
+                "^google-beta$",
+            ],
+        },
+        {
+            "groupName": "grpcio",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^grpcio",
+            ],
+        },
+        {
+            "groupName": "kubernetes",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^kubernetes$",
+                "^kubernetes-asyncio$",
+            ],
+        },
+        {
+            "groupName": "mkl",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^intel-openmp$",
+                "^mkl$",
+            ],
+        },
+        {
+            "groupName": "n8n",
+            "matchDepPatterns": [
+                "^docker.io/n8nio/runners$",
+                "^docker.n8n.io/n8nio/n8n$",
+            ],
+        },
+        {
+            // Merge builtin `opentelemetry-python` and
+            // `opentelemetry-python-contrib` groups, since they have exact
+            // version pins on each other.
+            // If/when they start doing wider ranges, delete this group.
+            "groupName": "opentelemetry",
+            "matchDatasources": ["pypi"],
+            "matchDepPatterns": [
+                "^opentelemetry-",
+                "^opentelemetry$",
+            ],
+            "ignoreUnstable": false,
+        },
+        {
             "groupName": "org.apache.beam",
             "matchManagers": ["gradle", "maven"],
             "matchDepPatterns": [
@@ -38,50 +105,6 @@
             ],
         },
         {
-            "groupName": "gcsfs",
-            "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^fsspec$",
-                "^gcsfs$",
-            ],
-        },
-        {
-            "groupName": "grpcio",
-            "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^grpcio",
-            ],
-        },
-        {
-            "groupName": "kubernetes",
-            "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^kubernetes$",
-                "^kubernetes-asyncio$",
-            ],
-        },
-        {
-            "groupName": "mkl",
-            "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^intel-openmp$",
-                "^mkl$",
-            ],
-        },
-        {
-            // Merge builtin `opentelemetry-python` and
-            // `opentelemetry-python-contrib` groups, since they have exact
-            // version pins on each other.
-            // If/when they start doing wider ranges, delete this group.
-            "groupName": "opentelemetry",
-            "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^opentelemetry-",
-                "^opentelemetry$",
-            ],
-            "ignoreUnstable": false,
-        },
-        {
             "groupName": "pandas",
             "matchDatasources": ["pypi"],
             "matchDepPatterns": [
@@ -95,6 +118,21 @@
             "matchDepPatterns": [
                 "^pydantic$",
                 "^pydantic-core$",
+            ],
+        },
+        {
+            "groupName": "pylint",
+            "matchDepPatterns": [
+                "^pycqa/pylint$",
+                "^pylint$",
+            ],
+        },
+        {
+            "groupName": "python",
+            "matchDepPatterns": [
+                "^cimg/python$",
+                "^python$",
+                "^python/cpython$",
             ],
         },
         {
@@ -119,37 +157,6 @@
             "matchDatasources": ["pypi"],
             "matchDepPatterns": [
                 "^tensorrt-cu12.*$",
-            ],
-        },
-        {
-            "groupName": "google",
-            "matchDatasources": ["terraform-module", "terraform-provider"],
-            "matchDepPatterns": [
-                "^google$",
-                "^google-beta$",
-            ],
-        },
-        {
-            "groupName": "elasticsearch",
-            "matchDepPatterns": [
-                "^docker.elastic.co/kibana/kibana",
-                "^elasticsearch",
-                "^org.elasticsearch.client",
-            ],
-        },
-        {
-            "groupName": "n8n",
-            "matchDepPatterns": [
-                "^docker.io/n8nio/runners$",
-                "^docker.n8n.io/n8nio/n8n$",
-            ],
-        },
-        {
-            "groupName": "python",
-            "matchDepPatterns": [
-                "^cimg/python$",
-                "^python$",
-                "^python/cpython$",
             ],
         },
         {
