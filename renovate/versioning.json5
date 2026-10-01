@@ -7,6 +7,7 @@
                 "^ghcr.io/hotio/qbittorrent$",
                 "^ghcr.io/hotio/unpackerr$",
             ],
+            // eg. release-1.2.3
             "versioning": "regex:^(?<compatibility>\\w+)-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
         },
         {
@@ -15,6 +16,7 @@
                 "^lscr.io/linuxserver/jellyfin$",
                 "^lscr.io/linuxserver/prowlarr$",
             ],
+            // eg. 10.11.11ubu2404
             "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d{,3})$",
         },
         {
@@ -23,16 +25,19 @@
                 "^ghcr.io/ggerganov/llama.cpp$",
                 "^ghcr.io/ggml-org/llama.cpp$",
             ],
+            // eg. server-b11277
             "versioning": "regex:^(?<compatibility>[a-zA-Z\-]+)-(?<major>.*)$",
         },
         {
             "matchDatasources": ["docker"],
             "matchDepPatterns": ["^gke.gcr.io/prometheus-engine/frontend$"],
+            // eg. v0.19.2-gke.2
             "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<compatibility>.*)\\.(?<build>\\d+)$",
         },
         {
             "matchDatasources": ["docker"],
             "matchDepPatterns": ["^python$"],
+            // eg. 3.10.21-0rc2-slim-trixie
             "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$",
         },
         {
@@ -40,13 +45,16 @@
             "matchDepPatterns": [
                 "^AleksaC/hadolint-py$",
             ],
-            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?(?<prerelease>\\w+)?$",
+            // eg. v2.12.0.3, v2.12.1-beta, and v2.12.1b3
+            "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?(?<prerelease>\\w+)?$",
         },
         {
             "matchDatasources": ["github-tags"],
             "matchDepPatterns": [
                 "^shellcheck-py/shellcheck-py$",
             ],
+            // eg. v0.11.0.1
+            // TODO: v0.11.0.1-1
             "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?$",
         },
     ],
