@@ -29,7 +29,4 @@ jobs:
           - tuning-primer
     with:
       image: ${{ matrix.image }}
-      # Live except a manual dispatch that opts into a dry run. This `A && B`
-      # form yields false on a schedule and inputs.dry-run on a dispatch; the
-      # `A && B || C` ternary is avoided as it collapses when B is `false`.
       dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run }}
