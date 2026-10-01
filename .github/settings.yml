@@ -74,7 +74,15 @@ branches:
         strict: true
         contexts:
           - dependency-review
+          - docker-atc1441 / build
+          - docker-caddy-security / build
+          - docker-fava / build
+          - docker-gcloud-pubsub-emulator / build
+          - docker-mysqltuner / build
+          - docker-tuning-primer / build
           - lint
+          - test-atc1441
+          - test-gha
           - wip
       enforce_admins: true
       required_linear_history: true
