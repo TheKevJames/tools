@@ -59,7 +59,7 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
-          version: 0.12.20
+          version: 0.12.21
       - working-directory: gha
         env:
           REGISTRY: ${{ matrix.registry }}
