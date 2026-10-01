@@ -69,6 +69,22 @@
             // TODO: v0.11.0.1-1
             "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?$",
         },
+        {
+            "matchDepPatterns": [
+                "^docker.io/pihole/pihole$",
+                "^henryiii/validate-pyproject-schema-store$",
+            ],
+            // N.B. zero-padded CalVer tags (e.g. 2026.09.08) are invalid under
+            // the default semver versioning, which makes Renovate unable to
+            // match the pinned tag. Use a leading-zero-tolerant regex
+            // versioning instead.
+            "versioning": "regex:^(?<major>\\d{4})\\.(?<minor>\\d{1,2})\\.(?<patch>\\d+)$",
+        },
+        {
+            "matchDepPatterns": ["^openai-whisper$"],
+            // eg. 20240930 (YYYYMMDD, no separators)
+            "versioning": "regex:^(?<major>\\d{4})(?<minor>\\d{2})(?<patch>\\d{2})$",
+        },
     ],
     "customManagers": [
         {
