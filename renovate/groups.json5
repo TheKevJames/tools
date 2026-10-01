@@ -3,62 +3,62 @@
         {
             "groupName": "com.google.auto.value",
             "matchManagers": ["gradle", "maven"],
-            "matchDepPatterns": [
-                "^com.google.auto.value.*$",
+            "matchDepNames": [
+                "/^com\\.google\\.auto\\.value.*$/",
             ],
         },
         {
             "groupName": "elasticsearch",
-            "matchDepPatterns": [
-                "^docker.elastic.co/kibana/kibana",
-                "^elasticsearch",
-                "^org.elasticsearch.client",
+            "matchDepNames": [
+                "/^docker\\.elastic\\.co/kibana/kibana/",
+                "/^elasticsearch/",
+                "/^org\\.elasticsearch\\.client/",
             ],
         },
         {
             "groupName": "gcsfs",
             "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^fsspec$",
-                "^gcsfs$",
+            "matchDepNames": [
+                "/^fsspec$/",
+                "/^gcsfs$/",
             ],
         },
         {
             "groupName": "google",
             "matchDatasources": ["terraform-module", "terraform-provider"],
-            "matchDepPatterns": [
-                "^google$",
-                "^google-beta$",
+            "matchDepNames": [
+                "/^google$/",
+                "/^google-beta$/",
             ],
         },
         {
             "groupName": "grpcio",
             "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^grpcio",
+            "matchDepNames": [
+                "/^grpcio/",
             ],
         },
         {
             "groupName": "kubernetes",
             "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^kubernetes$",
-                "^kubernetes-asyncio$",
+            "matchDepNames": [
+                "/^kubernetes$/",
+                "/^kubernetes-asyncio$/",
             ],
         },
         {
             "groupName": "mkl",
             "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^intel-openmp$",
-                "^mkl$",
+            "matchDepNames": [
+                "/^intel-openmp$/",
+                "/^mkl$/",
             ],
         },
         {
             "groupName": "n8n",
-            "matchDepPatterns": [
-                "^docker.io/n8nio/runners$",
-                "^docker.n8n.io/n8nio/n8n$",
+            "matchDepNames": [
+                "/^docker\\.io/n8nio/runners$/",
+                "/^docker\\.n8n\\.io/n8nio/n8n$/",
             ],
         },
         {
@@ -68,110 +68,110 @@
             // If/when they start doing wider ranges, delete this group.
             "groupName": "opentelemetry",
             "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^opentelemetry-",
-                "^opentelemetry$",
+            "matchDepNames": [
+                "/^opentelemetry-/",
+                "/^opentelemetry$/",
             ],
             "ignoreUnstable": false,
         },
         {
             "groupName": "org.apache.beam",
             "matchManagers": ["gradle", "maven"],
-            "matchDepPatterns": [
-                "^org.apache.beam.*$",
-                "^apache-beam$",
-                "^beam_python..._sdk$",
+            "matchDepNames": [
+                "/^org\\.apache\\.beam.*$/",
+                "/^apache-beam$/",
+                "/^beam_python..._sdk$/",
             ],
         },
         {
             "groupName": "org.apache.hadoop",
             "matchManagers": ["gradle", "maven"],
-            "matchDepPatterns": [
-                "^org.apache.hadoop.*$",
+            "matchDepNames": [
+                "/^org\\.apache\\.hadoop.*$/",
             ],
         },
         {
             "groupName": "org.jetbrains.kotlin",
             "matchManagers": ["gradle", "maven"],
-            "matchDepPatterns": [
-                "^org.jetbrains.kotlin.*$",
+            "matchDepNames": [
+                "/^org\\.jetbrains\\.kotlin.*$/",
             ],
         },
         {
             "groupName": "org.junit.jupiter",
             "matchManagers": ["gradle", "maven"],
-            "matchDepPatterns": [
-                "^org.junit.jupiter:.*$",
+            "matchDepNames": [
+                "/^org\\.junit\\.jupiter:.*$/",
             ],
         },
         {
             "groupName": "pandas",
             "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "pandas",
-                "pandas-stubs",
+            "matchDepNames": [
+                "/pandas/",
+                "/pandas-stubs/",
             ],
         },
         {
             "groupName": "pydantic",
             "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^pydantic$",
-                "^pydantic-core$",
+            "matchDepNames": [
+                "/^pydantic$/",
+                "/^pydantic-core$/",
             ],
         },
         {
             "groupName": "pylint",
-            "matchDepPatterns": [
-                "^pycqa/pylint$",
-                "^pylint$",
+            "matchDepNames": [
+                "/^pycqa/pylint$/",
+                "/^pylint$/",
             ],
         },
         {
             "groupName": "python",
-            "matchDepPatterns": [
-                "^cimg/python$",
-                "^python$",
-                "^python/cpython$",
+            "matchDepNames": [
+                "/^cimg/python$/",
+                "/^python$/",
+                "/^python/cpython$/",
             ],
         },
         {
             "groupName": "pytorch",
             "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^torch$",
-                "^torchaudio$",
-                "^torchvision$",
+            "matchDepNames": [
+                "/^torch$/",
+                "/^torchaudio$/",
+                "/^torchvision$/",
             ],
         },
         {
             "groupName": "sanic",
             "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^sanic$",
-                "^sanic-testing$",
+            "matchDepNames": [
+                "/^sanic$/",
+                "/^sanic-testing$/",
             ],
         },
         {
             "groupName": "tensorrt-cu12",
             "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^tensorrt-cu12.*$",
+            "matchDepNames": [
+                "/^tensorrt-cu12.*$/",
             ],
         },
         {
             "groupName": "terraform",
-            "matchDepPatterns": [
-                "^hashicorp/terraform$",
-                "^terraform$",
+            "matchDepNames": [
+                "/^hashicorp/terraform$/",
+                "/^terraform$/",
             ],
         },
         {
             "groupName": "uv",
-            "matchDepPatterns": [
-                "^astral-sh/uv$",
-                "^astral-sh/uv-pre-commit$",
-                "^ghcr.io/astral-sh/uv$",
+            "matchDepNames": [
+                "/^astral-sh/uv$/",
+                "/^astral-sh/uv-pre-commit$/",
+                "/^ghcr\\.io/astral-sh/uv$/",
             ],
         },
     ],

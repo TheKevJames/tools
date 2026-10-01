@@ -3,47 +3,47 @@
         // N.B. see https://docs.renovatebot.com/modules/versioning/regex/
         {
             "matchDatasources": ["docker"],
-            "matchDepPatterns": [
-                "^ghcr.io/hotio/qbittorrent$",
-                "^ghcr.io/hotio/unpackerr$",
+            "matchDepNames": [
+                "/^ghcr\\.io/hotio/qbittorrent$/",
+                "/^ghcr\\.io/hotio/unpackerr$/",
             ],
             // eg. release-1.2.3
             "versioning": "regex:^(?<compatibility>\\w+)-(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
         },
         {
             "matchDatasources": ["docker"],
-            "matchDepPatterns": [
-                "^lscr.io/linuxserver/jellyfin$",
-                "^lscr.io/linuxserver/prowlarr$",
+            "matchDepNames": [
+                "/^lscr\\.io/linuxserver/jellyfin$/",
+                "/^lscr\\.io/linuxserver/prowlarr$/",
             ],
             // eg. 10.11.11ubu2404
             "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d{,3})$",
         },
         {
             "matchDatasources": ["docker"],
-            "matchDepPatterns": [
-                "^ghcr.io/ggerganov/llama.cpp$",
-                "^ghcr.io/ggml-org/llama.cpp$",
+            "matchDepNames": [
+                "/^ghcr\\.io/ggerganov/llama\\.cpp$/",
+                "/^ghcr\\.io/ggml-org/llama\\.cpp$/",
             ],
             // eg. server-b11277
             "versioning": "regex:^(?<compatibility>[a-zA-Z\-]+)-(?<major>.*)$",
         },
         {
             "matchDatasources": ["docker"],
-            "matchDepPatterns": ["^gke.gcr.io/prometheus-engine/frontend$"],
+            "matchDepNames": ["/^gke\\.gcr\\.io/prometheus-engine/frontend$/"],
             // eg. v0.19.2-gke.2
             "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<compatibility>.*)\\.(?<build>\\d+)$",
         },
         {
             "matchDatasources": ["docker"],
-            "matchDepPatterns": ["^python$"],
+            "matchDepNames": ["/^python$/"],
             // eg. 3.10.21-0rc2-slim-trixie
             "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$",
         },
         {
             "matchDatasources": ["docker"],
-            "matchPackageNames": [
-                "/^quay.io/thekevjames/caddy-security$/",
+            "matchDepNames": [
+                "/^quay\\.io/thekevjames/caddy-security$/",
             ],
             // eg. 1.2.3-1.4.5
             // N.B. $caddy_version-$caddy-security_version isn't very well
@@ -54,25 +54,25 @@
         },
         {
             "matchDatasources": ["github-tags"],
-            "matchDepPatterns": [
-                "^AleksaC/hadolint-py$",
+            "matchDepNames": [
+                "/^AleksaC/hadolint-py$/",
             ],
             // eg. v2.12.0.3, v2.12.1-beta, and v2.12.1b3
             "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?(?<prerelease>\\w+)?$",
         },
         {
             "matchDatasources": ["github-tags"],
-            "matchDepPatterns": [
-                "^shellcheck-py/shellcheck-py$",
+            "matchDepNames": [
+                "/^shellcheck-py/shellcheck-py$/",
             ],
             // eg. v0.11.0.1
             // TODO: v0.11.0.1-1
             "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?$",
         },
         {
-            "matchDepPatterns": [
-                "^docker.io/pihole/pihole$",
-                "^henryiii/validate-pyproject-schema-store$",
+            "matchDepNames": [
+                "/^docker\\.io/pihole/pihole$/",
+                "/^henryiii/validate-pyproject-schema-store$/",
             ],
             // N.B. zero-padded CalVer tags (e.g. 2026.09.08) are invalid under
             // the default semver versioning, which makes Renovate unable to
@@ -81,7 +81,7 @@
             "versioning": "regex:^(?<major>\\d{4})\\.(?<minor>\\d{1,2})\\.(?<patch>\\d+)$",
         },
         {
-            "matchDepPatterns": ["^openai-whisper$"],
+            "matchDepNames": ["/^openai-whisper$/"],
             // eg. 20240930 (YYYYMMDD, no separators)
             "versioning": "regex:^(?<major>\\d{4})(?<minor>\\d{2})(?<patch>\\d{2})$",
         },
@@ -92,8 +92,8 @@
             "datasourceTemplate": "github-tags",
             "depNameTemplate": "python/cpython",
             "extractVersionTemplate": "^v(?<version>\\d+\\.\\d+)(\\.\\d+)?$",
-            "fileMatch": [
-                "(^|/)\\.pre-commit-config\\.yaml$",
+            "managerFilePatterns": [
+                "/(^|/)\\.pre-commit-config\\.yaml$/",
             ],
             "customType": "regex",
             "matchStrings": [

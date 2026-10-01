@@ -4,7 +4,7 @@
         // versions
         {
             "matchFileNames": ["{{arg0}}"],
-            "matchDepPatterns": ["^.*$"],
+            "matchDepNames": ["/^.*$/"],
             "rangeStrategy": "pin",
         },
         // widen our own package's dependencies
@@ -31,7 +31,7 @@
         // always widen supported python versions
         {
             "matchFileNames": ["{{arg0}}"],
-            "matchDepPatterns": ["^python$"],
+            "matchDepNames": ["/^python$/"],
             "rangeStrategy": "widen",
         },
         // and any build system compatibility

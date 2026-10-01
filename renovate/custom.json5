@@ -14,9 +14,9 @@
         //        RUN /bin/pip install --upgrade "pip==${PIP_VERSION}"
         {
             "description": "Update _VERSION variables in Dockerfiles",
-            "fileMatch": [
-                "(^|/|\\.)Dockerfile$",
-                "(^|/)Dockerfile\\.[^/]*$",
+            "managerFilePatterns": [
+                "/(^|/|\\.)Dockerfile$/",
+                "/(^|/)Dockerfile\\.[^/]*$/",
             ],
             "customType": "regex",
             "matchStrings": [
@@ -34,8 +34,8 @@
         //        image = "grafana/agent:v0.44.2" # renovate
         {
             "description": "Update docker images in terraform files",
-            "fileMatch": [
-                "(^|/)*\\.tf$",
+            "managerFilePatterns": [
+                "/(^|/)[^/]*\\.tf$/",
             ],
             "customType": "regex",
             "matchStrings": [
@@ -52,9 +52,9 @@
         //        # renovate: datasource=pypi depName=coveralls
         {
             "description": "Update dependencies in CI job parameters",
-            "fileMatch": [
-                "^.circleci/config.yml$",
-                "^.github/workflows/*.yml$",
+            "managerFilePatterns": [
+                "/^\\.circleci/config\\.yml$/",
+                "/^\\.github/workflows/[^/]*\\.yml$/",
             ],
             "customType": "regex",
             "matchStrings": [
@@ -65,9 +65,9 @@
         // See https://github.com/renovatebot/renovate/discussions/10452
         {
             "description": "Update _VERSION configs for alpine packages when OS version changes",
-            "fileMatch": [
-                "(^|/|\\.)Dockerfile$",
-                "(^|/)Dockerfile\\.[^/]*$",
+            "managerFilePatterns": [
+                "/(^|/|\\.)Dockerfile$/",
+                "/(^|/)Dockerfile\\.[^/]*$/",
             ],
             "customType": "regex",
             "matchStrings": [

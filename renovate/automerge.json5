@@ -56,11 +56,11 @@
         // Automerge majors of gcloud CLI
         {
             "matchDatasources": ["docker"],
-            "matchPackagePatterns": [
-                "^gcr.io/google.com/cloudsdktool/google-cloud-cli$",
-                "^google/cloud-sdk$",
-                "^quay.io/thekevjames/gcloud-pubsub-emulator$",
-                "^thekevjames/gcloud-pubsub-emulator$",
+            "matchDepNames": [
+                "/^gcr\\.io/google\\.com/cloudsdktool/google-cloud-cli$/",
+                "/^google/cloud-sdk$/",
+                "/^quay\\.io/thekevjames/gcloud-pubsub-emulator$/",
+                "/^thekevjames/gcloud-pubsub-emulator$/",
             ],
             "matchUpdateTypes": ["major", "minor", "patch"],
             "automerge": true,

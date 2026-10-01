@@ -6,7 +6,7 @@
         // by default, pin everything in the repo, eg. such as CI base image
         // versions
         {
-            "matchDepPatterns": ["^.*$"],
+            "matchDepNames": ["/^.*$/"],
             "rangeStrategy": "pin",
         },
         // widen our own package's dependencies
@@ -30,7 +30,7 @@
         },
         // always widen supported python versions
         {
-            "matchDepPatterns": ["^python$"],
+            "matchDepNames": ["/^python$/"],
             "rangeStrategy": "widen",
         },
         // and any build system compatibility

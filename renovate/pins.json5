@@ -7,8 +7,8 @@
         // https://github.com/chardet/chardet/issues/331
         {
             "matchDatasources": ["pypi"],
-            "matchDepPatterns": [
-                "^chardet$",
+            "matchDepNames": [
+                "/^chardet$/",
             ],
             "allowedVersions": "<6.0.0",
         },
