@@ -43,6 +43,7 @@ jobs:
       tag-cmd: awk -F'= ' '/^version =/ {print substr($2, 2, length($2)-2)}' pyproject.toml
 
   docker:
+    name: docker-${{ matrix.image }}
     needs: [lint]
     uses: ./.github/workflows/_docker-image.yml
     secrets: inherit
