@@ -37,7 +37,17 @@ repos:
           - --select=FCW,I90,IMR,N400
           - --ignore=IMR200
           - --per-file-ignores=tests/*:I900
-          - --imr241_exclude=collections.abc,typing
+          - --imr241_exclude=__future__,collections.abc,typing
+      - id: disallow-untyped-imports
+        name: disallow-untyped-imports
+        entry: bash -c
+        language: system
+        pass_filenames: false
+        require_serial: true
+        types: [python]
+        # Allowlist packages below which are known to have no third-party typestubs.
+        args:
+          - uvx mypy . --python-executable .venv/bin/python --follow-imports=skip --no-error-summary --no-color-output 2>&1 | grep -E '\[import-untyped\]' | grep -vE '"(some_legacy_pkg)"' | { ! grep .; }
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.16.9
     hooks:
@@ -68,7 +78,7 @@ repos:
           - --config
           - lint.isort.split-on-trailing-comma = false
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.20
+    rev: 0.12.21
     hooks:
       - id: uv-audit
       - id: uv-lock

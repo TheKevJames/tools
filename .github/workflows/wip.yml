@@ -2,7 +2,7 @@ name: wip
 
 on:
   pull_request:
-    types: [opened, edited, reopened]
+    types: [opened, edited, reopened, synchronize]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -12,7 +12,7 @@ permissions: {}
 
 jobs:
   wip:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - env:
           PR_TITLE: ${{ github.event.pull_request.title }}

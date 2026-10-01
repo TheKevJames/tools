@@ -31,5 +31,11 @@ pythonpath = ["."]
 python-platform = "linux"
 python-version = "3.11"
 
+[tool.ty.rules]
+dynamic-function-decorator-return = "error"
+missing-type-argument = "error"
+possibly-unresolved-reference = "warn"
+unsound-return-statement = "error"
+
 [tool.uv]
 package = false
