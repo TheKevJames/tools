@@ -7,7 +7,7 @@ on:
     inputs:
       dry-run:
         description: log the would-delete tags without deleting them
-        default: true
+        default: false
         type: boolean
 
 permissions:
@@ -29,6 +29,7 @@ jobs:
           - tuning-primer
     with:
       image: ${{ matrix.image }}
-      # Always a dry run except a manual dispatch that explicitly opts out. The
-      # `A && B || C` idiom is avoided here: it collapses when B is `false`.
-      dry-run: ${{ github.event_name != 'workflow_dispatch' || inputs.dry-run }}
+      # Live except a manual dispatch that opts into a dry run. This `A && B`
+      # form yields false on a schedule and inputs.dry-run on a dispatch; the
+      # `A && B || C` ternary is avoided as it collapses when B is `false`.
+      dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run }}

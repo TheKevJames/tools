@@ -31,7 +31,7 @@ on:
         type: string
       dry-run:
         description: log the would-delete tags without deleting them
-        default: true
+        default: false
         type: boolean
     secrets:
       DOCKER_USER:
