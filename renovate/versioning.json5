@@ -41,6 +41,18 @@
             "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?<prerelease>[^.-]+)?(-(?<compatibility>.*))?$",
         },
         {
+            "matchDatasources": ["docker"],
+            "matchPackageNames": [
+                "/^quay.io/thekevjames/caddy-security$/",
+            ],
+            // eg. 1.2.3-1.4.5
+            // N.B. $caddy_version-$caddy-security_version isn't very well
+            // supported in Renovate, so we treat the caddy-security major
+            // version as a hard pin requiring manual updates. Everything else
+            // should behave reasonably.
+            "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<compatibility>\\d+)\\.(?<build>\\d+)\\.(?<revision>\\d+)$",
+        },
+        {
             "matchDatasources": ["github-tags"],
             "matchDepPatterns": [
                 "^AleksaC/hadolint-py$",
