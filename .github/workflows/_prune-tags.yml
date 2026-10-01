@@ -1,0 +1,81 @@
+name: _prune-tags
+
+# Reusable workflow: prune commit-hash image tags older than a window from
+# docker.io and quay.io. Published for cross-repo consumption, eg.
+#   uses: TheKevJames/tools/.github/workflows/_prune-tags.yml@master
+# The leading underscore marks this as a reusable building block; see
+# README.rst.
+#
+# The prune policy lives in gha/gha_tools/prune_tags, so each job checks out
+# THIS repo (a reusable workflow's default checkout is the *caller's* repo, not
+# the repo the workflow is defined in) to run the tested script. It tracks
+# master, consistent with callers pinning this workflow @master.
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: image name; prunes thekevjames/<image> (+ quay mirror)
+        required: true
+        type: string
+      max-age-days:
+        default: 7
+        type: number
+      delete-patterns:
+        description: space-separated regexes; empty uses the built-in defaults
+        default: ''
+        type: string
+      protect-patterns:
+        description: space-separated regexes; empty uses the built-in defaults
+        default: ''
+        type: string
+      dry-run:
+        description: log the would-delete tags without deleting them
+        default: true
+        type: boolean
+    secrets:
+      DOCKER_USER:
+        required: false
+      DOCKER_PASS:
+        required: false
+      QUAY_APIKEY:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        registry: [dockerhub, quay]
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: TheKevJames/tools
+          ref: master
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          # renovate: datasource=github-releases depName=astral-sh/uv
+          version: 0.12.20
+      - working-directory: gha
+        env:
+          REGISTRY: ${{ matrix.registry }}
+          IMAGE: ${{ inputs.image }}
+          MAX_AGE: ${{ inputs.max-age-days }}
+          DELETE_PATTERNS: ${{ inputs.delete-patterns }}
+          PROTECT_PATTERNS: ${{ inputs.protect-patterns }}
+          DRY_RUN: ${{ inputs.dry-run }}
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+          QUAY_APIKEY: ${{ secrets.QUAY_APIKEY }}
+        run: |
+          args=(--registry "${REGISTRY}"
+                --repository "thekevjames/${IMAGE}"
+                --max-age-days "${MAX_AGE}")
+          for p in ${DELETE_PATTERNS}; do args+=(--delete-pattern "$p"); done
+          for p in ${PROTECT_PATTERNS}; do args+=(--protect-pattern "$p"); done
+          if [ "${DRY_RUN}" != "true" ]; then args+=(--execute); fi
+          uv run --frozen python -m gha_tools.prune_tags "${args[@]}"

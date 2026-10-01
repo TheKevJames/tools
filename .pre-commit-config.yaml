@@ -68,7 +68,7 @@ repos:
           - -d try-except-raise
           - -d ungrouped-imports  # conflicts with ruff isort
           - -d wrong-import-order  # conflicts with ruff isort
-        exclude: '(^docker-atc1441-exporter/.*)|(^docker-gcloud-pubsub-emulator/.*)|(^task/.*)'
+        exclude: '(^docker-atc1441-exporter/.*)|(^docker-gcloud-pubsub-emulator/.*)|(^gha/.*)|(^task/.*)'
   - repo: https://github.com/PyCQA/flake8
     rev: 7.4.1
     hooks:
@@ -92,7 +92,7 @@ repos:
           - --select=FCW,I90,IMR,N400
           - --ignore=IMR200
           - --imr241_exclude=collections.abc,typing
-        exclude: '(^docker-atc1441-exporter/.*)|(^docker-gcloud-pubsub-emulator/.*)|(^task/.*)'
+        exclude: '(^docker-atc1441-exporter/.*)|(^docker-gcloud-pubsub-emulator/.*)|(^gha/.*)|(^task/.*)'
   # TODO: use ruff once more refurb rules are out of preview
   - repo: https://github.com/dosisod/refurb
     rev: v2.3.1
@@ -130,7 +130,7 @@ repos:
           # TRY301: Abstract raise to an inner function.
           - --ignore
           - D1,D203,D205,D212,D400,D401,D404,D407,D412,D413,E501,E741,TRY003,TRY301
-        exclude: '(^docker-atc1441-exporter/.*)|(^docker-gcloud-pubsub-emulator/.*)|(^task/.*)'
+        exclude: '(^docker-atc1441-exporter/.*)|(^docker-gcloud-pubsub-emulator/.*)|(^gha/.*)|(^task/.*)'
       - id: ruff-format
         args:
           - --config
@@ -142,7 +142,7 @@ repos:
           # Silence the isort/formatter magic-comma incompatibility warning.
           - --config
           - lint.isort.split-on-trailing-comma = false
-        exclude: '(^docker-atc1441-exporter/.*)|(^docker-gcloud-pubsub-emulator/.*)|(^task/.*)'
+        exclude: '(^docker-atc1441-exporter/.*)|(^docker-gcloud-pubsub-emulator/.*)|(^gha/.*)|(^task/.*)'
   - repo: https://github.com/henryiii/validate-pyproject-schema-store
     rev: 2026.09.11
     hooks:

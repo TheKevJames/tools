@@ -32,6 +32,18 @@ jobs:
       - run: uv run --frozen pytest
         working-directory: docker-atc1441-exporter
 
+  test-gha:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          # renovate: datasource=github-releases depName=astral-sh/uv
+          version: 0.12.20
+      - run: uv run --frozen pytest
+        working-directory: gha
+
   docker-atc1441:
     needs: [lint, test-atc1441]
     uses: ./.github/workflows/_docker-image.yml

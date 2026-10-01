@@ -1,0 +1,35 @@
+[project]
+name = "gha-tools"
+version = "0.1.0"
+description = "Shared helpers backing TheKevJames/tools reusable GitHub workflows"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+authors = [{ name = "Kevin James", email = "KevinJames@thekev.in" }]
+
+dependencies = []
+
+[project.urls]
+repository = "https://github.com/TheKevJames/tools"
+
+[dependency-groups]
+dev = [
+    "flake8-broken-line==1.0.0",
+    "flake8-complicated-walrus==2.1.0",
+    "flake8-import-restrictions==2.1",
+    "flake8-requirements==2.3.0",
+    "flake8==7.4.1",
+    "hypothesis==6.122.3",
+    "pylint==4.0.10",
+    "pytest==9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[tool.ty.environment]
+python-platform = "linux"
+python-version = "3.11"
+
+[tool.uv]
+package = false
