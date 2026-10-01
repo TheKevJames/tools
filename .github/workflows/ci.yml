@@ -20,7 +20,7 @@ jobs:
           prek-version: v0.5.4
           extra-args: --all-files
 
-  test:
+  test-atc1441:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     steps:
@@ -31,3 +31,76 @@ jobs:
           version: 0.12.20
       - run: uv run --frozen pytest
         working-directory: docker-atc1441-exporter
+
+  docker-atc1441:
+    needs: [lint, test-atc1441]
+    uses: ./.github/workflows/_docker-image.yml
+    secrets: inherit
+    with:
+      image: atc1441-exporter
+      context: docker-atc1441-exporter
+      platforms: linux/amd64,linux/arm64
+      tag-cmd: awk -F'= ' '/^version =/ {print substr($2, 2, length($2)-2)}' pyproject.toml
+
+  docker:
+    needs: [lint]
+    uses: ./.github/workflows/_docker-image.yml
+    secrets: inherit
+    strategy:
+      matrix:
+        include:
+          - image: caddy-security
+            tag-cmd: |
+              CADDY_VERSION=$(awk -F':|-' '/builder-alpine/ {print $4}' Dockerfile)
+              SECURITY_VERSION=$(awk -F'=' '/ARG CADDYSECURITY_VERSION=/ {print substr($2, 2, length($2))}' Dockerfile)
+              echo "${CADDY_VERSION}-${SECURITY_VERSION}"
+          - image: fava
+            tag-cmd: awk -F'=' '/ARG FAVA_VERSION=/ {print $2}' Dockerfile
+          - image: gcloud-pubsub-emulator
+            tag-cmd: awk -F':|-' '/google-cloud-cli/ {print $4}' Dockerfile
+          - image: mysqltuner
+            tag-cmd: awk -F'=' '/VERSION=/ {print $2}' Makefile
+          - image: tuning-primer
+            tag-cmd: awk -F' ' '/Version:/ {print $3}' root/tuning-primer.sh
+    with:
+      image: ${{ matrix.image }}
+      context: docker-${{ matrix.image }}
+      platforms: linux/amd64,linux/arm64
+      tag-cmd: ${{ matrix.tag-cmd }}
+
+  autodecline:
+    needs: lint
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: dorny/paths-filter@v4.0.3
+        id: changes
+        with:
+          filters: |
+            autodecline:
+              - 'autodecline-meetings/**'
+      - if: steps.changes.outputs.autodecline == 'true'
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 26
+      - name: push and deploy clasp project
+        if: steps.changes.outputs.autodecline == 'true'
+        working-directory: autodecline-meetings
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+        run: |
+          npm install -g @google/clasp
+          echo "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+          clasp push --force
+
+          OUT=$(clasp version "CI ${GITHUB_SHA}")
+          echo "$OUT"
+          VERSION=$(echo "$OUT" | grep -Eo 'Created version [0-9]+' | grep -Eo '[0-9]+' | tail -n 1)
+          if [ -z "$VERSION" ]; then
+            echo "Could not parse version number from clasp output" >&2
+            exit 1
+          fi
+
+          echo "Created version: $VERSION"
+          clasp deploy -i "AKfycbz2NELCTdz4o83toWdcOoSJGNyV4lPC__99VzS9Ty2i_DVO5ftHeJL4rvTp97Ru99CE" -v "${VERSION}"

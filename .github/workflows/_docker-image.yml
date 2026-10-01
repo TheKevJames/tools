@@ -1,0 +1,128 @@
+name: _docker-image
+
+# Reusable workflow: build + push a Docker image to docker.io and quay.io, and
+# (on master) publish its README. Published for cross-repo consumption, eg.
+#   uses: TheKevJames/tools/.github/workflows/_docker-image.yml@master
+# The leading underscore marks this as a reusable building block rather than a
+# triggered workflow; see README.rst.
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: image name, published as thekevjames/<image> (+ quay mirror)
+        required: true
+        type: string
+      context:
+        description: build context; also the readme/tag-cmd working directory
+        default: .
+        type: string
+      dockerfile:
+        description: Dockerfile path relative to context
+        default: Dockerfile
+        type: string
+      target:
+        description: build target stage
+        default: ''
+        type: string
+      platforms:
+        default: linux/amd64
+        type: string
+      readme:
+        description: reStructuredText readme source, relative to context
+        default: README.rst
+        type: string
+      tag-cmd:
+        description: shell command (run in context) echoing a custom master-only tag
+        default: ''
+        type: string
+      publish-readme:
+        default: true
+        type: boolean
+    secrets:
+      DOCKER_USER:
+        required: false
+      DOCKER_PASS:
+        required: false
+      QUAY_USER:
+        required: false
+      QUAY_PASS:
+        required: false
+      QUAY_APIKEY:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: docker/setup-qemu-action@v4.4.0
+      - uses: docker/setup-buildx-action@v4.4.1
+      - uses: docker/login-action@v4.6.0
+        if: github.event_name == 'push'
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - uses: docker/login-action@v4.6.0
+        if: github.event_name == 'push'
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USER }}
+          password: ${{ secrets.QUAY_PASS }}
+      - id: tag
+        if: ${{ inputs.tag-cmd != '' && github.ref == 'refs/heads/master' }}
+        working-directory: ${{ inputs.context }}
+        env:
+          TAG_CMD: ${{ inputs.tag-cmd }}
+        run: echo "value=$(bash -c "$TAG_CMD")" >> "$GITHUB_OUTPUT"
+      - uses: docker/metadata-action@v6.2.0
+        id: meta
+        with:
+          images: |
+            thekevjames/${{ inputs.image }}
+            quay.io/thekevjames/${{ inputs.image }}
+          tags: |
+            type=sha
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=raw,value=${{ steps.tag.outputs.value }},enable=${{ steps.tag.outputs.value != '' }}
+      - uses: docker/build-push-action@v7.4.0
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.context }}/${{ inputs.dockerfile }}
+          target: ${{ inputs.target }}
+          platforms: ${{ inputs.platforms }}
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  readme:
+    needs: build
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && inputs.publish-readme }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: docker://pandoc/core:3.11.0
+        with:
+          args: -o README.md ${{ inputs.context }}/${{ inputs.readme }}
+      - name: install docker-pushrm
+        env:
+          # renovate: datasource=github-releases depName=christian-korneck/docker-pushrm
+          PUSHRM_VERSION: v1.9.0
+        run: |
+          mkdir -p ~/.docker/cli-plugins
+          curl -Lo ~/.docker/cli-plugins/docker-pushrm \
+            "https://github.com/christian-korneck/docker-pushrm/releases/download/${PUSHRM_VERSION}/docker-pushrm_linux_amd64"
+          chmod +x ~/.docker/cli-plugins/docker-pushrm
+      - uses: docker/login-action@v4.6.0
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - run: docker pushrm thekevjames/${{ inputs.image }} --file=README.md
+      - env:
+          APIKEY__QUAY_IO: ${{ secrets.QUAY_APIKEY }}
+        run: docker pushrm quay.io/thekevjames/${{ inputs.image }} --file=README.md

@@ -24,7 +24,6 @@
         },
         {
             "matchFileNames": [
-                ".circleci/config.yml",
                 ".pre-commit-config.yaml",
             ],
             "matchDepNames": [
