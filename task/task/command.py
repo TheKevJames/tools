@@ -4,6 +4,7 @@ import itertools
 from collections.abc import Iterable
 from collections.abc import Iterator
 
+from . import query
 from . import schema
 
 
@@ -22,9 +23,9 @@ def filter_max_ahead(task: schema.Task, days: int) -> bool:
 
 
 def sort(
-    tasks: Iterable[schema.Task], order: schema.SortOrder
+    tasks: Iterable[schema.Task], order: query.SortOrder
 ) -> Iterator[schema.Task]:
-    if order == schema.SortOrder.due:
+    if order == query.SortOrder.due:
         tasks = list(tasks)
         lhs = (t for t in tasks if t.details is None)
         rhs: Iterable[schema.Task] = (
@@ -32,9 +33,9 @@ def sort(
         )
         rhs = sorted(rhs, key=_next_date)
         tasks = itertools.chain(lhs, rhs)
-    elif order == schema.SortOrder.ident:
+    elif order == query.SortOrder.ident:
         tasks = sorted(tasks, key=lambda t: t.ident or 0)
-    elif order == schema.SortOrder.tag:
+    elif order == query.SortOrder.tag:
         tasks = sorted(tasks, key=lambda t: t.tag)
 
     yield from tasks
@@ -45,10 +46,10 @@ def load(
     filter_: str = '',
     days: int = -1,
     limit: int = -1,
-    order: schema.SortOrder = schema.SortOrder.ident,
+    order: query.SortOrder = query.SortOrder.ident,
 ) -> Iterator[schema.Task]:
     tasks = functools.reduce(
-        schema.Filter.apply, schema.Filter.parse(filter_), tasks
+        query.Filter.apply, query.Filter.parse(filter_), tasks
     )
     tasks = (x for x in tasks if filter_max_ahead(x, days))
     if limit >= 0:
@@ -62,7 +63,7 @@ def load_with_next(
     filter_: str = '',
     days: int = -1,
     limit: int = -1,
-    order: schema.SortOrder = schema.SortOrder.ident,
+    order: query.SortOrder = query.SortOrder.ident,
 ) -> Iterator[schema.Task]:
     tasks = load(tasks, filter_, days, -1)
     tasks = (x for x in tasks if x.details)

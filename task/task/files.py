@@ -19,7 +19,7 @@ CONFLICT_GLOBS = ('* (*conflicted copy*', '*.sync-conflict-*')
 LOCK_TIMEOUT = 30.0
 LOCK_POLL_INTERVAL = 0.05
 FRONTMATTER_FENCE = '---'
-FRONTMATTER_KEYS = ('owner', 'link')
+FRONTMATTER_KEYS = ('owner', 'link', 'priority', 'size')
 
 
 @functools.cache
@@ -148,6 +148,8 @@ def _load_ident_file(ident: int, path: pathlib.Path) -> schema.Task:
                 description='\n'.join(rest).strip() or None,
                 owner=meta.get('owner'),
                 link=meta.get('link'),
+                priority=meta.get('priority'),
+                size=meta.get('size'),
             )
             assert task.ident in (None, ident), f'{path}: id mismatch'
             task.ident = ident
