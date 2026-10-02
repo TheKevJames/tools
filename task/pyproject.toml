@@ -1,6 +1,6 @@
 [project]
 name = "task"
-version = "2.0.0"
+version = "2.1.0"
 description = "Simple personal task manager"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -25,8 +25,14 @@ dev = [
     "flake8-import-restrictions==2.1",
     "flake8-requirements==2.3.0",
     "flake8==7.4.1",
+    "hypothesis==6.122.3",
     "pylint==4.1.1",
+    "pytest==9.1.1",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
 
 [tool.ty.rules]
 dynamic-function-decorator-return = "error"
