@@ -4,6 +4,7 @@ import pathlib
 import subprocess
 import sys
 import tempfile
+from collections.abc import Iterable
 from typing import Annotated
 
 import typer
@@ -59,13 +60,12 @@ def main(ctx: typer.Context) -> None:
 
 
 Ago = Annotated[int, typer.Option('-a', '--ago')]
-Days = Annotated[int | None, typer.Option('-d', '--days')]
+Days = Annotated[int, typer.Option('-d', '--days')]
 Filter = Annotated[
-    str | None, typer.Option('-f', '--filter', help='tag=bar,summary!~bq')
+    str, typer.Option('-f', '--filter', help='tag=bar,summary!~bq')
 ]
-Limit = Annotated[int | None, typer.Option('-l', '--limit')]
-Preset = Annotated[query.Preset, typer.Option('-p', '--preset')]
-Sort = Annotated[query.SortOrder | None, typer.Option('-s', '--sort')]
+Limit = Annotated[int, typer.Option('-l', '--limit')]
+Sort = Annotated[query.SortOrder, typer.Option('-s', '--sort')]
 AsJson = Annotated[bool, typer.Option('--json', help='Machine-readable.')]
 
 # Shared detail flags: `add` and `set` funnel these into Task.update, keeping a
@@ -104,31 +104,38 @@ def require(tasks: list[schema.Task], ident: int) -> schema.Task:
     return item
 
 
-@app.command('list')
-def list_(
-    preset: Preset = query.Preset.due,
-    days: Days = None,
-    filter_: Filter = None,
-    limit: Limit = None,
-    sort: Sort = None,
-    as_json: AsJson = False,
-) -> None:
-    """List tasks using a preset view; explicit flags override the preset."""
-    cfg = query.PRESETS[preset]
-    filt = ','.join(x for x in (filter_ or '', cfg.filter) if x)
-    reader = command.load_with_next if cfg.due_only else command.load
-    tasks = reader(
-        files.load(),
-        filt,
-        cfg.days if days is None else days,
-        -1 if limit is None else limit,
-        cfg.sort if sort is None else sort,
-    )
+def print_tasks(tasks: Iterable[schema.Task], as_json: bool) -> None:
     if as_json:
         print(json.dumps([t.to_json() for t in tasks], indent=2))
         return
     for task in tasks:
         print(task)
+
+
+@app.command('list')
+def list_(
+    days: Days = -1,
+    filter_: Filter = '',
+    limit: Limit = -1,
+    sort: Sort = query.SortOrder.tag,
+    as_json: AsJson = False,
+) -> None:
+    """List all tasks."""
+    tasks = command.load(files.load(), filter_, days, limit, sort)
+    print_tasks(tasks, as_json)
+
+
+@app.command('due')
+def due(
+    days: Days = 0,
+    filter_: Filter = '',
+    limit: Limit = -1,
+    sort: Sort = query.SortOrder.due,
+    as_json: AsJson = False,
+) -> None:
+    """List scheduled tasks due within the given number of days."""
+    tasks = command.load_with_next(files.load(), filter_, days, limit, sort)
+    print_tasks(tasks, as_json)
 
 
 @app.command('add')

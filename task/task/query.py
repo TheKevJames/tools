@@ -1,6 +1,5 @@
-"""Selecting and ordering tasks: filters, sort orders, and list presets."""
+"""Selecting and ordering tasks: filters and sort orders."""
 
-import dataclasses
 import enum
 import re
 from collections.abc import Iterable
@@ -86,28 +85,3 @@ class SortOrder(enum.StrEnum):
     ident = 'id'
     due = 'due'
     tag = 'tag'
-
-
-class Preset(enum.StrEnum):
-    due = 'due'
-    ready = 'ready'
-    highpri = 'highpri'
-    triage = 'triage'
-    all = 'all'
-
-
-@dataclasses.dataclass(frozen=True)
-class PresetConfig:
-    days: int
-    filter: str
-    sort: SortOrder
-    due_only: bool
-
-
-PRESETS = {
-    Preset.due: PresetConfig(0, '', SortOrder.due, True),
-    Preset.ready: PresetConfig(0, '', SortOrder.tag, False),
-    Preset.highpri: PresetConfig(-1, 'tag=highpri', SortOrder.due, False),
-    Preset.triage: PresetConfig(-1, 'tag=triage', SortOrder.tag, False),
-    Preset.all: PresetConfig(-1, '', SortOrder.tag, False),
-}

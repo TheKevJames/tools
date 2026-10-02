@@ -26,7 +26,7 @@ def run(folder: pathlib.Path, *args: str) -> subprocess.CompletedProcess[str]:
 
 
 def listed(folder: pathlib.Path, filter_: str = '') -> list[dict[str, object]]:
-    result = run(folder, 'list', '-pall', '--json', '-f', filter_)
+    result = run(folder, 'list', '--json', '-f', filter_)
     assert result.returncode == 0, result.stderr
     tasks: list[dict[str, object]] = json.loads(result.stdout)
     return tasks
@@ -82,6 +82,20 @@ def test_claim_lifecycle(tmp_path: pathlib.Path) -> None:
     [released] = listed(tmp_path, claimable)
     assert released['description'] == 'a\n\nb'
     assert released['tag'] == 'Bakery/build'
+
+
+def test_due(tmp_path: pathlib.Path) -> None:
+    assert run(tmp_path, 'add', 'unscheduled').returncode == 0
+    assert (
+        run(tmp_path, 'add', 'later', '--next', '2999-01-01').returncode == 0
+    )
+    assert run(tmp_path, 'add', 'old', '--next', '2000-01-01').returncode == 0
+    assert run(tmp_path, 'add', 'soon', '--next', '2000-01-02').returncode == 0
+
+    result = run(tmp_path, 'due', '--json')
+    assert result.returncode == 0, result.stderr
+    assert [t['summary'] for t in json.loads(result.stdout)] == ['old', 'soon']
+    assert len(listed(tmp_path)) == 4
 
 
 @pytest.mark.parametrize(
