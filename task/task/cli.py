@@ -1,6 +1,8 @@
+import json
 import os
 import pathlib
 import subprocess
+import sys
 import tempfile
 from typing import Annotated
 
@@ -48,6 +50,13 @@ file_app = typer.Typer(
 )
 app.add_typer(file_app, name='file')
 
+
+@app.callback()
+def main(ctx: typer.Context) -> None:
+    """Simple personal task manager, shared by humans and bots."""
+    ctx.with_resource(files.locked())
+
+
 Ago = Annotated[int, typer.Option('-a', '--ago')]
 Days = Annotated[int | None, typer.Option('-d', '--days')]
 Filter = Annotated[
@@ -56,15 +65,29 @@ Filter = Annotated[
 Limit = Annotated[int | None, typer.Option('-l', '--limit')]
 Preset = Annotated[schema.Preset, typer.Option('-p', '--preset')]
 Sort = Annotated[schema.SortOrder | None, typer.Option('-s', '--sort')]
+AsJson = Annotated[bool, typer.Option('--json', help='Machine-readable.')]
 
 # Shared detail flags: `add` and `set` funnel these into Task.update, keeping a
 # single source of truth for task modifications.
 Summary = Annotated[str | None, typer.Option('--summary')]
-Tag = Annotated[str | None, typer.Option('--tag')]
+Tag = Annotated[
+    str | None, typer.Option('--tag', help='Section path, eg. Bakery/build')
+]
 Next = Annotated[str | None, typer.Option('--next')]
 Interval = Annotated[str | None, typer.Option('--interval')]
 Shift = Annotated[bool | None, typer.Option('--shift/--no-shift')]
 Description = Annotated[str | None, typer.Option('--description')]
+DescriptionAppend = Annotated[str | None, typer.Option('--description-append')]
+Owner = Annotated[
+    str | None,
+    typer.Option(
+        '--owner', help='Claim the task; fails if someone else owns it.'
+    ),
+]
+Link = Annotated[str | None, typer.Option('--link')]
+Force = Annotated[
+    bool, typer.Option('--force', help='Take ownership from another owner.')
+]
 
 
 # Per-task commands are invoked as `task <id> <cmd>`; group them under their
@@ -85,18 +108,23 @@ def list_(
     filter_: Filter = None,
     limit: Limit = None,
     sort: Sort = None,
+    as_json: AsJson = False,
 ) -> None:
     """List tasks using a preset view; explicit flags override the preset."""
     cfg = schema.PRESETS[preset]
     filt = ','.join(x for x in (filter_ or '', cfg.filter) if x)
     reader = command.load_with_next if cfg.due_only else command.load
-    for task in reader(
+    tasks = reader(
         files.load(),
         filt,
         cfg.days if days is None else days,
         -1 if limit is None else limit,
         cfg.sort if sort is None else sort,
-    ):
+    )
+    if as_json:
+        print(json.dumps([t.to_json() for t in tasks], indent=2))
+        return
+    for task in tasks:
         print(task)
 
 
@@ -108,6 +136,8 @@ def add(
     interval: Interval = None,
     shift: Shift = None,
     description: Description = None,
+    owner: Owner = None,
+    link: Link = None,
 ) -> None:
     """Add a new task, optionally with schedule details."""
     tasks = list(command.load(files.load()))
@@ -118,15 +148,21 @@ def add(
         interval=interval,
         shift=shift,
         description=description,
+        owner=owner,
+        link=link,
     )
     tasks.append(task)
     files.save(tasks)
 
 
 @app.command('show', rich_help_panel=SUBJECT_PANEL)
-def show(ident: int) -> None:
+def show(ident: int, as_json: AsJson = False) -> None:
     """Show a task's full details and status."""
-    print(require(list(command.load(files.load())), ident).render_detail())
+    task = require(list(command.load(files.load())), ident)
+    if as_json:
+        print(json.dumps(task.to_json(), indent=2))
+        return
+    print(task.render_detail())
 
 
 @app.command('done', rich_help_panel=SUBJECT_PANEL)
@@ -167,7 +203,7 @@ def delay(ident: int, days: int) -> None:
 
 
 @app.command('set', rich_help_panel=SUBJECT_PANEL)
-def set_(
+def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     ident: int,
     summary: Summary = None,
     tag: Tag = None,
@@ -175,8 +211,12 @@ def set_(
     interval: Interval = None,
     shift: Shift = None,
     description: Description = None,
+    description_append: DescriptionAppend = None,
+    owner: Owner = None,
+    link: Link = None,
+    force: Force = False,
 ) -> None:
-    """Edit a task's summary, section, or schedule details."""
+    """Edit a task's summary, section, owner, link, or schedule."""
     tasks = list(command.load(files.load()))
     require(tasks, ident).update(
         summary=summary,
@@ -185,6 +225,10 @@ def set_(
         interval=interval,
         shift=shift,
         description=description,
+        description_append=description_append,
+        owner=owner,
+        link=link,
+        force=force,
     )
     files.save(tasks)
 
@@ -210,7 +254,7 @@ def describe(ident: int) -> None:
 
 @app.command('unset', rich_help_panel=SUBJECT_PANEL)
 def unset(ident: int, fields: list[schema.ClearableField]) -> None:
-    """Clear schedule details from a task."""
+    """Clear fields from a task; `unset <id> owner` releases a claim."""
     tasks = list(command.load(files.load()))
     require(tasks, ident).clear(fields)
     files.save(tasks)
@@ -231,4 +275,8 @@ def file_rewrite() -> None:
 
 
 def cli() -> None:
-    app()
+    try:
+        app()
+    except schema.TaskError as e:
+        print(f'error: {e}', file=sys.stderr)
+        sys.exit(1)
