@@ -12,6 +12,7 @@ from typer import core
 
 from . import command
 from . import files
+from . import query
 from . import schema
 
 
@@ -63,8 +64,8 @@ Filter = Annotated[
     str | None, typer.Option('-f', '--filter', help='tag=bar,summary!~bq')
 ]
 Limit = Annotated[int | None, typer.Option('-l', '--limit')]
-Preset = Annotated[schema.Preset, typer.Option('-p', '--preset')]
-Sort = Annotated[schema.SortOrder | None, typer.Option('-s', '--sort')]
+Preset = Annotated[query.Preset, typer.Option('-p', '--preset')]
+Sort = Annotated[query.SortOrder | None, typer.Option('-s', '--sort')]
 AsJson = Annotated[bool, typer.Option('--json', help='Machine-readable.')]
 
 # Shared detail flags: `add` and `set` funnel these into Task.update, keeping a
@@ -85,6 +86,8 @@ Owner = Annotated[
     ),
 ]
 Link = Annotated[str | None, typer.Option('--link')]
+PriorityOpt = Annotated[schema.Priority | None, typer.Option('--priority')]
+SizeOpt = Annotated[schema.Size | None, typer.Option('--size')]
 Force = Annotated[
     bool, typer.Option('--force', help='Take ownership from another owner.')
 ]
@@ -103,7 +106,7 @@ def require(tasks: list[schema.Task], ident: int) -> schema.Task:
 
 @app.command('list')
 def list_(
-    preset: Preset = schema.Preset.due,
+    preset: Preset = query.Preset.due,
     days: Days = None,
     filter_: Filter = None,
     limit: Limit = None,
@@ -111,7 +114,7 @@ def list_(
     as_json: AsJson = False,
 ) -> None:
     """List tasks using a preset view; explicit flags override the preset."""
-    cfg = schema.PRESETS[preset]
+    cfg = query.PRESETS[preset]
     filt = ','.join(x for x in (filter_ or '', cfg.filter) if x)
     reader = command.load_with_next if cfg.due_only else command.load
     tasks = reader(
@@ -138,6 +141,8 @@ def add(
     description: Description = None,
     owner: Owner = None,
     link: Link = None,
+    priority: PriorityOpt = None,
+    size: SizeOpt = None,
 ) -> None:
     """Add a new task, optionally with schedule details."""
     tasks = list(command.load(files.load()))
@@ -150,6 +155,8 @@ def add(
         description=description,
         owner=owner,
         link=link,
+        priority=priority,
+        size=size,
     )
     tasks.append(task)
     files.save(tasks)
@@ -214,9 +221,11 @@ def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     description_append: DescriptionAppend = None,
     owner: Owner = None,
     link: Link = None,
+    priority: PriorityOpt = None,
+    size: SizeOpt = None,
     force: Force = False,
 ) -> None:
-    """Edit a task's summary, section, owner, link, or schedule."""
+    """Edit a task's summary, section, metadata, or schedule."""
     tasks = list(command.load(files.load()))
     require(tasks, ident).update(
         summary=summary,
@@ -228,6 +237,8 @@ def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         description_append=description_append,
         owner=owner,
         link=link,
+        priority=priority,
+        size=size,
         force=force,
     )
     files.save(tasks)

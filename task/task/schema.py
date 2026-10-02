@@ -1,11 +1,9 @@
-import dataclasses
 import datetime
 import enum
 import re
 from collections.abc import Iterable
-from collections.abc import Iterator
 from typing import Self
-from typing import assert_never
+from typing import TypeVar
 
 import pydantic
 
@@ -27,6 +25,31 @@ def check_link(value: str) -> str:
     if not LINK_RE.fullmatch(value):
         raise TaskError(f'invalid link: {value!r}')
     return value
+
+
+class Priority(enum.StrEnum):
+    low = 'low'
+    medium = 'medium'
+    high = 'high'
+
+
+class Size(enum.StrEnum):
+    small = 'small'
+    medium = 'medium'
+    large = 'large'
+
+
+E = TypeVar('E', bound=enum.StrEnum)
+
+
+def parse_enum(kind: type[E], value: str) -> E:
+    try:
+        return kind(value)
+    except ValueError:
+        choices = ', '.join(kind)
+        raise TaskError(
+            f'invalid {kind.__name__.lower()}: {value!r} (use {choices})'
+        ) from None
 
 
 def heading_name(heading: str) -> str:
@@ -130,6 +153,7 @@ class Details(pydantic.BaseModel, extra='forbid'):
 
 
 class Task(pydantic.BaseModel, extra='forbid'):
+    # pylint: disable=too-many-instance-attributes
     summary: str
     details: Details | None
     ident: int | None = None
@@ -137,6 +161,8 @@ class Task(pydantic.BaseModel, extra='forbid'):
     description: str | None = None
     owner: str | None = None
     link: str | None = None
+    priority: Priority | None = None
+    size: Size | None = None
 
     @classmethod
     def parse(
@@ -146,6 +172,8 @@ class Task(pydantic.BaseModel, extra='forbid'):
         description: str | None = None,
         owner: str | None = None,
         link: str | None = None,
+        priority: str | None = None,
+        size: str | None = None,
     ) -> Self:
         ident: int | None = None
         match = re.match(r'\[(\d+)\] (.*)', raw)
@@ -167,6 +195,10 @@ class Task(pydantic.BaseModel, extra='forbid'):
             ident=ident,
             link=None if link is None else check_link(link),
             owner=None if owner is None else check_owner(owner),
+            priority=None
+            if priority is None
+            else parse_enum(Priority, priority),
+            size=None if size is None else parse_enum(Size, size),
             summary=raw,
             tag=tag,
         )
@@ -182,7 +214,13 @@ class Task(pydantic.BaseModel, extra='forbid'):
     @property
     def needs_own_file(self) -> bool:
         """Only bare tasks fit on a single line of the index file."""
-        return bool(self.description or self.owner or self.link)
+        return bool(
+            self.description
+            or self.owner
+            or self.link
+            or self.priority
+            or self.size
+        )
 
     @property
     def raw(self) -> str:
@@ -198,6 +236,8 @@ class Task(pydantic.BaseModel, extra='forbid'):
         result += f'\t{self.ident}: {self.summary}'
         if self.description:
             result += ' +'
+        if self.priority:
+            result += f' !{self.priority}'
         if self.owner:
             result += f' @{self.owner}'
         if self.details:
@@ -239,7 +279,7 @@ class Task(pydantic.BaseModel, extra='forbid'):
         )
         return new_task
 
-    def update(
+    def update(  # pylint: disable=too-many-arguments
         self,
         *,
         summary: str | None = None,
@@ -251,6 +291,8 @@ class Task(pydantic.BaseModel, extra='forbid'):
         description_append: str | None = None,
         owner: str | None = None,
         link: str | None = None,
+        priority: str | None = None,
+        size: str | None = None,
         force: bool = False,
     ) -> None:
         if description is not None and description_append is not None:
@@ -265,12 +307,27 @@ class Task(pydantic.BaseModel, extra='forbid'):
             self.description = description.strip() or None
         if description_append is not None:
             self._append_description(description_append)
+        self._set_metadata(owner, link, priority, size, force=force)
+        if next_ is not None or interval is not None or shift is not None:
+            self._schedule(next_, interval, shift)
+
+    def _set_metadata(
+        self,
+        owner: str | None,
+        link: str | None,
+        priority: str | None,
+        size: str | None,
+        *,
+        force: bool,
+    ) -> None:
         if owner is not None:
             self._claim(owner, force=force)
         if link is not None:
             self.link = check_link(link)
-        if next_ is not None or interval is not None or shift is not None:
-            self._schedule(next_, interval, shift)
+        if priority is not None:
+            self.priority = parse_enum(Priority, priority)
+        if size is not None:
+            self.size = parse_enum(Size, size)
 
     def _schedule(
         self, next_: str | None, interval: str | None, shift: bool | None
@@ -305,12 +362,8 @@ class Task(pydantic.BaseModel, extra='forbid'):
         for field in fields:
             if field is ClearableField.next:
                 self.details = None
-            elif field is ClearableField.description:
-                self.description = None
-            elif field is ClearableField.owner:
-                self.owner = None
-            elif field is ClearableField.link:
-                self.link = None
+            elif field in OPTIONAL_FIELDS:
+                setattr(self, field.value, None)
             elif self.details is None:
                 continue
             elif field is ClearableField.interval:
@@ -328,6 +381,10 @@ class Task(pydantic.BaseModel, extra='forbid'):
             rows.append(('Owner', self.owner))
         if self.link:
             rows.append(('Link', self.link))
+        if self.priority:
+            rows.append(('Priority', self.priority))
+        if self.size:
+            rows.append(('Size', self.size))
         if self.details:
             rows.append(('Due', self._render_due()))
             if self.details.interval:
@@ -356,6 +413,8 @@ class Task(pydantic.BaseModel, extra='forbid'):
             'tag': self.tag_path,
             'owner': self.owner,
             'link': self.link,
+            'priority': self.priority,
+            'size': self.size,
             'description': self.description,
             'next': self.details.next_.isoformat() if self.details else None,
             'interval': interval.raw if interval else None,
@@ -374,102 +433,24 @@ class Task(pydantic.BaseModel, extra='forbid'):
         return f'{self.details.next_} ({status})'
 
 
-class Target(enum.StrEnum):
-    summary = 'summary'
-    tag = 'tag'
-    owner = 'owner'
-    link = 'link'
-
-
-class Filter(pydantic.BaseModel, extra='forbid'):
-    data: str
-    negate: bool
-    contains: bool
-    target: Target
-
-    @classmethod
-    def parse(cls, raw: str) -> Iterator[Self]:
-        for filter_ in raw.split(','):
-            if not filter_.strip():
-                continue
-
-            match = re.match(
-                r'(?P<target>[^!=~]+)(?P<op>!?[=~])(?P<data>.*)', filter_
-            )
-            assert match, f'{filter_} is not a valid filter'
-            op = match.group('op')
-
-            yield cls(
-                data=match.group('data').lower(),
-                negate=op.startswith('!'),
-                contains=op.endswith('~'),
-                target=Target(match.group('target')),
-            )
-
-    def match(self, value: str) -> bool:
-        if self.contains:
-            return self.data in value
-        return self.data == value
-
-    def func(self, task: Task) -> bool:  # pylint: disable=inconsistent-return-statements
-        if self.target == Target.summary:
-            return self.match(task.summary.lower()) is not self.negate
-        if self.target == Target.tag:
-            # Any single heading or any full path from the root matches, so
-            # `tag=build` and `tag=bakery/build` both select Bakery > build.
-            names = [x.lower() for x in task.tag_names]
-            paths = ['/'.join(names[:i]) for i in range(2, len(names) + 1)]
-            matched = any(self.match(x) for x in names + paths)
-            return matched is not self.negate
-        if self.target == Target.owner:
-            # An empty value selects unowned (claimable) tasks: `owner=`.
-            return self.match((task.owner or '').lower()) is not self.negate
-        if self.target == Target.link:
-            return self.match((task.link or '').lower()) is not self.negate
-
-        assert_never(self.target)
-
-    @staticmethod
-    def apply(tasks: Iterable[Task], self: 'Filter') -> Iterator[Task]:
-        # TODO(refactor): weird af call signature
-        yield from (x for x in tasks if self.func(x))
-
-
-class SortOrder(enum.StrEnum):
-    ident = 'id'
-    due = 'due'
-    tag = 'tag'
-
-
 class ClearableField(enum.StrEnum):
     description = 'description'
     interval = 'interval'
     link = 'link'
     next = 'next'
     owner = 'owner'
+    priority = 'priority'
     shift = 'shift'
+    size = 'size'
 
 
-class Preset(enum.StrEnum):
-    due = 'due'
-    ready = 'ready'
-    highpri = 'highpri'
-    triage = 'triage'
-    all = 'all'
-
-
-@dataclasses.dataclass(frozen=True)
-class PresetConfig:
-    days: int
-    filter: str
-    sort: SortOrder
-    due_only: bool
-
-
-PRESETS = {
-    Preset.due: PresetConfig(0, '', SortOrder.due, True),
-    Preset.ready: PresetConfig(0, '', SortOrder.tag, False),
-    Preset.highpri: PresetConfig(-1, 'tag=highpri', SortOrder.due, False),
-    Preset.triage: PresetConfig(-1, 'tag=triage', SortOrder.tag, False),
-    Preset.all: PresetConfig(-1, '', SortOrder.tag, False),
-}
+# Task attributes that `unset` clears to None, named as in ClearableField.
+OPTIONAL_FIELDS = frozenset(
+    {
+        ClearableField.description,
+        ClearableField.link,
+        ClearableField.owner,
+        ClearableField.priority,
+        ClearableField.size,
+    }
+)

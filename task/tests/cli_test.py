@@ -98,3 +98,26 @@ def test_refuses_sync_conflicts(tmp_path: pathlib.Path, conflict: str) -> None:
 
     assert result.returncode == 1
     assert conflict in result.stderr
+
+
+def test_priority_and_size(tmp_path: pathlib.Path) -> None:
+    assert run(tmp_path, 'add', 'a', '--priority', 'high').returncode == 0
+    assert run(tmp_path, 'add', 'b', '--size', 'large').returncode == 0
+    assert run(tmp_path, '2', 'set', '--priority', 'low').returncode == 0
+    assert run(tmp_path, '1', 'set', '--priority', 'urgent').returncode == 2
+
+    assert [t['id'] for t in listed(tmp_path, 'priority=high')] == [1]
+    assert [t['id'] for t in listed(tmp_path, 'size=large')] == [2]
+    assert [t['id'] for t in listed(tmp_path, 'size=')] == [1]
+
+    assert run(tmp_path, '1', 'unset', 'priority').returncode == 0
+    assert (tmp_path / '2.md').exists()
+    assert not (tmp_path / '1.md').exists()  # nothing left to need a file
+
+    # A hand-edited file with a bad value is refused, not silently dropped.
+    (tmp_path / '2.md').write_text(
+        '---\npriority: urgent\n---\n## Triage\n* [2] b\n'
+    )
+    broken = run(tmp_path, 'list')
+    assert broken.returncode == 1
+    assert "invalid priority: 'urgent'" in broken.stderr

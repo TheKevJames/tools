@@ -62,6 +62,8 @@ TASK = st.builds(
     description=DESCRIPTION,
     owner=OWNER,
     link=LINK,
+    priority=st.none() | st.sampled_from(schema.Priority),
+    size=st.none() | st.sampled_from(schema.Size),
 )
 
 
