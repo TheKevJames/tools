@@ -123,6 +123,7 @@
         {
             "groupName": "pylint",
             "matchDepNames": [
+                "/^PyCQA/pylint$/",
                 "/^pycqa/pylint$/",
                 "/^pylint$/",
             ],
