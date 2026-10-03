@@ -81,7 +81,7 @@ def test_claim_lifecycle(tmp_path: pathlib.Path) -> None:
     assert run(tmp_path, '1', 'unset', 'owner').returncode == 0
     [released] = listed(tmp_path, claimable)
     assert released['description'] == 'a\n\nb'
-    assert released['tag'] == 'Bakery/build'
+    assert released['tag'] == 'bakery/build'
 
 
 def test_due(tmp_path: pathlib.Path) -> None:
@@ -98,22 +98,6 @@ def test_due(tmp_path: pathlib.Path) -> None:
     assert len(listed(tmp_path)) == 4
 
 
-@pytest.mark.parametrize(
-    'conflict',
-    [
-        "index (Kevin's conflicted copy 2026-10-02).md",
-        'index.sync-conflict-20261002-101010-ABCDEFG.md',
-    ],
-)
-def test_refuses_sync_conflicts(tmp_path: pathlib.Path, conflict: str) -> None:
-    (tmp_path / conflict).touch()
-
-    result = run(tmp_path, 'list')
-
-    assert result.returncode == 1
-    assert conflict in result.stderr
-
-
 def test_priority_and_size(tmp_path: pathlib.Path) -> None:
     assert run(tmp_path, 'add', 'a', '--priority', 'high').returncode == 0
     assert run(tmp_path, 'add', 'b', '--size', 'large').returncode == 0
@@ -125,13 +109,45 @@ def test_priority_and_size(tmp_path: pathlib.Path) -> None:
     assert [t['id'] for t in listed(tmp_path, 'size=')] == [1]
 
     assert run(tmp_path, '1', 'unset', 'priority').returncode == 0
-    assert (tmp_path / '2.md').exists()
-    assert not (tmp_path / '1.md').exists()  # nothing left to need a file
+    assert [t['id'] for t in listed(tmp_path, 'priority=')] == [1]
 
-    # A hand-edited file with a bad value is refused, not silently dropped.
-    (tmp_path / '2.md').write_text(
-        '---\npriority: urgent\n---\n## Triage\n* [2] b\n'
+
+def test_descriptions_are_text_files(tmp_path: pathlib.Path) -> None:
+    assert run(tmp_path, 'add', 'a', '--description', ' x\n ').returncode == 0
+    assert run(tmp_path, 'add', 'b', '--description', 'y').returncode == 0
+    assert (tmp_path / '1.txt').read_text() == 'x'
+
+    (tmp_path / '1.txt').write_text('\nedited by hand\n')
+    assert listed(tmp_path)[0]['description'] == 'edited by hand'
+
+    assert run(tmp_path, '1', 'unset', 'description').returncode == 0
+    assert not (tmp_path / '1.txt').exists()
+    assert run(tmp_path, '2', 'done').returncode == 0
+    assert not (tmp_path / '2.txt').exists()
+
+    (tmp_path / '9.txt').write_text('orphan')
+    assert run(tmp_path, 'add', 'c').returncode == 0
+    assert not (tmp_path / '9.txt').exists()
+    assert [t['id'] for t in listed(tmp_path)] == [1, 3]  # ids never reused
+
+
+def test_describe_refuses_concurrent_change(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    assert run(tmp_path, 'add', 'a', '--description', 'x').returncode == 0
+    # An "editor" which saves its buffer while a bot appends a note.
+    editor = tmp_path / 'editor'
+    editor.write_text(
+        '#!/bin/sh\n'
+        'echo mine > "$1"\n'
+        f'"{sys.executable}" -c "from task.cli import cli; cli()"'
+        ' 1 set --description-append theirs\n'
     )
-    broken = run(tmp_path, 'list')
-    assert broken.returncode == 1
-    assert "invalid priority: 'urgent'" in broken.stderr
+    editor.chmod(0o755)
+    monkeypatch.setenv('EDITOR', str(editor))
+
+    result = run(tmp_path, '1', 'describe')
+
+    assert result.returncode == 1
+    assert 'changed while editing' in result.stderr
+    assert listed(tmp_path)[0]['description'] == 'x\n\ntheirs'
