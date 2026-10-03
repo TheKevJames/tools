@@ -71,14 +71,15 @@
         },
         {
             "matchDepNames": [
+                "/^Homebrew/actions$/",
                 "/^docker\\.io/pihole/pihole$/",
                 "/^henryiii/validate-pyproject-schema-store$/",
             ],
-            // N.B. zero-padded CalVer tags (e.g. 2026.09.08) are invalid under
-            // the default semver versioning, which makes Renovate unable to
-            // match the pinned tag. Use a leading-zero-tolerant regex
-            // versioning instead.
-            "versioning": "regex:^(?<major>\\d{4})\\.(?<minor>\\d{1,2})\\.(?<patch>\\d+)$",
+            // N.B. zero-padded CalVer tags (e.g. 2026.09.08 or 2026.09.28.1)
+            // are invalid under the default semver versioning, which makes
+            // Renovate unable to match the pinned tag. Use a
+            // leading-zero-tolerant regex versioning instead.
+            "versioning": "regex:^(?<major>\\d{4})\\.(?<minor>\\d{1,2})\\.(?<patch>\\d+)(\\.(?<build>\\d+))?$",
         },
         {
             "matchDepNames": ["/^openai-whisper$/"],
