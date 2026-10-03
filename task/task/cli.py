@@ -11,8 +11,7 @@ import typer
 from typer import _click
 from typer import core
 
-from . import command
-from . import files
+from . import db
 from . import query
 from . import schema
 
@@ -47,16 +46,11 @@ class SubjectGroup(core.TyperGroup):
 app = typer.Typer(
     cls=SubjectGroup, add_completion=False, no_args_is_help=False
 )
-file_app = typer.Typer(
-    add_completion=False, help='Operate on the whole task file.'
-)
-app.add_typer(file_app, name='file')
 
 
 @app.callback()
-def main(ctx: typer.Context) -> None:
+def main() -> None:
     """Simple personal task manager, shared by humans and bots."""
-    ctx.with_resource(files.locked())
 
 
 Ago = Annotated[int, typer.Option('-a', '--ago')]
@@ -72,7 +66,7 @@ AsJson = Annotated[bool, typer.Option('--json', help='Machine-readable.')]
 # single source of truth for task modifications.
 Summary = Annotated[str | None, typer.Option('--summary')]
 Tag = Annotated[
-    str | None, typer.Option('--tag', help='Section path, eg. Bakery/build')
+    str | None, typer.Option('--tag', help='Section path, eg. bakery/build')
 ]
 Next = Annotated[str | None, typer.Option('--next')]
 Interval = Annotated[str | None, typer.Option('--interval')]
@@ -98,12 +92,6 @@ Force = Annotated[
 SUBJECT_PANEL = 'Task commands (use as: task <id> <cmd>)'
 
 
-def require(tasks: list[schema.Task], ident: int) -> schema.Task:
-    item = next((x for x in tasks if x.ident == ident), None)
-    assert item, f'task {ident} not found!'
-    return item
-
-
 def print_tasks(tasks: Iterable[schema.Task], as_json: bool) -> None:
     if as_json:
         print(json.dumps([t.to_json() for t in tasks], indent=2))
@@ -121,7 +109,8 @@ def list_(
     as_json: AsJson = False,
 ) -> None:
     """List all tasks."""
-    tasks = command.load(files.load(), filter_, days, limit, sort)
+    with db.connect() as conn:
+        tasks = db.select(conn, *query.compile_(filter_, days, limit, sort))
     print_tasks(tasks, as_json)
 
 
@@ -134,7 +123,9 @@ def due(
     as_json: AsJson = False,
 ) -> None:
     """List scheduled tasks due within the given number of days."""
-    tasks = command.load_with_next(files.load(), filter_, days, limit, sort)
+    clauses = query.compile_(filter_, days, limit, sort, scheduled=True)
+    with db.connect() as conn:
+        tasks = db.select(conn, *clauses)
     print_tasks(tasks, as_json)
 
 
@@ -152,8 +143,7 @@ def add(
     size: SizeOpt = None,
 ) -> None:
     """Add a new task, optionally with schedule details."""
-    tasks = list(command.load(files.load()))
-    task = schema.Task(summary=summary, details=None, tag=['## Triage'])
+    task = schema.Task(summary=summary, details=None, tag=schema.TRIAGE)
     task.update(
         tag=tag,
         next_=next_,
@@ -165,14 +155,15 @@ def add(
         priority=priority,
         size=size,
     )
-    tasks.append(task)
-    files.save(tasks)
+    with db.write() as conn:
+        db.insert(conn, task)
 
 
 @app.command('show', rich_help_panel=SUBJECT_PANEL)
 def show(ident: int, as_json: AsJson = False) -> None:
     """Show a task's full details and status."""
-    task = require(list(command.load(files.load())), ident)
+    with db.connect() as conn:
+        task = db.get(conn, ident)
     if as_json:
         print(json.dumps(task.to_json(), indent=2))
         return
@@ -182,38 +173,31 @@ def show(ident: int, as_json: AsJson = False) -> None:
 @app.command('done', rich_help_panel=SUBJECT_PANEL)
 def done(ident: int, ago: Ago = 0) -> None:
     """Mark a task as completed, optionally some days ago."""
-    tasks = list(command.load(files.load()))
-    item = require(tasks, ident)
+    with db.write() as conn:
+        completed = db.get(conn, ident).complete(ago)
+        if not completed:
+            db.delete(conn, ident)
+        else:
+            db.update(conn, completed)
 
-    completed = item.complete(ago)
     if not completed:
         print('completed task')
-        tasks.pop(tasks.index(item))
-        files.save(tasks)
         return
-
     assert completed.details, 'completed recurring task has no details'
     print(
         f'completed recurring task, next occurrence: {completed.details.next_}'
     )
-    tasks.pop(tasks.index(item))
-    tasks.append(completed)
-    files.save(tasks)
 
 
 @app.command('delay', rich_help_panel=SUBJECT_PANEL)
 def delay(ident: int, days: int) -> None:
     """Postpone a task by the given number of days."""
-    tasks = list(command.load(files.load()))
-    item = require(tasks, ident)
+    with db.write() as conn:
+        delayed = db.get(conn, ident).postpone(days)
+        db.update(conn, delayed)
 
-    delayed = item.postpone(days)
     assert delayed.details, 'delayed task has no details'
     print(f'delayed task, next occurrence: {delayed.details.next_}')
-
-    tasks.pop(tasks.index(item))
-    tasks.append(delayed)
-    files.save(tasks)
 
 
 @app.command('set', rich_help_panel=SUBJECT_PANEL)
@@ -233,63 +217,61 @@ def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     force: Force = False,
 ) -> None:
     """Edit a task's summary, section, metadata, or schedule."""
-    tasks = list(command.load(files.load()))
-    require(tasks, ident).update(
-        summary=summary,
-        tag=tag,
-        next_=next_,
-        interval=interval,
-        shift=shift,
-        description=description,
-        description_append=description_append,
-        owner=owner,
-        link=link,
-        priority=priority,
-        size=size,
-        force=force,
-    )
-    files.save(tasks)
+    with db.write() as conn:
+        task = db.get(conn, ident)
+        task.update(
+            summary=summary,
+            tag=tag,
+            next_=next_,
+            interval=interval,
+            shift=shift,
+            description=description,
+            description_append=description_append,
+            owner=owner,
+            link=link,
+            priority=priority,
+            size=size,
+            force=force,
+        )
+        db.update(conn, task)
 
 
 @app.command('describe', rich_help_panel=SUBJECT_PANEL)
 def describe(ident: int) -> None:
     """Edit a task's description in $EDITOR."""
-    tasks = list(command.load(files.load()))
-    item = require(tasks, ident)
+    with db.connect() as conn:
+        original = db.get(conn, ident).description
 
+    # The editor runs without the write lock, so other writers carry on; the
+    # result is only saved if nobody else changed the description meanwhile.
     with tempfile.NamedTemporaryFile(
-        'w', suffix='.md', delete=False, encoding='utf-8'
+        'w', suffix='.txt', delete=False, encoding='utf-8'
     ) as f:
-        f.write(item.description or '')
+        f.write(original or '')
         path = pathlib.Path(f.name)
+    try:
+        subprocess.run([os.environ.get('EDITOR', 'vim'), path], check=True)
+        edited = path.read_text(encoding='utf-8')
+    finally:
+        path.unlink()
 
-    subprocess.run([os.environ.get('EDITOR', 'vim'), path], check=True)
-    item.update(description=path.read_text(encoding='utf-8'))
-    path.unlink()
-
-    files.save(tasks)
+    with db.write() as conn:
+        task = db.get(conn, ident)
+        if task.description != original:
+            raise schema.TaskError(
+                f"task {ident}'s description changed while editing"
+            )
+        task.update(description=edited)
+        db.update(conn, task)
 
 
 @app.command('unset', rich_help_panel=SUBJECT_PANEL)
 def unset(ident: int, fields: list[schema.ClearableField]) -> None:
     """Clear fields from a task; `unset <id> owner` releases a claim."""
-    tasks = list(command.load(files.load()))
-    require(tasks, ident).clear(fields)
-    files.save(tasks)
-
-
-@file_app.command('edit')
-def file_edit() -> None:
-    """Open the task file in $EDITOR."""
-    subprocess.run(
-        [os.environ.get('EDITOR', 'vim'), files.index_file()], check=True
-    )
-
-
-@file_app.command('rewrite')
-def file_rewrite() -> None:
-    """Reformat and rewrite the task file in place."""
-    files.save(command.load(files.load()))
+    with db.write() as conn:
+        task = db.get(conn, ident)
+        task.clear(fields)
+        db.update(conn, task)
 
 
 def cli() -> None:

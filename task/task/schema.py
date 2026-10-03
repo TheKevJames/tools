@@ -9,6 +9,8 @@ import pydantic
 
 OWNER_RE = re.compile(r'[A-Za-z0-9_.-]+')
 LINK_RE = re.compile(r'\S+')
+INTERVAL_RE = re.compile(r'[1-9][0-9]*[dwm]')
+TRIAGE = 'triage'
 
 
 class TaskError(Exception):
@@ -52,16 +54,14 @@ def parse_enum(kind: type[E], value: str) -> E:
         ) from None
 
 
-def heading_name(heading: str) -> str:
-    return heading.split(maxsplit=1)[1]
-
-
-def parse_tag_path(path: str) -> list[str]:
-    """`Foo/bar` -> ['## Foo', '### bar']."""
-    names = [name.strip() for name in path.split('/')]
-    if not all(names) or any('\n' in name for name in names):
+def normalize_tag(path: str) -> str:
+    """`Foo/ bar` -> `foo/bar`."""
+    names = [name.strip().lower() for name in path.split('/')]
+    # Control characters are refused so that sorting may join segments with
+    # one: see query.ORDER_BY.
+    if not all(name and name.isprintable() for name in names):
         raise TaskError(f'invalid tag: {path!r}')
-    return [f'{"#" * (depth + 2)} {name}' for depth, name in enumerate(names)]
+    return '/'.join(names)
 
 
 class Interval(pydantic.BaseModel, extra='forbid'):
@@ -71,8 +71,8 @@ class Interval(pydantic.BaseModel, extra='forbid'):
     @classmethod
     def validate_raw(cls, value: str) -> str:
         # TODO(refactor): use an enum
-        assert value[-1] in {'d', 'w', 'm'}, f'{value} is not supported'
-        _ = int(value[:-1])
+        if not INTERVAL_RE.fullmatch(value):
+            raise TaskError(f'invalid interval: {value!r}')
         return value
 
     @property
@@ -119,26 +119,6 @@ class Details(pydantic.BaseModel, extra='forbid'):
     next_: datetime.date = pydantic.Field(..., alias='next')
     shift: bool = False
 
-    @property
-    def raw(self) -> str:
-        result = f'next: {self.next_}'
-        if self.interval:
-            result += f', interval: {self.interval.raw}'
-        if self.shift:
-            result += ', shift: true'
-        return result
-
-    @classmethod
-    def parse(cls, raw: str) -> Self:
-        fields: dict[str, str | dict[str, str]] = {}
-        for x in raw.split(', '):
-            k, v = x.split(': ')
-            if k == 'interval':
-                fields['interval'] = {'raw': v}
-            else:
-                fields[k] = v
-        return cls.model_validate(fields)
-
     def __str__(self) -> str:
         result = f'Due: {self.next_}'
 
@@ -152,83 +132,52 @@ class Details(pydantic.BaseModel, extra='forbid'):
         return result
 
 
-class Task(pydantic.BaseModel, extra='forbid'):
+class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
     # pylint: disable=too-many-instance-attributes
     summary: str
     details: Details | None
     ident: int | None = None
-    tag: list[str]
+    tag: str
     description: str | None = None
     owner: str | None = None
     link: str | None = None
     priority: Priority | None = None
     size: Size | None = None
 
+    @pydantic.field_validator('summary')
     @classmethod
-    def parse(
-        cls,
-        raw: str,
-        tag: list[str],
-        description: str | None = None,
-        owner: str | None = None,
-        link: str | None = None,
-        priority: str | None = None,
-        size: str | None = None,
-    ) -> Self:
-        ident: int | None = None
-        match = re.match(r'\[(\d+)\] (.*)', raw)
-        if match:
-            ident = int(match.group(1))
-            raw = match.group(2)
+    def validate_summary(cls, value: str) -> str:
+        if not value.strip() or '\n' in value:
+            raise TaskError(f'invalid summary: {value!r}')
+        return value
 
-        details: Details | None
-        groups = re.findall(r'(.*) {(.*)}', raw)
-        if groups:
-            raw, raw_details = groups[0]
-            details = Details.parse(raw_details)
-        else:
-            details = None
+    @pydantic.field_validator('tag')
+    @classmethod
+    def validate_tag(cls, value: str) -> str:
+        if normalize_tag(value) != value:
+            raise TaskError(f'tag is not normalized: {value!r}')
+        return value
 
-        return cls(
-            description=description,
-            details=details,
-            ident=ident,
-            link=None if link is None else check_link(link),
-            owner=None if owner is None else check_owner(owner),
-            priority=None
-            if priority is None
-            else parse_enum(Priority, priority),
-            size=None if size is None else parse_enum(Size, size),
-            summary=raw,
-            tag=tag,
-        )
+    @pydantic.field_validator('description')
+    @classmethod
+    def validate_description(cls, value: str | None) -> str | None:
+        if value is not None and value != value.strip():
+            raise TaskError('description is not stripped')
+        return value or None
+
+    @pydantic.field_validator('owner')
+    @classmethod
+    def validate_owner(cls, value: str | None) -> str | None:
+        return None if value is None else check_owner(value)
+
+    @pydantic.field_validator('link')
+    @classmethod
+    def validate_link(cls, value: str | None) -> str | None:
+        return None if value is None else check_link(value)
 
     @property
     def tag_names(self) -> list[str]:
-        return [heading_name(x) for x in self.tag]
-
-    @property
-    def tag_path(self) -> str:
-        return '/'.join(self.tag_names)
-
-    @property
-    def needs_own_file(self) -> bool:
-        """Only bare tasks fit on a single line of the index file."""
-        return bool(
-            self.description
-            or self.owner
-            or self.link
-            or self.priority
-            or self.size
-        )
-
-    @property
-    def raw(self) -> str:
-        assert self.ident is not None, 'task id has not been assigned'
-        result = f'[{self.ident}] {self.summary}'
-        if self.details:
-            result += f' {{{self.details.raw}}}'
-        return result
+        return self.tag.split('/')
 
     def __str__(self) -> str:
         result = ''
@@ -302,7 +251,7 @@ class Task(pydantic.BaseModel, extra='forbid'):
         if summary is not None:
             self.summary = summary
         if tag is not None:
-            self.tag = parse_tag_path(tag)
+            self.tag = normalize_tag(tag)
         if description is not None:
             self.description = description.strip() or None
         if description_append is not None:
@@ -410,7 +359,7 @@ class Task(pydantic.BaseModel, extra='forbid'):
         return {
             'id': self.ident,
             'summary': self.summary,
-            'tag': self.tag_path,
+            'tag': self.tag,
             'owner': self.owner,
             'link': self.link,
             'priority': self.priority,

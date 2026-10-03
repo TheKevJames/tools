@@ -1,11 +1,10 @@
-"""Selecting and ordering tasks: filters and sort orders."""
+"""Selecting and ordering tasks: filters and sort orders, compiled to SQL."""
 
+import datetime
 import enum
 import re
-from collections.abc import Iterable
 from collections.abc import Iterator
 from typing import Self
-from typing import assert_never
 
 import pydantic
 
@@ -19,6 +18,24 @@ class Target(enum.StrEnum):
     link = 'link'
     priority = 'priority'
     size = 'size'
+
+
+# Filter values are compared lowercased. `fold` is Python's str.lower,
+# registered by db.connect: SQLite's lower() only folds ASCII.
+COLUMNS = {
+    Target.summary: 'fold(summary)',
+    Target.owner: "fold(coalesce(owner, ''))",
+    Target.link: "fold(coalesce(link, ''))",
+    Target.priority: "coalesce(priority, '')",
+    Target.size: "coalesce(size, '')",
+}
+
+# Any single segment or any path from the root matches, so `tag=build` and
+# `tag=bakery/build` both select bakery/build. Tags are stored lowercased.
+TAG_EQUALS = (
+    "(instr({v}, '/') = 0 AND instr('/' || tag || '/', '/' || {v} || '/') > 0)"
+    " OR tag = {v} OR substr(tag, 1, length({v}) + 1) = {v} || '/'"
+)
 
 
 class Filter(pydantic.BaseModel, extra='forbid'):
@@ -46,42 +63,64 @@ class Filter(pydantic.BaseModel, extra='forbid'):
                 target=Target(match.group('target')),
             )
 
-    def match(self, value: str) -> bool:
-        if self.contains:
-            return self.data in value
-        return self.data == value
-
-    def func(self, task: schema.Task) -> bool:  # pylint: disable=inconsistent-return-statements
-        if self.target == Target.summary:
-            return self.match(task.summary.lower()) is not self.negate
-        if self.target == Target.tag:
-            # Any single heading or any full path from the root matches, so
-            # `tag=build` and `tag=bakery/build` both select Bakery > build.
-            names = [x.lower() for x in task.tag_names]
-            paths = ['/'.join(names[:i]) for i in range(2, len(names) + 1)]
-            matched = any(self.match(x) for x in names + paths)
-            return matched is not self.negate
-        if self.target == Target.owner:
-            # An empty value selects unowned (claimable) tasks: `owner=`.
-            return self.match((task.owner or '').lower()) is not self.negate
-        if self.target == Target.link:
-            return self.match((task.link or '').lower()) is not self.negate
-        if self.target == Target.priority:
-            return self.match(task.priority or '') is not self.negate
-        if self.target == Target.size:
-            return self.match(task.size or '') is not self.negate
-
-        assert_never(self.target)
-
-    @staticmethod
-    def apply(
-        tasks: Iterable[schema.Task], self: 'Filter'
-    ) -> Iterator[schema.Task]:
-        # TODO(refactor): weird af call signature
-        yield from (x for x in tasks if self.func(x))
+    def sql(self, param: str) -> str:
+        """A boolean expression comparing against `data`, bound to `param`."""
+        value = f':{param}'
+        if self.target == Target.tag and not self.contains:
+            clause = TAG_EQUALS.format(v=value)
+        else:
+            # Every segment and root path is a substring of the full tag.
+            column = (
+                'tag' if self.target == Target.tag else COLUMNS[self.target]
+            )
+            if self.contains:
+                clause = f'instr({column}, {value}) > 0'
+            else:
+                clause = f'{column} = {value}'
+        return f'NOT ({clause})' if self.negate else f'({clause})'
 
 
 class SortOrder(enum.StrEnum):
     ident = 'id'
     due = 'due'
     tag = 'tag'
+
+
+# char(1) sorts below every character a tag segment may hold, so a section's
+# children sort directly after it (bakery, bakery/build, bakery-x).
+ORDER_BY = {
+    SortOrder.ident: 'id',
+    SortOrder.due: 'next IS NOT NULL, next, id',
+    SortOrder.tag: (
+        f"tag != '{schema.TRIAGE}', replace(tag, '/', char(1)), id"
+    ),
+}
+
+
+def compile_(
+    filter_: str,
+    days: int,
+    limit: int,
+    order: SortOrder,
+    *,
+    scheduled: bool = False,
+) -> tuple[str, dict[str, object]]:
+    """The WHERE, ORDER BY, and LIMIT clauses selecting tasks, and params."""
+    clauses: list[str] = []
+    params: dict[str, object] = {}
+    for i, filter_part in enumerate(Filter.parse(filter_)):
+        clauses.append(filter_part.sql(f'filter{i}'))
+        params[f'filter{i}'] = filter_part.data
+    if days >= 0:
+        target = datetime.date.today() + datetime.timedelta(days=days)
+        clauses.append('(next IS NULL OR next <= :target)')
+        params['target'] = target.isoformat()
+    if scheduled:
+        clauses.append('next IS NOT NULL')
+
+    sql = f' WHERE {" AND ".join(clauses)}' if clauses else ''
+    sql += f' ORDER BY {ORDER_BY[order]}'
+    if limit >= 0:
+        sql += ' LIMIT :limit'
+        params['limit'] = limit
+    return sql, params
