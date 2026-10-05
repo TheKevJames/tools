@@ -138,22 +138,22 @@ dev = [
     { name = "flake8-complicated-walrus", specifier = "==2.1.0" },
     { name = "flake8-import-restrictions", specifier = "==2.1" },
     { name = "flake8-requirements", specifier = "==2.3.0" },
-    { name = "hypothesis", specifier = "==6.122.3" },
+    { name = "hypothesis", specifier = "==6.122.7" },
     { name = "pylint", specifier = "==4.1.2" },
     { name = "pytest", specifier = "==9.1.1" },
 ]
 
 [[package]]
 name = "hypothesis"
-version = "6.122.3"
+version = "6.122.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
     { name = "sortedcontainers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5a/21/c4c755ad5763f4c882a855b9966ac019c2314e5578b5f5eb39d9fe9fe64d/hypothesis-6.122.3.tar.gz", hash = "sha256:f4c927ce0ec739fa6266e4572949d0b54e24a14601a2bc5fec8f78e16af57918", size = 414395, upload-time = "2024-12-08T21:34:01.651Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7c/5b/a1ee59291115db310ef730e126a38bdb4e4d0c2c2e64139f5ab1174cc3db/hypothesis-6.122.7.tar.gz", hash = "sha256:cc2f88cdf3232d1650a9e5c9bc3de3c5b3b2fd8d35d893c7baf89149d320adf5", size = 417739, upload-time = "2024-12-23T03:38:54.795Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/66/cb/44fe7e78c3cfbcb01f905b3b252eff6396e2f2e8e88b2d27b5140a6ac474/hypothesis-6.122.3-py3-none-any.whl", hash = "sha256:f0f57036d3b95b979491602b32c95b6725c3af678cccb6165d8de330857f3c83", size = 475651, upload-time = "2024-12-08T21:33:57.945Z" },
+    { url = "https://files.pythonhosted.org/packages/30/ac/053eab61bea475d069b45db02c3c107d7816494f59c5cf4418646dc58a86/hypothesis-6.122.7-py3-none-any.whl", hash = "sha256:2a23237ff5782c7d6f983ba9c8d6216f047ecc66b4629ab17c00979b7018ab1a", size = 479741, upload-time = "2024-12-23T03:38:50.398Z" },
 ]
 
 [[package]]
