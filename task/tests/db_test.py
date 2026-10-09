@@ -49,6 +49,17 @@ INTERVAL = st.builds(
     st.integers(1, 99),
     st.sampled_from('dwm'),
 )
+TIMESTAMP = st.datetimes(
+    datetime.datetime(2000, 1, 1),
+    datetime.datetime(2099, 12, 31),
+    timezones=st.just(datetime.UTC),
+).map(lambda x: x.replace(microsecond=0))
+EPOCH = '2000-01-01T00:00:00Z'
+
+
+def consistent(task: schema.Task) -> bool:
+    """Recurring tasks advance rather than being done."""
+    return not (task.done and task.details and task.details.interval)
 
 
 def details(
@@ -78,7 +89,8 @@ TASK = st.builds(
     link=LINK,
     priority=st.none() | st.sampled_from(schema.Priority),
     size=st.none() | st.sampled_from(schema.Size),
-)
+    done=st.none() | TIMESTAMP,
+).filter(consistent)
 
 # Small alphabets, so that filters often match. Tag segments include ones
 # sorting either side of `/`, and summaries non-ASCII case.
@@ -97,7 +109,8 @@ QUERY_TASK = st.builds(
     link=st.sampled_from([None, 'a', 'A/b']),
     priority=st.none() | st.sampled_from(schema.Priority),
     size=st.none() | st.sampled_from(schema.Size),
-)
+    done=st.none() | TIMESTAMP,
+).filter(consistent)
 FILTER = st.builds(
     lambda target, op, data: f'{target}{op}{data}',
     st.sampled_from(query.Target),
@@ -162,6 +175,12 @@ def reference_key(
         return (task.details is not None, next_, task.ident)
     if order == query.SortOrder.tag:
         return (task.tag != schema.TRIAGE, task.tag_names, task.ident)
+    if order == query.SortOrder.created:
+        assert task.created
+        return (task.created, task.ident)
+    if order == query.SortOrder.updated:
+        assert task.updated
+        return (-task.updated.timestamp(), task.ident)
     return (task.ident,)
 
 
@@ -173,6 +192,7 @@ def reference_key(
     limit=st.integers(-1, 4),
     order=st.sampled_from(query.SortOrder),
     scheduled=st.booleans(),
+    done=st.booleans(),
 )
 @hypothesis.example(  # a path match must be anchored at the root
     tasks=[schema.Task(summary='a', details=None, tag='a/b/a')],
@@ -181,6 +201,7 @@ def reference_key(
     limit=-1,
     order=query.SortOrder.ident,
     scheduled=False,
+    done=False,
 )
 def test_query_matches_reference(  # pylint: disable=too-many-arguments
     tasks: list[schema.Task],
@@ -189,9 +210,12 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
     limit: int,
     order: query.SortOrder,
     scheduled: bool,
+    done: bool,
 ) -> None:
     filter_ = ','.join(filters)
-    clauses = query.compile_(filter_, days, limit, order, scheduled=scheduled)
+    clauses = query.compile_(
+        filter_, days, limit, order, scheduled=scheduled, done=done
+    )
     with task_folder():
         store(tasks)
         with db.connect() as conn:
@@ -204,6 +228,7 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
         if all(reference_match(f, t) for f in query.Filter.parse(filter_))
         and (days < 0 or not t.details or t.details.next_ <= target)
         and (t.details or not scheduled)
+        and (t.done is not None) == done
     ]
     expected.sort(key=lambda t: reference_key(order, t))
     if limit >= 0:
@@ -226,6 +251,10 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
         "link = 'a b'",
         "priority = 'urgent'",
         "size = 'huge'",
+        "done = '2026-01-01'",
+        "created = '2026-01-01 00:00:00'",
+        f"updated = '{EPOCH}'",
+        "next = '2026-01-01', interval = '1d', done = updated",
     ],
 )
 def test_constraints_refuse_bad_data(assignment: str) -> None:
@@ -233,3 +262,81 @@ def test_constraints_refuse_bad_data(assignment: str) -> None:
         store([schema.Task(summary='a', details=None, tag=schema.TRIAGE)])
         with db.connect() as conn, pytest.raises(sqlite3.IntegrityError):
             conn.execute(f'UPDATE task SET {assignment}')
+
+
+CONTENT = (
+    'summary',
+    'details',
+    'tag',
+    'description',
+    'owner',
+    'link',
+    'priority',
+    'size',
+    'done',
+)
+
+
+def content(task: schema.Task) -> dict[str, object]:
+    return {
+        k: v
+        for k, v in task.to_json().items()
+        if k not in {'created', 'updated'}
+    }
+
+
+@hypothesis.settings(max_examples=200, deadline=None)
+@hypothesis.given(TASK, TASK, st.sets(st.sampled_from(CONTENT)))
+def test_updated_bumps_only_on_change(
+    old: schema.Task, other: schema.Task, fields: set[str]
+) -> None:
+    with task_folder():
+        store([old])
+        ident = old.ident
+        assert ident is not None
+        new = old.model_copy(update={f: getattr(other, f) for f in fields})
+        hypothesis.assume(consistent(new))
+        with db.write() as conn:
+            conn.execute(
+                'UPDATE task SET created = :t, updated = :t', {'t': EPOCH}
+            )
+            before = db.get(conn, ident)
+            db.update(conn, new)
+            after = db.get(conn, ident)
+
+    assert content(after) == content(new)
+    assert after.created == before.created
+    bumped = after.updated != before.updated
+    assert bumped == (content(after) != content(before))
+    assert new.updated == after.updated
+
+
+@pytest.mark.parametrize('deleted', [[3], [1, 2, 3]])
+def test_migration_keeps_tasks_and_never_reuses_ids(
+    deleted: list[int],
+) -> None:
+    with task_folder() as folder:
+        conn = sqlite3.connect(folder / 'tasks.db', isolation_level=None)
+        conn.execute(db.MIGRATIONS[0])
+        conn.execute('PRAGMA user_version = 1')
+        conn.executemany(
+            "INSERT INTO task (summary, tag, owner) VALUES (?, 'a', ?)",
+            [('x', 'bot'), ('y', None), ('z', None)],
+        )
+        conn.executemany(
+            'DELETE FROM task WHERE id = ?', [(i,) for i in deleted]
+        )
+        conn.close()
+
+        added = schema.Task(summary='new', details=None, tag='a')
+        with db.write() as conn:
+            kept = db.select(conn, ' ORDER BY id')
+            db.insert(conn, added)
+
+    assert [(t.ident, t.summary, t.owner) for t in kept] == [
+        (i, s, o)
+        for i, s, o in ((1, 'x', 'bot'), (2, 'y', None))
+        if i not in deleted
+    ]
+    assert all(t.created == t.updated and not t.done for t in kept)
+    assert added.ident == 4

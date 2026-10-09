@@ -7,6 +7,8 @@ from typing import TypeVar
 
 import pydantic
 
+from . import timestamp
+
 OWNER_RE = re.compile(r'[A-Za-z0-9_.-]+')
 LINK_RE = re.compile(r'\S+')
 INTERVAL_RE = re.compile(r'[1-9][0-9]*[dwm]')
@@ -143,6 +145,10 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
     link: str | None = None
     priority: Priority | None = None
     size: Size | None = None
+    done: pydantic.AwareDatetime | None = None
+    # Assigned by the store: see db.
+    created: pydantic.AwareDatetime | None = None
+    updated: pydantic.AwareDatetime | None = None
 
     @pydantic.field_validator('summary')
     @classmethod
@@ -189,13 +195,16 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
             result += f' !{self.priority}'
         if self.owner:
             result += f' @{self.owner}'
+        if self.updated:
+            result += f' {timestamp.render_short_age(self.updated)}'
         if self.details:
             result += f'\n\t{self.details}'
         return result
 
-    def complete(self, ago: int) -> Self | None:
+    def complete(self, ago: int) -> Self:
+        """Mark done, or advance to the next occurrence if recurring."""
+        new_task = self.model_copy()
         if self.details and self.details.interval:
-            new_task = self.model_copy()
             assert new_task.details
 
             if self.details.shift:
@@ -207,8 +216,10 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
                 while next_ <= datetime.date.today():
                     next_ = self.details.interval.apply(next_)
                 new_task.details.next_ = next_
-            return new_task
-        return None
+        else:
+            now = datetime.datetime.now(datetime.UTC).replace(microsecond=0)
+            new_task.done = now - datetime.timedelta(days=ago)
+        return new_task
 
     def postpone(self, days: int) -> Self:
         new_task = self.model_copy()
@@ -345,6 +356,15 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
                 rows.append(
                     ('Recurrence', f'{self.details.interval} {anchor}')
                 )
+        rows.extend(
+            (label, timestamp.render(value))
+            for label, value in (
+                ('Created', self.created),
+                ('Updated', self.updated),
+                ('Done', self.done),
+            )
+            if value
+        )
 
         width = max(len(label) for label, _ in rows)
         header = '\n'.join(
@@ -368,6 +388,9 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
             'next': self.details.next_.isoformat() if self.details else None,
             'interval': interval.raw if interval else None,
             'shift': bool(self.details and self.details.shift),
+            'created': timestamp.serialize(self.created),
+            'updated': timestamp.serialize(self.updated),
+            'done': timestamp.serialize(self.done),
         }
 
     def _render_due(self) -> str:
