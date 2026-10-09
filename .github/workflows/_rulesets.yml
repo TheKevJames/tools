@@ -1,0 +1,100 @@
+name: _rulesets
+
+# Reusable workflow: reconcile the caller's repository rulesets with the JSON
+# definitions in its .github/rulesets/ directory (UI exports work verbatim).
+# Those definitions are authoritative: unlisted rulesets and any classic branch
+# protection on the default branch get deleted. Callers should run it on
+# changes to .github/rulesets/** and .github/workflows/** (required checks are
+# validated against workflow job names), on a schedule, and manually, eg.
+#   jobs:
+#     rulesets:
+#       uses: TheKevJames/tools/.github/workflows/_rulesets.yml@master
+#       secrets:
+#         RULESETS_TOKEN: ${{ secrets.RULESETS_TOKEN }}
+#
+# Events map to modes:
+#   pull_request              plan: report changes using only the read-only
+#                             github.token; the admin token never reaches code
+#                             from an unmerged PR
+#   push (default branch),
+#   workflow_dispatch         apply
+#   schedule                  check: fail on drift without fixing it
+#
+# RULESETS_TOKEN must be a fine-grained PAT with Administration:write; the
+# Actions GITHUB_TOKEN cannot be granted administration. Private repos are
+# skipped, as GitHub Free doesn't support rulesets on them.
+#
+# Like _prune-tags.yml, this checks out the policy code from tools@master.
+
+on:
+  workflow_call:
+    secrets:
+      RULESETS_TOKEN:
+        description: fine-grained PAT with Administration:write on the caller
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          path: caller
+          persist-credentials: false
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: TheKevJames/tools
+          ref: master
+          path: tools
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          # renovate: datasource=github-releases depName=astral-sh/uv
+          version: 0.12.24
+      - working-directory: tools/gha
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          uv run --frozen python -m gha_tools.rulesets
+          --mode plan
+          --repository "${GITHUB_REPOSITORY}"
+          --directory "${GITHUB_WORKSPACE}/caller"
+
+  reconcile:
+    # Scheduled runs always use the default branch's last commit.
+    if: >-
+      github.event_name == 'schedule'
+      || (github.event_name != 'pull_request'
+          && github.ref_name == github.event.repository.default_branch)
+    runs-on: ubuntu-26.04
+    concurrency:
+      group: rulesets-${{ github.repository }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          path: caller
+          persist-credentials: false
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: TheKevJames/tools
+          ref: master
+          path: tools
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          # renovate: datasource=github-releases depName=astral-sh/uv
+          version: 0.12.24
+      - working-directory: tools/gha
+        env:
+          GH_TOKEN: ${{ secrets.RULESETS_TOKEN }}
+          MODE: ${{ github.event_name == 'schedule' && 'check' || 'apply' }}
+        run: >-
+          uv run --frozen python -m gha_tools.rulesets
+          --mode "${MODE}"
+          --repository "${GITHUB_REPOSITORY}"
+          --directory "${GITHUB_WORKSPACE}/caller"
