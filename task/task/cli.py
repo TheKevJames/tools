@@ -22,14 +22,10 @@ class SubjectGroup(core.TyperGroup):
 
     A leading integer is the task id (the subject); it is moved to sit behind
     the command so ordinary Typer parsing applies. A bare integer means `show`.
-    With no command at all, default to `list`; leading global flags likewise
-    route to `list`.
     """
 
     def parse_args(self, ctx: _click.Context, args: list[str]) -> list[str]:
-        if not args:
-            args = ['list']
-        elif args[0].lstrip('-').isdigit():
+        if args and args[0].lstrip('-').isdigit():
             if len(args) == 1:
                 args = ['show', args[0]]
             else:
@@ -38,14 +34,10 @@ class SubjectGroup(core.TyperGroup):
                     args = [cmd, ident, *rest]
                 else:
                     args = ['show', ident, cmd, *rest]
-        elif args[0] not in self.commands and args[0] != '--help':
-            args = ['list', *args]
         return super().parse_args(ctx, args)
 
 
-app = typer.Typer(
-    cls=SubjectGroup, add_completion=False, no_args_is_help=False
-)
+app = typer.Typer(cls=SubjectGroup, add_completion=False, no_args_is_help=True)
 
 
 @app.callback()
