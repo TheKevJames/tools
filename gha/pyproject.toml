@@ -7,7 +7,9 @@ license = { text = "MIT" }
 
 authors = [{ name = "Kevin James", email = "KevinJames@thekev.in" }]
 
-dependencies = []
+dependencies = [
+    "pyyaml==6.0.3",
+]
 
 [project.urls]
 repository = "https://github.com/TheKevJames/tools"
@@ -22,6 +24,7 @@ dev = [
     "hypothesis==6.168.4",
     "pylint==4.1.2",
     "pytest==9.1.1",
+    "types-pyyaml==6.0.12.20250915",
 ]
 
 [tool.pytest.ini_options]
