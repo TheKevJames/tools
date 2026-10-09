@@ -53,6 +53,7 @@ Filter = Annotated[
 Limit = Annotated[int, typer.Option('-l', '--limit')]
 Sort = Annotated[query.SortOrder, typer.Option('-s', '--sort')]
 AsJson = Annotated[bool, typer.Option('--json', help='Machine-readable.')]
+Done = Annotated[bool, typer.Option('--done', help='Only done tasks.')]
 
 # Shared detail flags: `add` and `set` funnel these into Task.update, keeping a
 # single source of truth for task modifications.
@@ -99,10 +100,12 @@ def list_(
     limit: Limit = -1,
     sort: Sort = query.SortOrder.tag,
     as_json: AsJson = False,
+    done_: Done = False,
 ) -> None:
-    """List all tasks."""
+    """List all open tasks."""
+    clauses = query.compile_(filter_, days, limit, sort, done=done_)
     with db.connect() as conn:
-        tasks = db.select(conn, *query.compile_(filter_, days, limit, sort))
+        tasks = db.select(conn, *clauses)
     print_tasks(tasks, as_json)
 
 
@@ -164,15 +167,12 @@ def show(ident: int, as_json: AsJson = False) -> None:
 
 @app.command('done', rich_help_panel=SUBJECT_PANEL)
 def done(ident: int, ago: Ago = 0) -> None:
-    """Mark a task as completed, optionally some days ago."""
+    """Complete a task, hiding it, optionally some days ago."""
     with db.write() as conn:
-        completed = db.get(conn, ident).complete(ago)
-        if not completed:
-            db.delete(conn, ident)
-        else:
-            db.update(conn, completed)
+        completed = db.get_open(conn, ident).complete(ago)
+        db.update(conn, completed)
 
-    if not completed:
+    if completed.done:
         print('completed task')
         return
     assert completed.details, 'completed recurring task has no details'
@@ -181,11 +181,22 @@ def done(ident: int, ago: Ago = 0) -> None:
     )
 
 
+@app.command('reopen', rich_help_panel=SUBJECT_PANEL)
+def reopen(ident: int) -> None:
+    """Reopen a done task."""
+    with db.write() as conn:
+        task = db.get(conn, ident)
+        if not task.done:
+            raise schema.TaskError(f'task {ident} is not done')
+        task.done = None
+        db.update(conn, task)
+
+
 @app.command('delay', rich_help_panel=SUBJECT_PANEL)
 def delay(ident: int, days: int) -> None:
     """Postpone a task by the given number of days."""
     with db.write() as conn:
-        delayed = db.get(conn, ident).postpone(days)
+        delayed = db.get_open(conn, ident).postpone(days)
         db.update(conn, delayed)
 
     assert delayed.details, 'delayed task has no details'
@@ -210,7 +221,7 @@ def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments
 ) -> None:
     """Edit a task's summary, section, metadata, or schedule."""
     with db.write() as conn:
-        task = db.get(conn, ident)
+        task = db.get_open(conn, ident)
         task.update(
             summary=summary,
             tag=tag,
@@ -232,7 +243,7 @@ def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments
 def describe(ident: int) -> None:
     """Edit a task's description in $EDITOR."""
     with db.connect() as conn:
-        original = db.get(conn, ident).description
+        original = db.get_open(conn, ident).description
 
     # The editor runs without the write lock, so other writers carry on; the
     # result is only saved if nobody else changed the description meanwhile.
@@ -248,7 +259,7 @@ def describe(ident: int) -> None:
         path.unlink()
 
     with db.write() as conn:
-        task = db.get(conn, ident)
+        task = db.get_open(conn, ident)
         if task.description != original:
             raise schema.TaskError(
                 f"task {ident}'s description changed while editing"
@@ -261,7 +272,7 @@ def describe(ident: int) -> None:
 def unset(ident: int, fields: list[schema.ClearableField]) -> None:
     """Clear fields from a task; `unset <id> owner` releases a claim."""
     with db.write() as conn:
-        task = db.get(conn, ident)
+        task = db.get_open(conn, ident)
         task.clear(fields)
         db.update(conn, task)
 
