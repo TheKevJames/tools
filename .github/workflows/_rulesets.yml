@@ -54,7 +54,7 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
-          version: 0.12.24
+          version: 0.13.0
       - working-directory: tools/gha
         env:
           GH_TOKEN: ${{ github.token }}
@@ -88,7 +88,7 @@ jobs:
       - uses: astral-sh/setup-uv@v10.2.0
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
-          version: 0.12.24
+          version: 0.13.0
       - working-directory: tools/gha
         env:
           GH_TOKEN: ${{ secrets.RULESETS_TOKEN }}
