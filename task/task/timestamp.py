@@ -38,15 +38,6 @@ def render_age(value: datetime.datetime) -> str:
             return f'{count} {unit}s ago'
 
 
-def render_short_age(value: datetime.datetime) -> str:
-    """`~3h`."""
-    match age(value):
-        case None:
-            return '~now'
-        case count, unit:
-            return f'~{count}{unit[0]}'
-
-
 def render(value: datetime.datetime) -> str:
     local = value.astimezone().strftime('%Y-%m-%d %H:%M')
     return f'{local} ({render_age(value)})'

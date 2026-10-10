@@ -195,8 +195,6 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
             result += f' !{self.priority}'
         if self.owner:
             result += f' @{self.owner}'
-        if self.updated:
-            result += f' {timestamp.render_short_age(self.updated)}'
         if self.details:
             result += f'\n\t{self.details}'
         return result
