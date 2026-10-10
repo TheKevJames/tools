@@ -27,7 +27,7 @@ def create_bt_socket(interface: int = 0) -> socket.socket:
         # type mask, event mask, event mask, opcode
         sock.setsockopt(
             socket.SOL_HCI,
-            socket.HCI_FILTER,  # ty: ignore[unresolved-attribute]
+            socket.HCI_FILTER,
             struct.pack('IIIh2x', 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0),
         )
         sock.bind((interface,))
