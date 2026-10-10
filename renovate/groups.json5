@@ -170,6 +170,7 @@
         {
             "groupName": "uv",
             "matchDepNames": [
+                "/^astral-sh/setup-uv$/",
                 "/^astral-sh/uv$/",
                 "/^astral-sh/uv-pre-commit$/",
                 "/^ghcr\\.io/astral-sh/uv$/",
