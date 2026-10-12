@@ -7,10 +7,10 @@ change them while holding the write lock but before committing, so a failed
 commit can strand an orphan, which the next write removes. Ids are never
 reused, so an orphan cannot attach itself to a different task.
 
-Tasks are never deleted: completing one stamps `done`, which hides it from
-listings. `created` and `updated` belong to the store, never to callers: every
-write which changes a task's row or description bumps `updated`. Editing a
-description file by hand does not.
+Completing a one-off task deletes it, with its description; recurring tasks
+advance instead. `created` and `updated` belong to the store, never to
+callers: every write which changes a task's row or description bumps
+`updated`. Editing a description file by hand does not.
 """
 
 import contextlib
@@ -36,7 +36,6 @@ WRITABLE = (
     'link',
     'priority',
     'size',
-    'done',
 )
 COLUMNS = (*WRITABLE, 'created', 'updated')
 NOW = f"strftime('{timestamp.FORMAT}', 'now')"
@@ -108,6 +107,53 @@ MIGRATIONS = (
     )
     SELECT id, summary, tag, next, interval, shift, owner, link, priority, size
     FROM task
+    """,
+    "DELETE FROM sqlite_sequence WHERE name = 'task_new'",
+    "UPDATE sqlite_sequence SET name = 'task_new' WHERE name = 'task'",
+    'DROP TABLE task',
+    'ALTER TABLE task_new RENAME TO task',
+    # Done tasks are deleted from now on, so the `done` column goes along with
+    # every task stamped with it; the next write removes their descriptions.
+    """
+    CREATE TABLE task_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        summary TEXT NOT NULL
+            CHECK (trim(summary) != '' AND instr(summary, char(10)) = 0),
+        tag TEXT NOT NULL CHECK (tag != '' AND tag = lower(tag)),
+        next TEXT CHECK (date(next) IS next),
+        interval TEXT CHECK (
+            interval GLOB '[1-9]*[dwm]'
+            AND substr(interval, 1, length(interval) - 1) NOT GLOB '*[^0-9]*'
+        ),
+        shift INTEGER NOT NULL DEFAULT 0 CHECK (shift IN (0, 1)),
+        owner TEXT CHECK (
+            owner != '' AND owner NOT GLOB '*[^A-Za-z0-9_.-]*'
+        ),
+        link TEXT CHECK (
+            link != '' AND link NOT GLOB ('*[ ' || char(9, 10, 13) || ']*')
+        ),
+        priority TEXT CHECK (priority IN ('low', 'medium', 'high')),
+        size TEXT CHECK (size IN ('small', 'medium', 'large')),
+        created TEXT NOT NULL
+            DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            CHECK (strftime('%Y-%m-%dT%H:%M:%SZ', created) IS created),
+        updated TEXT NOT NULL
+            DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            CHECK (strftime('%Y-%m-%dT%H:%M:%SZ', updated) IS updated),
+        CHECK (next IS NOT NULL OR (interval IS NULL AND shift = 0)),
+        CHECK (updated >= created)
+    ) STRICT
+    """,
+    """
+    INSERT INTO task_new (
+        id, summary, tag, next, interval, shift, owner, link, priority, size,
+        created, updated
+    )
+    SELECT
+        id, summary, tag, next, interval, shift, owner, link, priority, size,
+        created, updated
+    FROM task
+    WHERE done IS NULL
     """,
     "DELETE FROM sqlite_sequence WHERE name = 'task_new'",
     "UPDATE sqlite_sequence SET name = 'task_new' WHERE name = 'task'",
@@ -194,14 +240,6 @@ def get(conn: sqlite3.Connection, ident: int) -> schema.Task:
     return tasks[0]
 
 
-def get_open(conn: sqlite3.Connection, ident: int) -> schema.Task:
-    """A task which may still change: done tasks are only ever reopened."""
-    task = get(conn, ident)
-    if task.done:
-        raise schema.TaskError(f'task {ident} is done')
-    return task
-
-
 def insert(conn: sqlite3.Connection, task: schema.Task) -> None:
     """Store a new task, assigning its id unless it already has one."""
     names = ', '.join(WRITABLE)
@@ -232,6 +270,12 @@ def update(conn: sqlite3.Connection, task: schema.Task) -> None:
     _write_description(task)
 
 
+def delete(conn: sqlite3.Connection, task: schema.Task) -> None:
+    assert task.ident is not None, 'task id has not been assigned'
+    conn.execute('DELETE FROM task WHERE id = :id', {'id': task.ident})
+    _description_path(task.ident).unlink(missing_ok=True)
+
+
 def _to_row(task: schema.Task) -> dict[str, object]:
     details = task.details
     interval = details.interval if details else None
@@ -246,7 +290,6 @@ def _to_row(task: schema.Task) -> dict[str, object]:
         'link': task.link,
         'priority': task.priority,
         'size': task.size,
-        'done': timestamp.serialize(task.done),
     }
 
 

@@ -49,17 +49,7 @@ INTERVAL = st.builds(
     st.integers(1, 99),
     st.sampled_from('dwm'),
 )
-TIMESTAMP = st.datetimes(
-    datetime.datetime(2000, 1, 1),
-    datetime.datetime(2099, 12, 31),
-    timezones=st.just(datetime.UTC),
-).map(lambda x: x.replace(microsecond=0))
 EPOCH = '2000-01-01T00:00:00Z'
-
-
-def consistent(task: schema.Task) -> bool:
-    """Recurring tasks advance rather than being done."""
-    return not (task.done and task.details and task.details.interval)
 
 
 def details(
@@ -89,8 +79,7 @@ TASK = st.builds(
     link=LINK,
     priority=st.none() | st.sampled_from(schema.Priority),
     size=st.none() | st.sampled_from(schema.Size),
-    done=st.none() | TIMESTAMP,
-).filter(consistent)
+)
 
 # Small alphabets, so that filters often match. Tag segments include ones
 # sorting either side of `/`, and summaries non-ASCII case.
@@ -109,8 +98,7 @@ QUERY_TASK = st.builds(
     link=st.sampled_from([None, 'a', 'A/b']),
     priority=st.none() | st.sampled_from(schema.Priority),
     size=st.none() | st.sampled_from(schema.Size),
-    done=st.none() | TIMESTAMP,
-).filter(consistent)
+)
 FILTER = st.builds(
     lambda target, op, data: f'{target}{op}{data}',
     st.sampled_from(query.Target),
@@ -192,7 +180,6 @@ def reference_key(
     limit=st.integers(-1, 4),
     order=st.sampled_from(query.SortOrder),
     scheduled=st.booleans(),
-    done=st.booleans(),
 )
 @hypothesis.example(  # a path match must be anchored at the root
     tasks=[schema.Task(summary='a', details=None, tag='a/b/a')],
@@ -201,7 +188,6 @@ def reference_key(
     limit=-1,
     order=query.SortOrder.ident,
     scheduled=False,
-    done=False,
 )
 def test_query_matches_reference(  # pylint: disable=too-many-arguments
     tasks: list[schema.Task],
@@ -210,12 +196,9 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
     limit: int,
     order: query.SortOrder,
     scheduled: bool,
-    done: bool,
 ) -> None:
     filter_ = ','.join(filters)
-    clauses = query.compile_(
-        filter_, days, limit, order, scheduled=scheduled, done=done
-    )
+    clauses = query.compile_(filter_, days, limit, order, scheduled=scheduled)
     with task_folder():
         store(tasks)
         with db.connect() as conn:
@@ -228,7 +211,6 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
         if all(reference_match(f, t) for f in query.Filter.parse(filter_))
         and (days < 0 or not t.details or t.details.next_ <= target)
         and (t.details or not scheduled)
-        and (t.done is not None) == done
     ]
     expected.sort(key=lambda t: reference_key(order, t))
     if limit >= 0:
@@ -251,10 +233,8 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
         "link = 'a b'",
         "priority = 'urgent'",
         "size = 'huge'",
-        "done = '2026-01-01'",
         "created = '2026-01-01 00:00:00'",
         f"updated = '{EPOCH}'",
-        "next = '2026-01-01', interval = '1d', done = updated",
     ],
 )
 def test_constraints_refuse_bad_data(assignment: str) -> None:
@@ -273,7 +253,6 @@ CONTENT = (
     'link',
     'priority',
     'size',
-    'done',
 )
 
 
@@ -295,7 +274,6 @@ def test_updated_bumps_only_on_change(
         ident = old.ident
         assert ident is not None
         new = old.model_copy(update={f: getattr(other, f) for f in fields})
-        hypothesis.assume(consistent(new))
         with db.write() as conn:
             conn.execute(
                 'UPDATE task SET created = :t, updated = :t', {'t': EPOCH}
@@ -338,5 +316,30 @@ def test_migration_keeps_tasks_and_never_reuses_ids(
         for i, s, o in ((1, 'x', 'bot'), (2, 'y', None))
         if i not in deleted
     ]
-    assert all(t.created == t.updated and not t.done for t in kept)
+    assert all(t.created == t.updated for t in kept)
     assert added.ident == 4
+
+
+def test_migration_deletes_done_tasks_and_never_reuses_ids() -> None:
+    with task_folder() as folder:
+        conn = sqlite3.connect(folder / 'tasks.db', isolation_level=None)
+        # The last version with a `done` column.
+        for migration in db.MIGRATIONS[:7]:
+            conn.execute(migration)
+        conn.execute('PRAGMA user_version = 7')
+        conn.executemany(
+            "INSERT INTO task (summary, tag, done) VALUES (?, 'a', ?)",
+            [('x', None), ('y', EPOCH), ('z', EPOCH)],
+        )
+        conn.close()
+        for ident in (1, 2):
+            (folder / f'{ident}.txt').write_text('notes')
+
+        added = schema.Task(summary='new', details=None, tag='a')
+        with db.write() as conn:
+            kept = db.select(conn, ' ORDER BY id')
+            db.insert(conn, added)
+
+        assert [(t.ident, t.description) for t in kept] == [(1, 'notes')]
+        assert not (folder / '2.txt').exists()
+        assert added.ident == 4
