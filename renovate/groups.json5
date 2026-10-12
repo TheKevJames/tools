@@ -163,6 +163,7 @@
         {
             "groupName": "terraform",
             "matchDepNames": [
+                "/^aleksac/terraform-py$/",
                 "/^hashicorp/terraform$/",
                 "/^terraform$/",
             ],
