@@ -36,7 +36,7 @@ repos:
         args:
           - --select=FCW,I90,IMR,N400
           - --ignore=IMR200
-          - --per-file-ignores=tests/*:I900
+          - --per-file-ignores=tests/*:I900 hatch_build.py:I900
           - --imr241_exclude=__future__,collections.abc,typing
       - id: disallow-untyped-imports
         name: disallow-untyped-imports
