@@ -145,7 +145,6 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
     link: str | None = None
     priority: Priority | None = None
     size: Size | None = None
-    done: pydantic.AwareDatetime | None = None
     # Assigned by the store: see db.
     created: pydantic.AwareDatetime | None = None
     updated: pydantic.AwareDatetime | None = None
@@ -199,24 +198,24 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
             result += f'\n\t{self.details}'
         return result
 
-    def complete(self, ago: int) -> Self:
-        """Mark done, or advance to the next occurrence if recurring."""
-        new_task = self.model_copy()
-        if self.details and self.details.interval:
-            assert new_task.details
+    def complete(self, ago: int) -> Self | None:
+        """The next occurrence if recurring; None, to delete it, if not."""
+        if not (self.details and self.details.interval):
+            if ago:
+                raise TaskError('--ago only applies to recurring tasks')
+            return None
 
-            if self.details.shift:
-                new_task.details.next_ = self.details.interval.apply(
-                    datetime.date.today() - datetime.timedelta(days=ago)
-                )
-            else:
-                next_ = self.details.interval.apply(self.details.next_)
-                while next_ <= datetime.date.today():
-                    next_ = self.details.interval.apply(next_)
-                new_task.details.next_ = next_
+        new_task = self.model_copy()
+        assert new_task.details
+        if self.details.shift:
+            new_task.details.next_ = self.details.interval.apply(
+                datetime.date.today() - datetime.timedelta(days=ago)
+            )
         else:
-            now = datetime.datetime.now(datetime.UTC).replace(microsecond=0)
-            new_task.done = now - datetime.timedelta(days=ago)
+            next_ = self.details.interval.apply(self.details.next_)
+            while next_ <= datetime.date.today():
+                next_ = self.details.interval.apply(next_)
+            new_task.details.next_ = next_
         return new_task
 
     def postpone(self, days: int) -> Self:
@@ -359,7 +358,6 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
             for label, value in (
                 ('Created', self.created),
                 ('Updated', self.updated),
-                ('Done', self.done),
             )
             if value
         )
@@ -388,7 +386,6 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
             'shift': bool(self.details and self.details.shift),
             'created': timestamp.serialize(self.created),
             'updated': timestamp.serialize(self.updated),
-            'done': timestamp.serialize(self.done),
         }
 
     def _render_due(self) -> str:

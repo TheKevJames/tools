@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import pathlib
@@ -25,11 +26,8 @@ def run(folder: pathlib.Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.CompletedProcess(args, proc.returncode, stdout, stderr)
 
 
-def listed(
-    folder: pathlib.Path, filter_: str = '', *, done: bool = False
-) -> list[dict[str, object]]:
-    flags = ['--done'] if done else []
-    result = run(folder, 'list', '--json', '-f', filter_, *flags)
+def listed(folder: pathlib.Path, filter_: str = '') -> list[dict[str, object]]:
+    result = run(folder, 'list', '--json', '-f', filter_)
     assert result.returncode == 0, result.stderr
     tasks: list[dict[str, object]] = json.loads(result.stdout)
     return tasks
@@ -126,7 +124,7 @@ def test_descriptions_are_text_files(tmp_path: pathlib.Path) -> None:
     assert run(tmp_path, '1', 'unset', 'description').returncode == 0
     assert not (tmp_path / '1.txt').exists()
     assert run(tmp_path, '2', 'done').returncode == 0
-    assert (tmp_path / '2.txt').read_text() == 'y'
+    assert not (tmp_path / '2.txt').exists()
 
     (tmp_path / '9.txt').write_text('orphan')
     assert run(tmp_path, 'add', 'c').returncode == 0
@@ -134,34 +132,25 @@ def test_descriptions_are_text_files(tmp_path: pathlib.Path) -> None:
     assert [t['id'] for t in listed(tmp_path)] == [1, 3]  # ids never reused
 
 
-def test_done_hides_until_reopened(tmp_path: pathlib.Path) -> None:
+def test_done_deletes_one_off_tasks(tmp_path: pathlib.Path) -> None:
     assert run(tmp_path, 'add', 'a').returncode == 0
     assert run(tmp_path, 'add', 'b').returncode == 0
-    assert run(tmp_path, '1', 'done', '--ago', '2').returncode == 0
+    recurring = ('--next', '2000-01-01', '--interval', '1d', '--shift')
+    assert run(tmp_path, 'add', 'c', *recurring).returncode == 0
 
-    assert [t['id'] for t in listed(tmp_path)] == [2]
-    [done] = listed(tmp_path, done=True)
-    assert done['id'] == 1
-    assert str(done['done']) < str(done['updated'])
-    assert 'Done:' in run(tmp_path, '1').stdout
-
-    for args in (
-        ('done',),
-        ('set', '--summary', 'x'),
-        ('delay', '1'),
-        ('unset', 'owner'),
-        ('describe',),
-    ):
+    refused = run(tmp_path, '1', 'done', '--ago', '2')
+    assert refused.returncode == 1
+    assert '--ago only applies to recurring tasks' in refused.stderr
+    assert run(tmp_path, '1', 'done').stdout == 'deleted task 1: a\n'
+    assert [t['id'] for t in listed(tmp_path)] == [2, 3]
+    for args in ((), ('done',), ('set', '--summary', 'x')):
         result = run(tmp_path, '1', *args)
         assert result.returncode == 1
-        assert 'task 1 is done' in result.stderr
+        assert 'task 1 not found' in result.stderr
 
-    refused = run(tmp_path, '2', 'reopen')
-    assert refused.returncode == 1
-    assert 'task 2 is not done' in refused.stderr
-    assert run(tmp_path, '1', 'reopen').returncode == 0
-    assert [t['id'] for t in listed(tmp_path)] == [1, 2]
-    assert not listed(tmp_path, done=True)
+    # Done yesterday, so due again a day after that.
+    assert run(tmp_path, '3', 'done', '--ago', '1').returncode == 0
+    assert listed(tmp_path)[1]['next'] == datetime.date.today().isoformat()
 
 
 def test_describe_refuses_concurrent_change(

@@ -108,14 +108,9 @@ def compile_(
     order: SortOrder,
     *,
     scheduled: bool = False,
-    done: bool = False,
 ) -> tuple[str, dict[str, object]]:
-    """
-    The WHERE, ORDER BY, and LIMIT clauses selecting tasks, and params.
-
-    Selects either open tasks or, with `done`, only done ones.
-    """
-    clauses = ['done IS NOT NULL' if done else 'done IS NULL']
+    """The WHERE, ORDER BY, and LIMIT clauses selecting tasks, and params."""
+    clauses: list[str] = []
     params: dict[str, object] = {}
     for i, filter_part in enumerate(Filter.parse(filter_)):
         clauses.append(filter_part.sql(f'filter{i}'))
@@ -127,7 +122,7 @@ def compile_(
     if scheduled:
         clauses.append('next IS NOT NULL')
 
-    sql = f' WHERE {" AND ".join(clauses)}'
+    sql = f' WHERE {" AND ".join(clauses)}' if clauses else ''
     sql += f' ORDER BY {ORDER_BY[order]}'
     if limit >= 0:
         sql += ' LIMIT :limit'
