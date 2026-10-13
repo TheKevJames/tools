@@ -22,6 +22,7 @@ ATC_EVENT = bytes.fromhex(
 ATC_PAYLOAD = bytes.fromhex('a4c138d8f89d00ea30550b860a')
 
 FLAGS_AD = bytes.fromhex('020106')
+TRACKED_MAC = bytes.fromhex('a4c138d8f89d')
 
 
 def ad_structure(ad_type: int, value: bytes) -> bytes:
@@ -34,11 +35,11 @@ def atc1441_service_data(payload: bytes) -> bytes:
 
 
 def le_advertising_report(
-    mac: bytes, ad_structures: Sequence[bytes], rssi: int, event_type: int = 0
+    mac: bytes, ad_structures: Sequence[bytes], rssi: int
 ) -> bytes:
     ad_data = b''.join(ad_structures)
     params = (
-        bytes([0x02, 0x01, event_type, 0x00])  # subevent, reports, ev, addr
+        bytes([0x02, 0x01, 0x00, 0x00])  # subevent, reports, ev, addr
         + mac[::-1]
         + bytes([len(ad_data)])
         + ad_data
@@ -63,6 +64,14 @@ def processor_for(
     sensors[mac] = {'name': 'sensor'}
     registry = prometheus_client.CollectorRegistry()
     return registry, main.build_processor(sensors, registry)
+
+
+def tracked_advert(*ad_structures: bytes) -> bytes:
+    return le_advertising_report(TRACKED_MAC, ad_structures, -60)
+
+
+def nothing_exported(registry: prometheus_client.CollectorRegistry) -> bool:
+    return not any(metric.samples for metric in registry.collect())
 
 
 @hypothesis.strategies.composite
@@ -147,22 +156,29 @@ def test_vendored_parser_extracts_advert_fields() -> None:
     assert main.atc1441_service_data(event) == ATC_PAYLOAD
 
 
-def test_decode_data_atc1441_end_to_end() -> None:
-    measurement = main.decode_data_atc1441(
-        {}, 'a4:c1:38:d8:f8:9d', ATC_PAYLOAD
+@pytest.mark.parametrize(
+    ('payload', 'expected'),
+    [
+        (
+            ATC_PAYLOAD,
+            main.Measurement(
+                battery=85, humidity=48, temperature=23.4, voltage=2.95
+            ),
+        ),
+        (
+            bytes.fromhex('a4c138d8f89dff9c1a640bb801'),
+            main.Measurement(
+                battery=100, humidity=26, temperature=-10.0, voltage=3.0
+            ),
+        ),
+    ],
+)
+def test_decode_data_atc1441(
+    payload: bytes, expected: main.Measurement
+) -> None:
+    assert main.decode_data_atc1441({}, 'a4:c1:38:d8:f8:9d', payload) == (
+        expected
     )
-
-    assert measurement == main.Measurement(
-        battery=85, humidity=48, temperature=23.4, voltage=2.95
-    )
-
-
-def test_decode_data_atc1441_dedupes_by_advertising_counter() -> None:
-    mac = 'a4:c1:38:d8:f8:9d'
-    cache: dict[str, int] = {}
-    assert main.decode_data_atc1441(cache, mac, ATC_PAYLOAD) is not None
-    # same advertising counter -> deduplicated
-    assert main.decode_data_atc1441(cache, mac, ATC_PAYLOAD) is None
 
 
 def test_processor_matches_uppercase_config_sections() -> None:
@@ -182,10 +198,78 @@ def test_processor_matches_uppercase_config_sections() -> None:
 
 
 @pytest.mark.parametrize(
-    'payload', [b'', ATC_PAYLOAD[:-1], ATC_PAYLOAD + b'\x00']
+    'data',
+    [
+        pytest.param(b'', id='empty'),
+        pytest.param(b'\x02' + ATC_EVENT[1:], id='not-an-hci-event'),
+        pytest.param(ATC_EVENT[:13], id='undecodable'),
+        pytest.param(
+            le_advertising_report(
+                bytes.fromhex('a4c138000000'),
+                [atc1441_service_data(ATC_PAYLOAD)],
+                -60,
+            ),
+            id='untracked-device',
+        ),
+        pytest.param(tracked_advert(FLAGS_AD), id='no-service-data'),
+        pytest.param(
+            tracked_advert(
+                ad_structure(0x16, bytes.fromhex('1b18') + ATC_PAYLOAD)
+            ),
+            id='other-service-uuid',
+        ),
+        pytest.param(
+            tracked_advert(atc1441_service_data(ATC_PAYLOAD[:-1])),
+            id='short-payload',
+        ),
+        pytest.param(
+            tracked_advert(atc1441_service_data(ATC_PAYLOAD + b'\x00')),
+            id='long-payload',
+        ),
+    ],
 )
-def test_decode_data_atc1441_rejects_invalid_length(payload: bytes) -> None:
-    assert main.decode_data_atc1441({}, 'a4:c1:38:d8:f8:9d', payload) is None
+def test_processor_ignores_unusable_events(data: bytes) -> None:
+    registry, process = processor_for('a4:c1:38:d8:f8:9d')
+
+    process(data)
+
+    assert nothing_exported(registry)
+
+
+@hypothesis.strategies.composite
+def hci_packets(draw: hypothesis.strategies.DrawFn) -> bytes:
+    prefix = draw(
+        hypothesis.strategies.sampled_from(
+            [
+                b'',
+                bytes.fromhex('043e'),
+                bytes.fromhex('040e'),
+                bytes.fromhex('043eff0201') + bytes(2) + TRACKED_MAC[::-1],
+                bytes.fromhex('043eff0d01'),
+            ]
+        )
+    )
+    ads = draw(
+        hypothesis.strategies.lists(
+            hypothesis.strategies.builds(
+                ad_structure,
+                hypothesis.strategies.sampled_from([0x01, 0x09, 0x16, 0x20])
+                | hypothesis.strategies.integers(0, 255),
+                hypothesis.strategies.binary(max_size=31),
+            ),
+            max_size=4,
+        )
+    )
+    packet = prefix + b''.join(ads)
+    cut = draw(hypothesis.strategies.integers(0, len(packet)))
+    return packet[:cut] + draw(hypothesis.strategies.binary(max_size=64))
+
+
+@hypothesis.given(data=hci_packets())
+def test_processor_survives_arbitrary_packets(data: bytes) -> None:
+    _, process = processor_for('a4:c1:38:d8:f8:9d')
+
+    process(data)
 
 
 # Captured from sensor ATC_D8F89D via CoreBluetooth, which exposes only the
