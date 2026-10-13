@@ -1,6 +1,7 @@
 import copy
 import json
 import pathlib
+import shutil
 import urllib.parse
 from collections.abc import Callable
 from collections.abc import Mapping
@@ -38,6 +39,8 @@ class FakeGitHub:
         # repo endpoints list and read these but cannot change them.
         self.inherited: dict[int, dict[str, Any]] = {}
         self.calls: list[str] = []
+        # 'METHOD /path' -> status to fail that request with.
+        self.errors: dict[str, int] = {}
         self._next_id = 100
 
     def store(
@@ -107,10 +110,13 @@ class FakeGitHub:
         token: str,
         body: Any,  # noqa: ANN401
     ) -> tuple[int, Any]:
-        self.calls.append(f'{method} {path}')
+        call = f'{method} {path}'
+        self.calls.append(call)
         admin = token == ADMIN
         if token not in {ADMIN, READER}:
             return 401, {'message': 'Bad credentials'}
+        if call in self.errors:
+            return self.errors[call], {'message': 'Server Error'}
         base = f'/repos/{REPO}'
         if path == base:
             return 200, {'private': self.private, 'default_branch': 'master'}
@@ -373,3 +379,114 @@ def test_misconfiguration_fails_before_touching_github(
     assert _run(monkeypatch, checkout, 'apply', ADMIN) == 1
     assert 'no ruleset definitions' in (checkout / 'summary.md').read_text()
     assert not github.calls
+
+
+def _requiring(name: str, *contexts: str) -> desired.Ruleset:
+    checks = [{'context': context} for context in contexts]
+    rule = {
+        'type': 'required_status_checks',
+        'parameters': {'required_status_checks': checks},
+    }
+    return CHECKS | {'name': name, 'rules': [rule]}
+
+
+@pytest.mark.usefixtures('github')
+def test_required_check_warnings_reach_the_summary(
+    checkout: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    rulesets = checkout / '.github' / 'rulesets'
+    for ruleset in (
+        _requiring('more', 'lnt', 'build readme'),
+        _requiring('dup', 'lnt'),
+    ):
+        (rulesets / f'{ruleset["name"]}.json').write_text(json.dumps(ruleset))
+    workflows = checkout / '.github' / 'workflows'
+    (workflows / 'docs.yaml').write_text(
+        'on:\n'
+        '  pull_request:\n'
+        '    paths: [docs/**]\n'
+        'jobs:\n'
+        '  readme:\n'
+        '    name: build readme\n'
+    )
+    (workflows / 'broken.yml').write_text('jobs: [unclosed\n')
+    # Valid YAML that isn't a workflow is not worth a warning.
+    (workflows / 'empty.yml').write_text('')
+    (workflows / 'list.yml').write_text('- not a mapping\n')
+
+    assert _run(monkeypatch, checkout, 'plan', READER) == 0
+    summary = (checkout / 'summary.md').read_text()
+    warnings = [
+        line for line in summary.splitlines() if line.startswith('- **warning')
+    ]
+    # "lnt" is required twice but warned about once.
+    assert len(warnings) == 3
+    for expected in (
+        'broken.yml: could not parse workflow',
+        '"lnt" matches no workflow job',
+        '"build readme" only comes from path-filtered workflow(s) docs.yaml',
+    ):
+        assert any(expected in warning for warning in warnings)
+
+    shutil.rmtree(workflows)
+    assert _run(monkeypatch, checkout, 'plan', READER) == 0
+    summary = (checkout / 'summary.md').read_text()
+    assert '"lint" matches no workflow job' in summary
+
+
+@pytest.mark.parametrize(
+    ('content', 'message'),
+    [
+        ('{"name": ', 'base.json: invalid JSON'),
+        ('[]', 'base.json: expected a JSON object'),
+        (json.dumps(BASE | {'target': None}), 'missing string "target"'),
+        (
+            json.dumps(BASE | {'enforcement': 1}),
+            'missing string "enforcement"',
+        ),
+        (json.dumps(BASE | {'rules': {}}), '"rules" must be a list'),
+    ],
+)
+def test_invalid_definitions_fail_before_touching_github(
+    github: FakeGitHub,
+    checkout: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    content: str,
+    message: str,
+) -> None:
+    (checkout / '.github' / 'rulesets' / 'base.json').write_text(content)
+    assert _run(monkeypatch, checkout, 'apply', ADMIN) == 1
+    assert message in (checkout / 'summary.md').read_text()
+    assert not github.calls
+
+
+@pytest.mark.parametrize(
+    ('token', 'failing', 'status'),
+    [('bogus', None, 401), (ADMIN, f'GET /repos/{REPO}', 500)],
+)
+def test_api_errors_fail_the_run(
+    github: FakeGitHub,
+    checkout: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    token: str,
+    failing: str | None,
+    status: int,
+) -> None:
+    if failing is not None:
+        github.errors[failing] = status
+    assert _run(monkeypatch, checkout, 'check', token) == 1
+    assert f'HTTP {status}' in (checkout / 'summary.md').read_text()
+
+
+def test_failed_classic_protection_delete_fails_apply(
+    github: FakeGitHub, checkout: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    github.classic = True
+    github.errors[f'DELETE /repos/{REPO}/branches/master/protection'] = 500
+    assert _run(monkeypatch, checkout, 'apply', ADMIN) == 1
+    summary = (checkout / 'summary.md').read_text()
+    assert 'delete classic branch protection: DELETE' in summary
+    assert 'HTTP 500' in summary
+    assert github.classic
+    # Rulesets are still created, so the branch is not left unprotected.
+    assert len(github.rulesets) == 2

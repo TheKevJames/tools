@@ -145,6 +145,58 @@ def test_plan_converges(
     assert not diff.plan(want, remote, bypass_visible=True)
 
 
+_bypass = st.none() | st.lists(json_objects, max_size=2)
+# Few names, so want and have mostly share them and plans include updates.
+_with_bypass = st.dictionaries(
+    st.sampled_from('xyz'),
+    st.builds(
+        lambda body, bypass: (
+            body if bypass is None else body | {'bypass_actors': bypass}
+        ),
+        json_objects,
+        _bypass,
+    ),
+    max_size=4,
+)
+
+
+def _hidden(ruleset: desired.Ruleset) -> desired.Ruleset:
+    """What a non-admin token sees."""
+    return {k: v for k, v in ruleset.items() if k != 'bypass_actors'}
+
+
+@hypothesis.given(_with_bypass, st.randoms(use_true_random=False))
+def test_bypass_actors_are_ignored_without_admin(
+    want: dict[str, desired.Ruleset], rng: random.Random
+) -> None:
+    hidden = {
+        name: _server_view(_hidden(body), rng) | {'id': i}
+        for i, (name, body) in enumerate(want.items())
+    }
+    assert not diff.plan(want, hidden, bypass_visible=False)
+
+
+@hypothesis.given(_with_bypass, _with_bypass)
+def test_hiding_bypass_actors_only_hides_changes(
+    want: dict[str, desired.Ruleset], have: dict[str, desired.Ruleset]
+) -> None:
+    remote = {
+        name: {**body, 'id': i} for i, (name, body) in enumerate(have.items())
+    }
+    hidden = {name: _hidden(body) for name, body in remote.items()}
+
+    def summary(changes: list[diff.Change]) -> set[tuple[type, str]]:
+        return {(type(change), change.name) for change in changes}
+
+    seen = diff.plan(want, hidden, bypass_visible=False)
+    assert summary(seen) <= summary(
+        diff.plan(want, remote, bypass_visible=True)
+    )
+    for change in seen:
+        if isinstance(change, diff.Create | diff.Update):
+            assert change.body == want[change.name]
+
+
 def test_hidden_bypass_actors_are_not_drift() -> None:
     bypass = [{'actor_id': 5, 'actor_type': 'RepositoryRole'}]
     want = {'base': {'enforcement': 'active', 'bypass_actors': bypass}}
