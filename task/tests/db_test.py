@@ -450,3 +450,21 @@ def test_only_empty_namespaces_may_be_deleted() -> None:
         with pytest.raises(schema.TaskError, match='^namespace c: '):
             db.delete_namespace('c')
         assert db.namespaces() == [schema.DEFAULT]
+
+
+def test_writers_touch_only_their_namespaces() -> None:
+    with task_folder() as folder:
+        db.add_namespace('b')
+        # eg. a sandbox granting only `b`: not even `default` may be created.
+        folder.chmod(0o555)
+        try:
+            with db.write('b') as conn:
+                db.insert(
+                    conn,
+                    schema.Task(
+                        summary='a', details=None, tag='a', namespace='b'
+                    ),
+                )
+        finally:
+            folder.chmod(0o755)
+        assert db.namespaces() == ['b']

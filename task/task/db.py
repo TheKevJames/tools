@@ -3,11 +3,12 @@ The task store: one directory per namespace under $TASK_FOLDER, each holding
 a SQLite database plus one `<id>.txt` file per description.
 
 Namespaces are directories so that access to each may be granted separately:
-eg. a sandbox which reads every namespace but writes only its own. A
-namespace is a directory with a valid name holding a database; `default` is
-created by the first write, the rest by `add_namespace`. Ids are unique only
-within a namespace, so a task's address is its `schema.Ref`, and moving a
-task to another namespace gives it a new id there.
+eg. a sandbox which reads every namespace but writes only its own, so a writer
+touches only the namespaces it writes. A namespace is a directory with a valid
+name holding a database; `default` is created by the first write to it, the
+rest by `add_namespace`. Ids are unique only within a namespace, so a task's
+address is its `schema.Ref`, and moving a task to another namespace gives it a
+new id there.
 
 Descriptions live beside each database as plain files so they can be edited
 by hand; a file's existence is the only record that a task has one. Writers
@@ -116,12 +117,13 @@ def connect() -> Generator[Store]:
 @contextlib.contextmanager
 def write(namespace: str, *others: str) -> Generator[Store]:
     """Namespaces under their write locks, committed if the block succeeds."""
-    if not _exists(schema.DEFAULT):
-        _create(schema.DEFAULT)
     names = {namespace, *others}
     for name in names:
-        if not _exists(name):
+        if _exists(name):
+            continue
+        if name != schema.DEFAULT:
             raise schema.TaskError(f'no such namespace: {name}')
+        _create(name)
 
     # BEGIN IMMEDIATE locks every attached database, in the order attached,
     # so taking namespaces in sorted order keeps two writers from deadlocking.
