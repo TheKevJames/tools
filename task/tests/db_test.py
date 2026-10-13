@@ -1,6 +1,5 @@
 import contextlib
 import datetime
-import os
 import pathlib
 import sqlite3
 import string
@@ -76,21 +75,27 @@ TASK = st.builds(
 )
 
 # Small alphabets, so that filters often match, and summaries non-ASCII case.
-TODAY = datetime.date.today()
 QUERY_NAME = st.sampled_from(['a', 'a-b', 'b', schema.TRIAGE, schema.DEFAULT])
-QUERY_TASK = st.builds(
-    schema.Task,
-    summary=st.text('aAbÉé ', min_size=1, max_size=3).filter(str.strip),
-    details=details(
-        st.dates(TODAY - datetime.timedelta(3), TODAY + datetime.timedelta(5))
-    ),
-    namespace=st.sampled_from([schema.DEFAULT, 'a', 'b']),
-    tag=QUERY_NAME,
-    owner=st.sampled_from([None, 'a', 'A', 'b']),
-    link=st.sampled_from([None, 'a', 'A/b']),
-    priority=st.none() | st.sampled_from(schema.Priority),
-    size=st.none() | st.sampled_from(schema.Size),
-)
+
+
+def query_task(today: datetime.date) -> st.SearchStrategy[schema.Task]:
+    return st.builds(
+        schema.Task,
+        summary=st.text('aAbÉé ', min_size=1, max_size=3).filter(str.strip),
+        details=details(
+            st.dates(
+                today - datetime.timedelta(3), today + datetime.timedelta(5)
+            )
+        ),
+        namespace=st.sampled_from([schema.DEFAULT, 'a', 'b']),
+        tag=QUERY_NAME,
+        owner=st.sampled_from([None, 'a', 'A', 'b']),
+        link=st.sampled_from([None, 'a', 'A/b']),
+        priority=st.none() | st.sampled_from(schema.Priority),
+        size=st.none() | st.sampled_from(schema.Size),
+    )
+
+
 FILTER = st.builds(
     lambda target, op, data: f'{target}{op}{data}',
     st.sampled_from(query.Target),
@@ -103,8 +108,12 @@ FILTER = st.builds(
 
 @contextlib.contextmanager
 def task_folder() -> Generator[pathlib.Path]:
-    with tempfile.TemporaryDirectory() as folder:
-        os.environ['TASK_FOLDER'] = folder
+    """An empty store per hypothesis example, which fixtures cannot give."""
+    with (
+        tempfile.TemporaryDirectory() as folder,
+        pytest.MonkeyPatch.context() as monkeypatch,
+    ):
+        monkeypatch.setenv('TASK_FOLDER', folder)
         yield pathlib.Path(folder)
 
 
@@ -184,9 +193,14 @@ def reference_key(
     return (*key, task.ident, task.namespace)
 
 
-@hypothesis.settings(max_examples=300, deadline=None)
+# The clock stays stopped across examples, which is what they need.
+@hypothesis.settings(
+    max_examples=300,
+    deadline=None,
+    suppress_health_check=[hypothesis.HealthCheck.function_scoped_fixture],
+)
 @hypothesis.given(
-    tasks=st.lists(QUERY_TASK, max_size=10),
+    data=st.data(),
     filters=st.lists(FILTER, max_size=2),
     days=st.integers(-1, 4),
     limit=st.integers(-1, 4),
@@ -194,13 +208,15 @@ def reference_key(
     scheduled=st.booleans(),
 )
 def test_query_matches_reference(  # pylint: disable=too-many-arguments
-    tasks: list[schema.Task],
+    today: datetime.date,
+    data: st.DataObject,
     filters: list[str],
     days: int,
     limit: int,
     order: query.SortOrder,
     scheduled: bool,
 ) -> None:
+    tasks = data.draw(st.lists(query_task(today), max_size=10))
     filter_ = ','.join(filters)
     clauses = query.compile_(filter_, days, limit, order, scheduled=scheduled)
     with task_folder():
@@ -208,7 +224,7 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
         with db.connect() as conn:
             selected = [location(t) for t in db.select(conn, *clauses)]
 
-    target = TODAY + datetime.timedelta(days=days)
+    target = today + datetime.timedelta(days=days)
     expected = [
         t
         for t in tasks
@@ -243,13 +259,13 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
         f"updated = '{EPOCH}'",
     ],
 )
+@pytest.mark.usefixtures('folder')
 def test_constraints_refuse_bad_data(assignment: str) -> None:
-    with task_folder():
-        store([schema.Task(summary='a', details=None, tag=schema.TRIAGE)])
-        with db.connect() as conn, pytest.raises(sqlite3.IntegrityError):
-            conn.conn.execute(
-                f'UPDATE {conn.table(schema.DEFAULT)} SET {assignment}'
-            )
+    store([schema.Task(summary='a', details=None, tag=schema.TRIAGE)])
+    with db.connect() as conn, pytest.raises(sqlite3.IntegrityError):
+        conn.conn.execute(
+            f'UPDATE {conn.table(schema.DEFAULT)} SET {assignment}'
+        )
 
 
 CONTENT = (
@@ -299,25 +315,22 @@ def test_updated_bumps_only_on_change(
 
 @pytest.mark.parametrize('deleted', [[3], [1, 2, 3]])
 def test_migration_keeps_tasks_and_never_reuses_ids(
-    deleted: list[int],
+    folder: pathlib.Path, deleted: list[int]
 ) -> None:
-    with task_folder() as folder:
-        conn = database(folder)
-        conn.execute(migrations.MIGRATIONS[0])
-        conn.execute('PRAGMA user_version = 1')
-        conn.executemany(
-            "INSERT INTO task (summary, tag, owner) VALUES (?, 'a', ?)",
-            [('x', 'bot'), ('y', None), ('z', None)],
-        )
-        conn.executemany(
-            'DELETE FROM task WHERE id = ?', [(i,) for i in deleted]
-        )
-        conn.close()
+    conn = database(folder)
+    conn.execute(migrations.MIGRATIONS[0])
+    conn.execute('PRAGMA user_version = 1')
+    conn.executemany(
+        "INSERT INTO task (summary, tag, owner) VALUES (?, 'a', ?)",
+        [('x', 'bot'), ('y', None), ('z', None)],
+    )
+    conn.executemany('DELETE FROM task WHERE id = ?', [(i,) for i in deleted])
+    conn.close()
 
-        added = schema.Task(summary='new', details=None, tag='a')
-        with db.write(schema.DEFAULT) as conn:
-            kept = db.select(conn, ' ORDER BY id')
-            db.insert(conn, added)
+    added = schema.Task(summary='new', details=None, tag='a')
+    with db.write(schema.DEFAULT) as conn:
+        kept = db.select(conn, ' ORDER BY id')
+        db.insert(conn, added)
 
     assert [(t.ident, t.summary, t.owner) for t in kept] == [
         (i, s, o)
@@ -328,29 +341,30 @@ def test_migration_keeps_tasks_and_never_reuses_ids(
     assert added.ident == 4
 
 
-def test_migration_deletes_done_tasks_and_never_reuses_ids() -> None:
-    with task_folder() as folder:
-        conn = database(folder)
-        # The last version with a `done` column.
-        for migration in migrations.MIGRATIONS[:7]:
-            conn.execute(migration)
-        conn.execute('PRAGMA user_version = 7')
-        conn.executemany(
-            "INSERT INTO task (summary, tag, done) VALUES (?, 'a', ?)",
-            [('x', None), ('y', EPOCH), ('z', EPOCH)],
-        )
-        conn.close()
-        for ident in (1, 2):
-            (folder / schema.DEFAULT / f'{ident}.txt').write_text('notes')
+def test_migration_deletes_done_tasks_and_never_reuses_ids(
+    folder: pathlib.Path,
+) -> None:
+    conn = database(folder)
+    # The last version with a `done` column.
+    for migration in migrations.MIGRATIONS[:7]:
+        conn.execute(migration)
+    conn.execute('PRAGMA user_version = 7')
+    conn.executemany(
+        "INSERT INTO task (summary, tag, done) VALUES (?, 'a', ?)",
+        [('x', None), ('y', EPOCH), ('z', EPOCH)],
+    )
+    conn.close()
+    for ident in (1, 2):
+        (folder / schema.DEFAULT / f'{ident}.txt').write_text('notes')
 
-        added = schema.Task(summary='new', details=None, tag='a')
-        with db.write(schema.DEFAULT) as conn:
-            kept = db.select(conn, ' ORDER BY id')
-            db.insert(conn, added)
+    added = schema.Task(summary='new', details=None, tag='a')
+    with db.write(schema.DEFAULT) as conn:
+        kept = db.select(conn, ' ORDER BY id')
+        db.insert(conn, added)
 
-        assert [(t.ident, t.description) for t in kept] == [(1, 'notes')]
-        assert not (folder / schema.DEFAULT / '2.txt').exists()
-        assert added.ident == 4
+    assert [(t.ident, t.description) for t in kept] == [(1, 'notes')]
+    assert not (folder / schema.DEFAULT / '2.txt').exists()
+    assert added.ident == 4
 
 
 @hypothesis.settings(max_examples=100, deadline=None)
@@ -396,75 +410,70 @@ def test_move_gives_a_new_id_and_keeps_the_rest(
     assert found.updated > before.updated
 
 
-def test_unwritable_namespace_is_readable_only() -> None:
-    with task_folder() as folder:
-        store([schema.Task(summary='a', details=None, tag='a', namespace='b')])
-        directory = folder / 'b'
-        tasks_db = directory / db.DATABASE
+def test_unwritable_namespace_is_readable_only(folder: pathlib.Path) -> None:
+    store([schema.Task(summary='a', details=None, tag='a', namespace='b')])
+    directory = folder / 'b'
+    tasks_db = directory / db.DATABASE
+    directory.chmod(0o555)
+    tasks_db.chmod(0o444)
+    try:
+        with db.connect() as conn:
+            [task] = db.select(conn)
+        with (
+            db.write('b') as conn,
+            pytest.raises(sqlite3.OperationalError, match='readonly'),
+        ):
+            db.update(conn, task)
+        directory.chmod(0o755)
+        tasks_db.chmod(0o644)
+        with db.write('b') as conn:
+            conn.conn.execute('PRAGMA user_version = 1')
         directory.chmod(0o555)
         tasks_db.chmod(0o444)
-        try:
-            with db.connect() as conn:
-                [task] = db.select(conn)
-            with (
-                db.write('b') as conn,
-                pytest.raises(sqlite3.OperationalError, match='readonly'),
-            ):
-                db.update(conn, task)
-            directory.chmod(0o755)
-            tasks_db.chmod(0o644)
-            with db.write('b') as conn:
-                conn.conn.execute('PRAGMA user_version = 1')
-            directory.chmod(0o555)
-            tasks_db.chmod(0o444)
-            with (
-                pytest.raises(schema.TaskError, match='^namespace b: '),
-                db.connect(),
-            ):
-                pass
-        finally:
-            directory.chmod(0o755)
-            tasks_db.chmod(0o644)
-
-
-def test_only_empty_namespaces_may_be_deleted() -> None:
-    with task_folder() as folder:
-        store([schema.Task(summary='a', details=None, tag='a', namespace='b')])
-        for namespace, error in (
-            (schema.DEFAULT, 'cannot be deleted'),
-            ('b', 'not empty'),
-            ('c', 'no such namespace'),
+        with (
+            pytest.raises(schema.TaskError, match='^namespace b: '),
+            db.connect(),
         ):
-            with pytest.raises(schema.TaskError, match=error):
-                db.delete_namespace(namespace)
+            pass
+    finally:
+        directory.chmod(0o755)
+        tasks_db.chmod(0o644)
 
+
+def test_only_empty_namespaces_may_be_deleted(folder: pathlib.Path) -> None:
+    store([schema.Task(summary='a', details=None, tag='a', namespace='b')])
+    for namespace, error in (
+        (schema.DEFAULT, 'cannot be deleted'),
+        ('b', 'not empty'),
+        ('c', 'no such namespace'),
+    ):
+        with pytest.raises(schema.TaskError, match=error):
+            db.delete_namespace(namespace)
+
+    with db.write('b') as conn:
+        db.delete(conn, schema.Ref('b', 1))
+    (folder / 'b' / '9.txt').write_text('orphan')
+    (folder / 'b' / '.9.txt.tmp').write_text('half written')
+    db.delete_namespace('b')
+    assert not (folder / 'b').exists()
+
+    db.add_namespace('c')
+    (folder / 'c' / 'unexpected').write_text('')
+    with pytest.raises(schema.TaskError, match='^namespace c: '):
+        db.delete_namespace('c')
+    assert db.namespaces() == [schema.DEFAULT]
+
+
+def test_writers_touch_only_their_namespaces(folder: pathlib.Path) -> None:
+    db.add_namespace('b')
+    # eg. a sandbox granting only `b`: not even `default` may be created.
+    folder.chmod(0o555)
+    try:
         with db.write('b') as conn:
-            db.delete(conn, schema.Ref('b', 1))
-        (folder / 'b' / '9.txt').write_text('orphan')
-        (folder / 'b' / '.9.txt.tmp').write_text('half written')
-        db.delete_namespace('b')
-        assert not (folder / 'b').exists()
-
-        db.add_namespace('c')
-        (folder / 'c' / 'unexpected').write_text('')
-        with pytest.raises(schema.TaskError, match='^namespace c: '):
-            db.delete_namespace('c')
-        assert db.namespaces() == [schema.DEFAULT]
-
-
-def test_writers_touch_only_their_namespaces() -> None:
-    with task_folder() as folder:
-        db.add_namespace('b')
-        # eg. a sandbox granting only `b`: not even `default` may be created.
-        folder.chmod(0o555)
-        try:
-            with db.write('b') as conn:
-                db.insert(
-                    conn,
-                    schema.Task(
-                        summary='a', details=None, tag='a', namespace='b'
-                    ),
-                )
-        finally:
-            folder.chmod(0o755)
-        assert db.namespaces() == ['b']
+            db.insert(
+                conn,
+                schema.Task(summary='a', details=None, tag='a', namespace='b'),
+            )
+    finally:
+        folder.chmod(0o755)
+    assert db.namespaces() == ['b']

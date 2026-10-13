@@ -10,6 +10,7 @@ from task import cli
 from task import schema
 
 RUNNER = testing.CliRunner()
+pytestmark = pytest.mark.usefixtures('today')
 
 
 def invoke(*args: str) -> testing.Result:
@@ -126,7 +127,7 @@ def test_descriptions_are_text_files(folder: pathlib.Path) -> None:
 
 
 @pytest.mark.usefixtures('folder')
-def test_done_deletes_one_off_tasks() -> None:
+def test_done_deletes_one_off_tasks(today: datetime.date) -> None:
     run('add', 'a')
     run('add', 'b')
     recurring = ('--next', '2000-01-01', '--interval', '1d', '--shift')
@@ -141,7 +142,7 @@ def test_done_deletes_one_off_tasks() -> None:
 
     # Done yesterday, so due again a day after that.
     run('3', 'done', '--ago', '1')
-    assert listed()[1]['next'] == datetime.date.today().isoformat()
+    assert listed()[1]['next'] == today.isoformat()
 
 
 def test_describe_refuses_concurrent_change(
