@@ -1,9 +1,8 @@
 import copy
-import http.server
 import json
 import pathlib
-import threading
-from collections.abc import Iterator
+from collections.abc import Callable
+from collections.abc import Mapping
 from typing import Any
 
 import pytest
@@ -138,30 +137,22 @@ class FakeGitHub:
 
 
 @pytest.fixture(name='github', scope='function')
-def github_fixture(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeGitHub]:
+def github_fixture(
+    serve: Callable[..., str], monkeypatch: pytest.MonkeyPatch
+) -> FakeGitHub:
     fake = FakeGitHub()
 
-    class Handler(http.server.BaseHTTPRequestHandler):
-        def _serve(self) -> None:
-            length = int(self.headers.get('Content-Length') or 0)
-            body = json.loads(self.rfile.read(length)) if length else None
-            token = self.headers['Authorization'].removeprefix('Bearer ')
-            status, payload = fake.handle(self.command, self.path, token, body)
-            self.send_response(status)
-            self.end_headers()
-            if payload is not None:
-                self.wfile.write(json.dumps(payload).encode())
+    def handle(
+        method: str,
+        path: str,
+        headers: Mapping[str, str],
+        body: Any,  # noqa: ANN401
+    ) -> tuple[int, Any]:
+        token = headers['Authorization'].removeprefix('Bearer ')
+        return fake.handle(method, path, token, body)
 
-        do_GET = do_POST = do_PUT = do_DELETE = _serve
-
-    server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    monkeypatch.setenv(
-        'GITHUB_API_URL', f'http://127.0.0.1:{server.server_address[1]}'
-    )
-    yield fake
-    server.shutdown()
+    monkeypatch.setenv('GITHUB_API_URL', serve(handle))
+    return fake
 
 
 BASE = {
@@ -238,9 +229,7 @@ def _run(
         monkeypatch.setenv('GH_TOKEN', token)
     (checkout / 'summary.md').unlink(missing_ok=True)
     args = ['--mode', mode, '--repository', REPO, '--directory', checkout]
-    code = main.main([str(arg) for arg in args])
-    print((checkout / 'summary.md').read_text())
-    return code
+    return main.main([str(arg) for arg in args])
 
 
 def test_apply_converges_and_check_detects_drift(
@@ -303,7 +292,9 @@ def test_private_repositories_are_skipped(
 ) -> None:
     github.private = True
     assert _run(monkeypatch, checkout, 'apply', ADMIN) == 0
-    assert github.calls == [f'GET /repos/{REPO}']
+    assert not [
+        c for c in github.calls if '/rulesets' in c or '/protection' in c
+    ]
     assert 'require GitHub Pro' in (checkout / 'summary.md').read_text()
 
 

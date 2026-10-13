@@ -40,7 +40,6 @@ def _warnings(tmp_path: pathlib.Path, contexts: list[str]) -> list[str]:
     jobs, problems = checks.load_jobs(workflows)
     assert not problems
     found = checks.warnings(contexts, jobs)
-    print(found)
     return found
 
 
