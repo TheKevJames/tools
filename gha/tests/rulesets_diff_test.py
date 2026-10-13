@@ -1,4 +1,4 @@
-import json
+import collections
 import random
 from typing import Any
 
@@ -24,6 +24,25 @@ json_values = st.recursive(
     max_leaves=12,
 )
 json_objects = st.dictionaries(_keys, json_values, max_size=4)
+_values_by_type = {
+    type(None): st.none(),
+    bool: st.booleans(),
+    int: st.integers(min_value=-5, max_value=5),
+    str: st.text(max_size=4),
+    list: st.lists(json_values, max_size=4),
+    dict: json_objects,
+}
+dictless_values = st.recursive(
+    _scalars, lambda children: st.lists(children, max_size=4), max_leaves=12
+)
+
+
+def _multiset(value: object) -> object:
+    """Hashable form equal for values which differ only in list order."""
+    if isinstance(value, list):
+        counts = collections.Counter(_multiset(item) for item in value)
+        return list, frozenset(counts.items())
+    return type(value), value
 
 
 def _server_view(value: object, rng: random.Random) -> Any:  # noqa: ANN401
@@ -43,31 +62,51 @@ def _server_view(value: object, rng: random.Random) -> Any:  # noqa: ANN401
 def test_server_view_of_a_value_matches_it(
     value: object, rng: random.Random
 ) -> None:
-    view = _server_view(value, rng)
-    print(json.dumps(view))
-    assert diff.matches(value, view)
+    assert diff.matches(value, _server_view(value, rng))
 
 
-@hypothesis.given(json_values, json_values)
-@hypothesis.example(True, 1)
-@hypothesis.example([0, False], [False, 0])
-def test_matches_is_equality_without_dicts(want: object, have: object) -> None:
+@st.composite
+def _dictless_pairs(draw: st.DrawFn) -> tuple[object, object]:
+    want = draw(dictless_values)
+    reordered = st.randoms(use_true_random=False).map(
+        lambda rng: _server_view(want, rng)
+    )
+    return want, draw(st.one_of(dictless_values, reordered))
+
+
+@hypothesis.given(_dictless_pairs())
+@hypothesis.example((True, 1))
+@hypothesis.example(([0, False], [False, 0]))
+@hypothesis.example(([[1, 2], [3]], [[3], [2, 1]]))
+def test_matches_is_equality_without_dicts(
+    pair: tuple[object, object],
+) -> None:
     # With no dicts to carry extra keys, matching reduces to equality up to
     # list order (and without bool/int conflation).
-    hypothesis.assume('{' not in json.dumps([want, have]))
-    expected = json.dumps(diff.canonical(want)) == json.dumps(
-        diff.canonical(have)
-    )
+    want, have = pair
+    expected = _multiset(want) == _multiset(have)
     assert diff.matches(want, have) is expected
 
 
-@hypothesis.given(json_objects.filter(bool), json_values, st.data())
-def test_changed_value_does_not_match(
-    want: dict[str, object], replacement: object, data: st.DataObject
+@hypothesis.given(
+    st.dictionaries(_keys, json_values, min_size=1, max_size=4), st.data()
+)
+def test_changed_or_missing_value_does_not_match(
+    want: dict[str, object], data: st.DataObject
 ) -> None:
     key = data.draw(st.sampled_from(sorted(want)))
-    hypothesis.assume(not diff.matches(want[key], replacement))
+    # A value of another type can never match, whatever its contents.
+    replacement = data.draw(
+        st.one_of(
+            *(
+                values
+                for kind, values in _values_by_type.items()
+                if not isinstance(want[key], kind)
+            )
+        )
+    )
     assert not diff.matches(want, want | {key: replacement})
+    assert not diff.matches(want, {k: v for k, v in want.items() if k != key})
 
 
 def test_list_pairing_backtracks() -> None:
@@ -91,7 +130,6 @@ def test_plan_converges(
         name: {**body, 'id': i} for i, (name, body) in enumerate(have.items())
     }
     changes = diff.plan(want, remote, bypass_visible=True)
-    print(changes)
 
     for change in changes:
         match change:
