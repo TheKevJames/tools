@@ -69,7 +69,6 @@ struct Status {
 
 #[derive(Debug, Deserialize)]
 struct CCTrayStatusItem {
-    activity: String,
     #[serde(rename = "lastBuildLabel")]
     last_build_label: String,
     #[serde(rename = "lastBuildStatus")]
@@ -125,10 +124,7 @@ impl From<CCTrayStatus> for Status {
 struct CircleCIStatusItem {
     id: String,
     status: String,
-    duration: u16,
-    created_at: String,
     stopped_at: String,
-    credits_used: u16,
 }
 impl From<&CircleCIStatusItem> for StatusItem {
     fn from(src: &CircleCIStatusItem) -> Self {
@@ -149,7 +145,6 @@ impl From<&CircleCIStatusItem> for StatusItem {
 
 #[derive(Debug, Deserialize)]
 struct CircleCIStatus {
-    next_page_token: Option<String>,
     items: Option<Vec<CircleCIStatusItem>>,
 }
 impl From<CircleCIStatus> for Status {
