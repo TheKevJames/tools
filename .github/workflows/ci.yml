@@ -33,8 +33,6 @@ jobs:
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
 
-  # Not a matrix: a job which `needs` a matrix waits on every leg, and each
-  # docker job must wait only on its own project's tests.
   test-atc1441:
     if: *not-fork
     runs-on: ubuntu-26.04
