@@ -186,3 +186,55 @@ def test_processor_matches_uppercase_config_sections() -> None:
 )
 def test_decode_data_atc1441_rejects_invalid_length(payload: bytes) -> None:
     assert main.decode_data_atc1441({}, 'a4:c1:38:d8:f8:9d', payload) is None
+
+
+# Captured from sensor ATC_D8F89D via CoreBluetooth, which exposes only the
+# 0x181A service-data payload (and RSSI); the HCI framing around it is
+# hand-built. All report 25.7C, 53%RH, 34% battery, 2475mV.
+CAPTURED = [
+    (bytes.fromhex('a4c138d8f89d0101352209ab54'), -65),
+    (bytes.fromhex('a4c138d8f89d0101352209ab57'), -66),
+    (bytes.fromhex('a4c138d8f89d0101352209ab59'), -68),
+    (bytes.fromhex('a4c138d8f89d0101352209ab5a'), -67),
+    (bytes.fromhex('a4c138d8f89d0101352209ab5c'), -65),
+]
+CAPTURED_EXPORT = {
+    'battery': 34,
+    'humidity': 53,
+    'temperature': 25.7,
+    'voltage': 2.475,
+}
+
+
+def captured_event(payload: bytes, rssi: int) -> bytes:
+    return le_advertising_report(
+        payload[:6], [FLAGS_AD, atc1441_service_data(payload)], rssi
+    )
+
+
+@pytest.mark.parametrize(('payload', 'rssi'), CAPTURED)
+def test_processor_exports_captured_advert(payload: bytes, rssi: int) -> None:
+    registry, process = processor_for('a4:c1:38:d8:f8:9d')
+
+    process(captured_event(payload, rssi))
+
+    assert exported(registry, 'sensor') == CAPTURED_EXPORT
+
+
+def test_processor_dedupes_captured_adverts_by_counter() -> None:
+    registry, process = processor_for('a4:c1:38:d8:f8:9d')
+
+    def chilled(payload: bytes) -> bytes:
+        return payload[:6] + struct.pack('>h', -50) + payload[8:]
+
+    for payload, rssi in CAPTURED:
+        process(captured_event(payload, rssi))
+        assert exported(registry, 'sensor') == CAPTURED_EXPORT
+
+        process(captured_event(chilled(payload), rssi))
+        assert exported(registry, 'sensor') == CAPTURED_EXPORT
+
+    last_payload, last_rssi = CAPTURED[-1]
+    fresh = chilled(last_payload)[:-1] + b'\x5d'
+    process(captured_event(fresh, last_rssi))
+    assert exported(registry, 'sensor')['temperature'] == -5.0
