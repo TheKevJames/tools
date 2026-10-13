@@ -184,3 +184,14 @@ def test_monthly_recurrence_clamps_to_month_end() -> None:
     assert run('1', 'done') == (
         'completed recurring task, next occurrence: 2026-03-28\n'
     )
+
+
+@pytest.mark.usefixtures('folder')
+def test_invalid_filters_are_refused() -> None:
+    assert refused('list', '-f', 'bogus=1') == (
+        "invalid target: 'bogus'"
+        ' (use summary, namespace, tag, owner, link, priority, size)'
+    )
+    assert refused('due', '-f', 'tag=a,summary') == (
+        "invalid filter: 'summary' (use eg. tag=a, tag!=a, tag~a, tag!~a)"
+    )
