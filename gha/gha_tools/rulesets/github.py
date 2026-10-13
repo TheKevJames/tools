@@ -50,7 +50,11 @@ class Client:
         return result
 
     def rulesets(self) -> dict[str, desired.Ruleset]:
-        """Rulesets defined on this repo itself, keyed by name."""
+        """
+        Rulesets defined on this repo itself, keyed by name.
+
+        Only a single page of up to 100 rulesets is fetched.
+        """
         summaries = self._request(
             'GET', f'{self.base}/rulesets?includes_parents=false&per_page=100'
         )

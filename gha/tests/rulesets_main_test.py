@@ -1,6 +1,7 @@
 import copy
 import json
 import pathlib
+import urllib.parse
 from collections.abc import Callable
 from collections.abc import Mapping
 from typing import Any
@@ -13,6 +14,7 @@ from gha_tools.rulesets import main
 ADMIN = 'admin-token'
 READER = 'read-token'
 REPO = 'owner/repo'
+API = f'https://api.github.com/repos/{REPO}'
 
 # Defaults the real API fills into rule parameters (observed on public repos).
 _PARAM_DEFAULTS = {
@@ -32,6 +34,9 @@ class FakeGitHub:
         self.private = False
         self.classic = False
         self.rulesets: dict[int, dict[str, Any]] = {}
+        # Defined on the owning organization and inherited by the repo; the
+        # repo endpoints list and read these but cannot change them.
+        self.inherited: dict[int, dict[str, Any]] = {}
         self.calls: list[str] = []
         self._next_id = 100
 
@@ -50,17 +55,50 @@ class FakeGitHub:
         self.rulesets[ruleset_id] = stored
         return ruleset_id
 
+    def inherit(self, body: dict[str, Any]) -> None:
+        ruleset_id = self.store(body)
+        self.inherited[ruleset_id] = self.rulesets.pop(ruleset_id)
+
     def detail(self, ruleset_id: int, admin: bool) -> dict[str, Any]:
-        body = copy.deepcopy(self.rulesets[ruleset_id])
+        org = ruleset_id in self.inherited
+        stored = self.inherited if org else self.rulesets
+        body = copy.deepcopy(stored[ruleset_id])
         if not admin:
             del body['bypass_actors']
+        owner = REPO.split('/', maxsplit=1)[0]
         server_fields = {
             'id': ruleset_id,
-            'source_type': 'Repository',
-            'source': REPO,
+            'source_type': 'Organization' if org else 'Repository',
+            'source': owner if org else REPO,
             'node_id': f'RRS_{ruleset_id}',
+            '_links': {'self': {'href': f'{API}/rulesets/{ruleset_id}'}},
+            'created_at': '2026-01-01T00:00:00Z',
+            'updated_at': '2026-01-01T00:00:00Z',
         }
         return server_fields | body
+
+    def _list(self, query: str) -> list[dict[str, Any]]:
+        params = urllib.parse.parse_qs(query)
+        ids = list(self.rulesets)
+        if params.get('includes_parents', ['true']) == ['true']:
+            ids = [*self.inherited, *ids]
+        per_page = min(int(params.get('per_page', ['30'])[0]), 100)
+        summary = (
+            'id',
+            'name',
+            'target',
+            'source_type',
+            'source',
+            'enforcement',
+            'node_id',
+            '_links',
+            'created_at',
+            'updated_at',
+        )
+        return [
+            {k: v for k, v in self.detail(i, False).items() if k in summary}
+            for i in ids[:per_page]
+        ]
 
     def handle(
         self,
@@ -89,16 +127,26 @@ class FakeGitHub:
         admin: bool,
         body: Any,  # noqa: ANN401
     ) -> tuple[int, Any]:
-        if path.startswith('/rulesets?') and method == 'GET':
-            return 200, [
-                {'id': i, 'name': r['name'], 'source_type': 'Repository'}
-                for i, r in self.rulesets.items()
-            ]
-        if path == '/rulesets' and method == 'POST':
+        route, _, query = path.partition('?')
+        if route == '/rulesets' and method == 'GET':
+            return 200, self._list(query)
+        if route == '/rulesets' and method == 'POST':
             return self._write(admin, body, None)
-        ruleset_id = int(path.removeprefix('/rulesets/'))
-        if method == 'GET':
+        ruleset_id = int(route.removeprefix('/rulesets/'))
+        return self._ruleset(method, ruleset_id, admin, body)
+
+    def _ruleset(
+        self,
+        method: str,
+        ruleset_id: int,
+        admin: bool,
+        body: Any,  # noqa: ANN401
+    ) -> tuple[int, Any]:
+        known = ruleset_id in self.rulesets
+        if method == 'GET' and (known or ruleset_id in self.inherited):
             return 200, self.detail(ruleset_id, admin)
+        if not known:
+            return 404, {'message': 'Not Found'}
         if method == 'PUT':
             return self._write(admin, body, ruleset_id)
         if not admin:
@@ -132,8 +180,9 @@ class FakeGitHub:
         }
         if body['name'] in others:
             return 422, {'message': 'Name must be unique'}
+        status = 201 if ruleset_id is None else 200
         ruleset_id = self.store(body, ruleset_id)
-        return 200, self.detail(ruleset_id, admin)
+        return status, self.detail(ruleset_id, admin)
 
 
 @pytest.fixture(name='github', scope='function')
@@ -285,6 +334,15 @@ def test_api_rejections_are_reported(
     assert 'create ruleset "broken": POST' in summary
     assert 'HTTP 422' in summary
     assert len(github.rulesets) == 2
+
+
+def test_rulesets_inherited_from_the_org_are_left_alone(
+    github: FakeGitHub, checkout: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    github.inherit(BASE | {'name': 'org-wide'})
+    assert _run(monkeypatch, checkout, 'apply', ADMIN) == 0
+    assert 'org-wide' not in (checkout / 'summary.md').read_text()
+    assert _run(monkeypatch, checkout, 'check', ADMIN) == 0
 
 
 def test_private_repositories_are_skipped(
