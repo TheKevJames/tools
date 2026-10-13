@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 import enum
 import re
@@ -12,7 +13,11 @@ from . import timestamp
 OWNER_RE = re.compile(r'[A-Za-z0-9_.-]+')
 LINK_RE = re.compile(r'\S+')
 INTERVAL_RE = re.compile(r'[1-9][0-9]*[dwm]')
+# Tags and namespaces; the tag CHECK in migrations must agree.
+NAME_RE = re.compile(r'[a-z0-9][a-z0-9_.-]*')
+REF_RE = re.compile(rf'(?:(?P<namespace>{NAME_RE.pattern}):)?(?P<id>\d+)')
 TRIAGE = 'triage'
+DEFAULT = 'default'
 
 
 class TaskError(Exception):
@@ -56,14 +61,32 @@ def parse_enum(kind: type[E], value: str) -> E:
         ) from None
 
 
-def normalize_tag(path: str) -> str:
-    """`Foo/ bar` -> `foo/bar`."""
-    names = [name.strip().lower() for name in path.split('/')]
-    # Control characters are refused so that sorting may join segments with
-    # one: see query.ORDER_BY.
-    if not all(name and name.isprintable() for name in names):
-        raise TaskError(f'invalid tag: {path!r}')
-    return '/'.join(names)
+def normalize_name(kind: str, value: str) -> str:
+    """A tag or namespace: ` Foo ` -> `foo`."""
+    name = value.strip().lower()
+    if not NAME_RE.fullmatch(name):
+        raise TaskError(f'invalid {kind}: {value!r}')
+    return name
+
+
+@dataclasses.dataclass(frozen=True)
+class Ref:
+    """A task's address: `<namespace>:<id>`, or a bare id in `default`."""
+
+    namespace: str
+    ident: int
+
+    @classmethod
+    def parse(cls, value: str) -> Self:
+        match = REF_RE.fullmatch(value)
+        if not match:
+            raise TaskError(f'invalid task id: {value!r}')
+        return cls(match.group('namespace') or DEFAULT, int(match.group('id')))
+
+    def __str__(self) -> str:
+        if self.namespace == DEFAULT:
+            return str(self.ident)
+        return f'{self.namespace}:{self.ident}'
 
 
 class Interval(pydantic.BaseModel, extra='forbid'):
@@ -139,6 +162,7 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
     summary: str
     details: Details | None
     ident: int | None = None
+    namespace: str = DEFAULT
     tag: str
     description: str | None = None
     owner: str | None = None
@@ -156,11 +180,11 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
             raise TaskError(f'invalid summary: {value!r}')
         return value
 
-    @pydantic.field_validator('tag')
+    @pydantic.field_validator('namespace', 'tag')
     @classmethod
-    def validate_tag(cls, value: str) -> str:
-        if normalize_tag(value) != value:
-            raise TaskError(f'tag is not normalized: {value!r}')
+    def validate_name(cls, value: str, info: pydantic.ValidationInfo) -> str:
+        if not NAME_RE.fullmatch(value):
+            raise TaskError(f'invalid {info.field_name}: {value!r}')
         return value
 
     @pydantic.field_validator('description')
@@ -181,13 +205,18 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
         return None if value is None else check_link(value)
 
     @property
-    def tag_names(self) -> list[str]:
-        return self.tag.split('/')
+    def ref(self) -> Ref:
+        assert self.ident is not None, 'task id has not been assigned'
+        return Ref(self.namespace, self.ident)
+
+    @property
+    def section(self) -> str:
+        if self.namespace == DEFAULT:
+            return self.tag
+        return f'{self.namespace} > {self.tag}'
 
     def __str__(self) -> str:
-        result = ''
-        result += ' > '.join(self.tag_names)
-        result += f'\t{self.ident}: {self.summary}'
+        result = f'{self.section}\t{self.ref}: {self.summary}'
         if self.description:
             result += ' +'
         if self.priority:
@@ -240,6 +269,7 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
         self,
         *,
         summary: str | None = None,
+        namespace: str | None = None,
         tag: str | None = None,
         next_: str | None = None,
         interval: str | None = None,
@@ -256,10 +286,12 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
             raise TaskError(
                 '--description and --description-append are exclusive'
             )
+        if namespace is not None:
+            self._move(namespace, owner)
         if summary is not None:
             self.summary = summary
         if tag is not None:
-            self.tag = normalize_tag(tag)
+            self.tag = normalize_name('tag', tag)
         if description is not None:
             self.description = description.strip() or None
         if description_append is not None:
@@ -267,6 +299,16 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
         self._set_metadata(owner, link, priority, size, force=force)
         if next_ is not None or interval is not None or shift is not None:
             self._schedule(next_, interval, shift)
+
+    def _move(self, namespace: str, owner: str | None) -> None:
+        if owner is not None:
+            raise TaskError('--namespace and --owner are exclusive')
+        namespace = normalize_name('namespace', namespace)
+        if namespace != self.namespace and self.owner:
+            raise TaskError(
+                f'task {self.ref} is owned by {self.owner}: release it first'
+            )
+        self.namespace = namespace
 
     def _set_metadata(
         self,
@@ -331,8 +373,8 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
     def render_detail(self) -> str:
         rows = [
             ('Summary', self.summary),
-            ('ID', str(self.ident)),
-            ('Tag', ' > '.join(self.tag_names)),
+            ('ID', str(self.ref)),
+            ('Tag', self.section),
         ]
         if self.owner:
             rows.append(('Owner', self.owner))
@@ -374,6 +416,7 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
         interval = self.details.interval if self.details else None
         return {
             'id': self.ident,
+            'namespace': self.namespace,
             'summary': self.summary,
             'tag': self.tag,
             'owner': self.owner,

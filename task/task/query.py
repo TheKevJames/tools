@@ -13,6 +13,7 @@ from . import schema
 
 class Target(enum.StrEnum):
     summary = 'summary'
+    namespace = 'namespace'
     tag = 'tag'
     owner = 'owner'
     link = 'link'
@@ -21,21 +22,17 @@ class Target(enum.StrEnum):
 
 
 # Filter values are compared lowercased. `fold` is Python's str.lower,
-# registered by db.connect: SQLite's lower() only folds ASCII.
+# registered by db.connect: SQLite's lower() only folds ASCII. Namespaces and
+# tags are stored lowercased.
 COLUMNS = {
     Target.summary: 'fold(summary)',
+    Target.namespace: 'namespace',
+    Target.tag: 'tag',
     Target.owner: "fold(coalesce(owner, ''))",
     Target.link: "fold(coalesce(link, ''))",
     Target.priority: "coalesce(priority, '')",
     Target.size: "coalesce(size, '')",
 }
-
-# Any single segment or any path from the root matches, so `tag=build` and
-# `tag=bakery/build` both select bakery/build. Tags are stored lowercased.
-TAG_EQUALS = (
-    "(instr({v}, '/') = 0 AND instr('/' || tag || '/', '/' || {v} || '/') > 0)"
-    " OR tag = {v} OR substr(tag, 1, length({v}) + 1) = {v} || '/'"
-)
 
 
 class Filter(pydantic.BaseModel, extra='forbid'):
@@ -66,17 +63,11 @@ class Filter(pydantic.BaseModel, extra='forbid'):
     def sql(self, param: str) -> str:
         """A boolean expression comparing against `data`, bound to `param`."""
         value = f':{param}'
-        if self.target == Target.tag and not self.contains:
-            clause = TAG_EQUALS.format(v=value)
+        column = COLUMNS[self.target]
+        if self.contains:
+            clause = f'instr({column}, {value}) > 0'
         else:
-            # Every segment and root path is a substring of the full tag.
-            column = (
-                'tag' if self.target == Target.tag else COLUMNS[self.target]
-            )
-            if self.contains:
-                clause = f'instr({column}, {value}) > 0'
-            else:
-                clause = f'{column} = {value}'
+            clause = f'{column} = {value}'
         return f'NOT ({clause})' if self.negate else f'({clause})'
 
 
@@ -88,16 +79,16 @@ class SortOrder(enum.StrEnum):
     updated = 'updated'
 
 
-# char(1) sorts below every character a tag segment may hold, so a section's
-# children sort directly after it (bakery, bakery/build, bakery-x).
+# Ids repeat across namespaces, so every order ends on both.
 ORDER_BY = {
-    SortOrder.ident: 'id',
-    SortOrder.due: 'next IS NOT NULL, next, id',
+    SortOrder.ident: 'id, namespace',
+    SortOrder.due: 'next IS NOT NULL, next, id, namespace',
     SortOrder.tag: (
-        f"tag != '{schema.TRIAGE}', replace(tag, '/', char(1)), id"
+        f"namespace != '{schema.DEFAULT}', namespace,"
+        f" tag != '{schema.TRIAGE}', tag, id"
     ),
-    SortOrder.created: 'created, id',
-    SortOrder.updated: 'updated DESC, id',
+    SortOrder.created: 'created, id, namespace',
+    SortOrder.updated: 'updated DESC, id, namespace',
 }
 
 
