@@ -93,6 +93,11 @@ def test_env_config_round_trips(
     [
         ({}, []),
         ({'PUBSUB_PROJECT1': 'p1', 'PUBSUB_PROJECT2': 'p2,t'}, []),
+        ({'PUBSUB_PROJECT1': 'p1,', 'PUBSUB_PROJECT2': 'p2,t'}, []),
+        (
+            {'PUBSUB_PROJECT1': 'p1,,t1,t2::s1:,', 'PUBSUB_PROJECT2': 'p2'},
+            [('p1', 't1', []), ('p1', 't2', ['s1'])],
+        ),
         (
             {
                 'PUBSUB_PROJECT1': 'p1,t1',

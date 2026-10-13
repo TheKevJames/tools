@@ -212,14 +212,15 @@ def build_config() -> Iterator[TopicConfig]:
         if not env:
             return
 
-        project, *topics = env.split(',')
+        project, *specs = env.split(',')
+        topics = [spec for spec in specs if spec]
         if not topics:
             return
 
         for spec in topics:
             topic_name, *subscription_names = spec.split(':')
             subscriptions = [
-                SubscriptionConfig(name) for name in subscription_names
+                SubscriptionConfig(name) for name in subscription_names if name
             ]
             yield TopicConfig(topic_name, project, subscriptions)
 
