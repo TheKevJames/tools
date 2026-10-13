@@ -19,7 +19,7 @@ pub struct Repository {
     pub full_name: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct StatusItem {
     id: String,
     pub reason: String,
@@ -29,9 +29,22 @@ pub struct StatusItem {
 }
 impl Ord for StatusItem {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.updated_at.cmp(&other.updated_at)
+        self.updated_at
+            .cmp(&other.updated_at)
+            .then_with(|| self.id.cmp(&other.id))
     }
 }
+impl PartialOrd for StatusItem {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl PartialEq for StatusItem {
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
+impl Eq for StatusItem {}
 
 #[derive(Debug, Deserialize)]
 pub struct GithubNotifLookup {

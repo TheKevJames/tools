@@ -9,8 +9,9 @@ use serde_xml_rs::from_str;
 use std::cmp::{max, Ordering};
 use std::collections::{BTreeMap, HashMap};
 
-#[derive(Clone, Debug, Eq, PartialEq, PartialOrd)]
+#[derive(Clone, Debug)]
 pub struct StatusItem {
+    id: String,
     // TODO: status: Enum { Cancelled, Failed, .. }
     pub status: &'static str,
     // TODO: inprogress: boolean
@@ -20,10 +21,16 @@ pub struct StatusItem {
 impl StatusItem {
     fn new(status: &'static str) -> Self {
         StatusItem {
+            id: String::new(),
             status: status,
             timestamp: String::from(""),
             url: None,
         }
+    }
+
+    fn with_id(mut self, id: String) -> Self {
+        self.id = id;
+        self
     }
 
     fn with_timestamp(mut self, timestamp: String) -> Self {
@@ -38,9 +45,22 @@ impl StatusItem {
 }
 impl Ord for StatusItem {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.timestamp.cmp(&other.timestamp)
+        self.timestamp
+            .cmp(&other.timestamp)
+            .then_with(|| self.id.cmp(&other.id))
     }
 }
+impl PartialOrd for StatusItem {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl PartialEq for StatusItem {
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
+impl Eq for StatusItem {}
 
 #[derive(Debug)]
 struct Status {
@@ -72,6 +92,7 @@ impl From<&CCTrayStatusItem> for StatusItem {
             }
         };
         StatusItem::new(status)
+            .with_id(format!("{}#{}", src.name, src.last_build_label))
             .with_timestamp(src.last_build_time.clone())
             .with_url(src.web_url.clone())
     }
@@ -120,7 +141,9 @@ impl From<&CircleCIStatusItem> for StatusItem {
                 "unknown"
             }
         };
-        StatusItem::new(status).with_timestamp(src.stopped_at.clone())
+        StatusItem::new(status)
+            .with_id(src.id.clone())
+            .with_timestamp(src.stopped_at.clone())
     }
 }
 
