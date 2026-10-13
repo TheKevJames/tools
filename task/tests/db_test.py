@@ -96,13 +96,18 @@ def query_task(today: datetime.date) -> st.SearchStrategy[schema.Task]:
     )
 
 
-FILTER = st.builds(
-    lambda target, op, data: f'{target}{op}{data}',
-    st.sampled_from(query.Target),
-    st.sampled_from(['=', '!=', '~', '!~']),
+FILTER_VALUE = (
     st.sampled_from(['', 'high', 'small'])
     | QUERY_NAME
-    | st.text('aAbÉé-! ', max_size=4),
+    | st.text('aAbÉé-! ', max_size=4)
+)
+# (field, operator, value): `list -f` syntax, joined only when queried.
+FILTER = st.tuples(
+    st.sampled_from(
+        ['summary', 'namespace', 'tag', 'owner', 'link', 'priority', 'size']
+    ),
+    st.sampled_from(['=', '!=', '~', '!~']),
+    FILTER_VALUE | FILTER_VALUE.map(str.upper),
 )
 
 
@@ -149,23 +154,14 @@ def test_save_load_roundtrip(tasks: list[schema.Task]) -> None:
     assert loaded == sorted(tasks, key=location)
 
 
-def reference_match(filter_: query.Filter, task: schema.Task) -> bool:
-    value = {
-        query.Target.summary: task.summary,
-        query.Target.namespace: task.namespace,
-        query.Target.tag: task.tag,
-        query.Target.owner: task.owner,
-        query.Target.link: task.link,
-        query.Target.priority: task.priority,
-        query.Target.size: task.size,
-    }[filter_.target]
-    candidate = (value or '').lower()
-
-    if filter_.contains:
-        matched = filter_.data in candidate
+def reference_match(filter_: tuple[str, str, str], task: schema.Task) -> bool:
+    field, op, value = filter_
+    candidate = str(getattr(task, field) or '').lower()
+    if op.endswith('~'):
+        matched = value.lower() in candidate
     else:
-        matched = filter_.data == candidate
-    return matched is not filter_.negate
+        matched = value.lower() == candidate
+    return matched != op.startswith('!')
 
 
 def reference_key(
@@ -210,14 +206,14 @@ def reference_key(
 def test_query_matches_reference(  # pylint: disable=too-many-arguments
     today: datetime.date,
     data: st.DataObject,
-    filters: list[str],
+    filters: list[tuple[str, str, str]],
     days: int,
     limit: int,
     order: query.SortOrder,
     scheduled: bool,
 ) -> None:
     tasks = data.draw(st.lists(query_task(today), max_size=10))
-    filter_ = ','.join(filters)
+    filter_ = ','.join(''.join(f) for f in filters)
     clauses = query.compile_(filter_, days, limit, order, scheduled=scheduled)
     with task_folder():
         store(tasks)
@@ -228,7 +224,7 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
     expected = [
         t
         for t in tasks
-        if all(reference_match(f, t) for f in query.Filter.parse(filter_))
+        if all(reference_match(f, t) for f in filters)
         and (days < 0 or not t.details or t.details.next_ <= target)
         and (t.details or not scheduled)
     ]
