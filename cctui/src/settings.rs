@@ -11,12 +11,13 @@ pub struct Layout {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum Level {
-    ERROR,
-    WARN,
-    INFO,
-    DEBUG,
-    TRACE,
+    Error,
+    Warn,
+    Info,
+    Debug,
+    Trace,
 }
 impl fmt::Display for Level {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
