@@ -28,6 +28,11 @@ dev = [
     "types-pyyaml==6.0.12.20260906",
 ]
 
+[tool.pylint.main]
+# gha_tools is not installed (package = false), so without this pylint can
+# only resolve its imports when the package itself is among the linted files.
+source-roots = ["."]
+
 [tool.pytest.ini_options]
 addopts = "-n auto"
 pythonpath = ["."]
