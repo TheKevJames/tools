@@ -170,3 +170,13 @@ impl<T: Debug, V: Debug> StatefulHash<T, V> {
         }
     }
 }
+
+/// Whether any of `fields` contains `filter`. A leading `!` inverts the
+/// match; a bare `!` matches everything.
+pub fn matches_filter(filter: &str, fields: &[&str]) -> bool {
+    match filter.strip_prefix('!') {
+        Some("") => true,
+        Some(negated) => !fields.iter().any(|field| field.contains(negated)),
+        None => fields.iter().any(|field| field.contains(filter)),
+    }
+}

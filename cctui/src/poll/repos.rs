@@ -1,5 +1,5 @@
 use crate::settings::{Repo, Settings};
-use crate::util::StatefulHash;
+use crate::util::{matches_filter, StatefulHash};
 
 use crossterm::event::KeyCode;
 use log::{error, warn};
@@ -309,32 +309,10 @@ impl ReposPoller {
 
         // TODO: include repo.circleci.{workflow,branch} in check
         for (repo, (_, visible)) in self.all.items.iter_mut() {
-            let show = {
-                if filter.chars().count() > 0 && &filter[0..1] == "!" {
-                    if filter.chars().count() > 1 {
-                        !repo.name.contains(&filter[1..])
-                    } else {
-                        true
-                    }
-                } else {
-                    repo.name.contains(filter)
-                }
-            };
-            *visible = show;
+            *visible = matches_filter(filter, &[&repo.name]);
         }
         for (_, (repo, visible)) in self.recent.items.iter_mut() {
-            let show = {
-                if filter.chars().count() > 0 && &filter[0..1] == "!" {
-                    if filter.chars().count() > 1 {
-                        !repo.name.contains(&filter[1..])
-                    } else {
-                        true
-                    }
-                } else {
-                    repo.name.contains(filter)
-                }
-            };
-            *visible = show;
+            *visible = matches_filter(filter, &[&repo.name]);
         }
         self.all.first();
     }

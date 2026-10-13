@@ -1,5 +1,5 @@
 use crate::settings::{Notif, NotifService, Settings};
-use crate::util::StatefulHash;
+use crate::util::{matches_filter, StatefulHash};
 
 use crossterm::event::KeyCode;
 use log::{debug, error, warn};
@@ -168,22 +168,14 @@ impl NotifsPoller {
         }
 
         for (status, (_, visible)) in self.all.items.iter_mut() {
-            let show = {
-                if filter.chars().count() > 0 && &filter[0..1] == "!" {
-                    if filter.chars().count() > 1 {
-                        !status.repository.full_name.contains(&filter[1..])
-                            && !status.subject.title.contains(&filter[1..])
-                            && !status.reason.contains(&filter[1..])
-                    } else {
-                        true
-                    }
-                } else {
-                    status.repository.full_name.contains(filter)
-                        || status.subject.title.contains(filter)
-                        || status.reason.contains(filter)
-                }
-            };
-            *visible = show;
+            *visible = matches_filter(
+                filter,
+                &[
+                    &status.repository.full_name,
+                    &status.subject.title,
+                    &status.reason,
+                ],
+            );
         }
         self.all.first();
     }
