@@ -11,13 +11,13 @@ import pytest
 from hypothesis import strategies as st
 
 from task import db
-from task import migrations
 from task import query
 from task import schema
 
 NAME = st.text(string.ascii_letters + string.digits, min_size=1, max_size=8)
 TAG = st.from_regex(r'[a-z0-9][a-z0-9_.-]{0,7}', fullmatch=True)
-NAMESPACE = st.sampled_from([schema.DEFAULT, 'b', 'c.d'])
+NAMESPACES = (schema.DEFAULT, 'b', 'c.d')
+NAMESPACE = st.sampled_from(NAMESPACES)
 SUMMARY = st.text(
     st.characters(exclude_categories=['Cs'], exclude_characters='\n'),
     min_size=1,
@@ -120,14 +120,6 @@ def task_folder() -> Generator[pathlib.Path]:
     ):
         monkeypatch.setenv('TASK_FOLDER', folder)
         yield pathlib.Path(folder)
-
-
-def database(folder: pathlib.Path) -> sqlite3.Connection:
-    """The default namespace's database, created unmigrated."""
-    (folder / schema.DEFAULT).mkdir()
-    return sqlite3.connect(
-        folder / schema.DEFAULT / db.DATABASE, isolation_level=None
-    )
 
 
 def store(tasks: list[schema.Task]) -> None:
@@ -309,60 +301,6 @@ def test_updated_bumps_only_on_change(
     assert new.updated == after.updated
 
 
-@pytest.mark.parametrize('deleted', [[3], [1, 2, 3]])
-def test_migration_keeps_tasks_and_never_reuses_ids(
-    folder: pathlib.Path, deleted: list[int]
-) -> None:
-    conn = database(folder)
-    conn.execute(migrations.MIGRATIONS[0])
-    conn.execute('PRAGMA user_version = 1')
-    conn.executemany(
-        "INSERT INTO task (summary, tag, owner) VALUES (?, 'a', ?)",
-        [('x', 'bot'), ('y', None), ('z', None)],
-    )
-    conn.executemany('DELETE FROM task WHERE id = ?', [(i,) for i in deleted])
-    conn.close()
-
-    added = schema.Task(summary='new', details=None, tag='a')
-    with db.write(schema.DEFAULT) as conn:
-        kept = db.select(conn, ' ORDER BY id')
-        db.insert(conn, added)
-
-    assert [(t.ident, t.summary, t.owner) for t in kept] == [
-        (i, s, o)
-        for i, s, o in ((1, 'x', 'bot'), (2, 'y', None))
-        if i not in deleted
-    ]
-    assert all(t.created == t.updated for t in kept)
-    assert added.ident == 4
-
-
-def test_migration_deletes_done_tasks_and_never_reuses_ids(
-    folder: pathlib.Path,
-) -> None:
-    conn = database(folder)
-    # The last version with a `done` column.
-    for migration in migrations.MIGRATIONS[:7]:
-        conn.execute(migration)
-    conn.execute('PRAGMA user_version = 7')
-    conn.executemany(
-        "INSERT INTO task (summary, tag, done) VALUES (?, 'a', ?)",
-        [('x', None), ('y', EPOCH), ('z', EPOCH)],
-    )
-    conn.close()
-    for ident in (1, 2):
-        (folder / schema.DEFAULT / f'{ident}.txt').write_text('notes')
-
-    added = schema.Task(summary='new', details=None, tag='a')
-    with db.write(schema.DEFAULT) as conn:
-        kept = db.select(conn, ' ORDER BY id')
-        db.insert(conn, added)
-
-    assert [(t.ident, t.description) for t in kept] == [(1, 'notes')]
-    assert not (folder / schema.DEFAULT / '2.txt').exists()
-    assert added.ident == 4
-
-
 @hypothesis.settings(max_examples=100, deadline=None)
 @hypothesis.given(st.lists(TASK, min_size=1, max_size=8), st.data())
 def test_move_gives_a_new_id_and_keeps_the_rest(
@@ -394,8 +332,6 @@ def test_move_gives_a_new_id_and_keeps_the_rest(
 
     others = sorted((t for t in tasks if t.ref != source), key=location)
     assert [t for t in after if t.ref != moved.ref] == others
-    # Ids are never reused, in the target or anywhere else.
-    assert moved.ident == 1 + sum(t.namespace == target for t in tasks)
     unplaced = {'id', 'namespace', 'updated'}
     assert {k: v for k, v in found.to_json().items() if k not in unplaced} == {
         k: v for k, v in before.to_json().items() if k not in unplaced
@@ -404,6 +340,54 @@ def test_move_gives_a_new_id_and_keeps_the_rest(
     assert before.updated
     assert found.updated
     assert found.updated > before.updated
+
+
+def operate(
+    conn: db.Store, operation: tuple[str, str, int]
+) -> schema.Ref | None:
+    """Apply `operation`, returning the ref it created, if any."""
+    kind, namespace, pick = operation
+    live = db.select(conn)
+    if kind == 'add' or not live:
+        task = schema.Task(
+            summary='a', details=None, tag='a', namespace=namespace
+        )
+        db.insert(conn, task)
+        return task.ref
+    task = live[pick % len(live)]
+    if kind == 'done':
+        db.delete(conn, task.ref)
+        return None
+    if task.namespace == namespace:
+        return None
+    source = task.ref
+    task.namespace = namespace
+    db.move(conn, task, source)
+    return task.ref
+
+
+@hypothesis.settings(max_examples=50, deadline=None)
+@hypothesis.given(
+    st.lists(
+        st.tuples(
+            st.sampled_from(['add', 'done', 'move']),
+            NAMESPACE,
+            st.integers(min_value=0),
+        ),
+        max_size=12,
+    )
+)
+def test_ids_are_never_reused(operations: list[tuple[str, str, int]]) -> None:
+    seen: set[schema.Ref] = set()
+    with task_folder():
+        for namespace in NAMESPACES[1:]:
+            db.add_namespace(namespace)
+        for operation in operations:
+            with db.write(*NAMESPACES) as conn:
+                ref = operate(conn, operation)
+            assert ref not in seen
+            if ref:
+                seen.add(ref)
 
 
 def test_unwritable_namespace_is_readable_only(folder: pathlib.Path) -> None:

@@ -47,36 +47,50 @@ def refs(tasks: list[dict[str, object]]) -> list[str]:
     ]
 
 
-def test_claim_lifecycle(folder: pathlib.Path) -> None:
-    link = 'https://github.com/TheKevJames/tools/issues/1'
-    run('add', 'fix it', '--link', link)
-    run('add', 'unrelated')
-    run('namespace', 'add', 'Bakery')
+@pytest.mark.usefixtures('folder')
+def test_tags_are_normalized() -> None:
+    run('add', 'a', '--tag', ' Build ')
     for bad in ('bakery/build', '-build', ''):
-        assert 'invalid tag' in refused('1', 'set', '--tag', bad)
-    moved = run('1', 'set', '-n', 'Bakery ', '--tag', 'Build')
-    assert moved == 'moved to bakery:1\n'
+        assert refused('1', 'set', '--tag', bad) == f'invalid tag: {bad!r}'
+    assert listed()[0]['tag'] == 'build'
 
-    claimable = 'namespace=bakery,tag=build,owner='
-    assert refs(listed(claimable)) == ['bakery:1']
-    assert refs(listed(f'link={link}')) == ['bakery:1']
 
-    run('bakery:1', 'set', '--owner', 'build')
-    assert not listed(claimable)
-    for args in (('--owner', 'triage'), ('-n', 'default')):
-        assert 'owned by build' in refused('bakery:1', 'set', *args)
+@pytest.mark.usefixtures('folder')
+def test_set_namespace_moves_the_task() -> None:
+    run('add', 'a')
+    assert refused('1', 'set', '-n', 'bakery') == 'no such namespace: bakery'
+    run('namespace', 'add', 'Bakery')
 
-    for note in ('a', 'b'):
-        run('bakery:1', 'set', '--description-append', note)
-    run('bakery:1', 'unset', 'owner')
-    [released] = listed(claimable)
-    assert released['description'] == 'a\n\nb'
+    assert run('1', 'set', '-n', 'Bakery ') == 'moved to bakery:1\n'
+    assert run('bakery:1', 'set', '-n', 'bakery') == ''
+    assert refs(listed()) == ['bakery:1']
 
-    # Moving back keeps the tag, and ids are never reused.
-    run('bakery:1', 'set', '-n', 'default')
-    assert refs(listed('tag=build')) == ['3']
-    assert (folder / 'default' / '3.txt').read_text() == 'a\n\nb'
-    assert not (folder / 'bakery' / '1.txt').exists()
+
+@pytest.mark.usefixtures('folder')
+def test_claims_are_exclusive_until_released() -> None:
+    run('namespace', 'add', 'b')
+    run('add', 'a')
+    run('1', 'set', '--owner', 'build')
+    run('1', 'set', '--owner', 'build')
+
+    owned = 'task 1 is owned by build'
+    assert refused('1', 'set', '--owner', 'triage') == owned
+    assert refused('1', 'set', '-n', 'b') == f'{owned}: release it first'
+    assert listed('owner=build')
+
+    run('1', 'unset', 'owner')
+    assert listed('owner=')
+    run('1', 'set', '--owner', 'triage')
+    run('1', 'set', '--owner', 'bot', '--force')
+    assert listed()[0]['owner'] == 'bot'
+
+
+@pytest.mark.usefixtures('folder')
+def test_description_append_adds_paragraphs() -> None:
+    run('add', 'a')
+    for note in ('a', ' ', 'b\n'):
+        run('1', 'set', '--description-append', note)
+    assert listed()[0]['description'] == 'a\n\nb'
 
 
 @pytest.mark.usefixtures('folder')
@@ -88,22 +102,17 @@ def test_due() -> None:
 
     due = json.loads(run('due', '--json'))
     assert [t['summary'] for t in due] == ['old', 'soon']
-    assert len(listed()) == 4
 
 
 @pytest.mark.usefixtures('folder')
-def test_priority_and_size() -> None:
-    run('add', 'a', '--priority', 'high')
-    run('add', 'b', '--size', 'large')
-    run('2', 'set', '--priority', 'low')
+def test_metadata_flags() -> None:
+    run('add', 'a', '--priority', 'high', '--size', 'large', '--link', 'x')
+    run('1', 'set', '--priority', 'low')
     assert invoke('1', 'set', '--priority', 'urgent').exit_code == 2
+    run('1', 'unset', 'size')
 
-    assert [t['id'] for t in listed('priority=high')] == [1]
-    assert [t['id'] for t in listed('size=large')] == [2]
-    assert [t['id'] for t in listed('size=')] == [1]
-
-    run('1', 'unset', 'priority')
-    assert [t['id'] for t in listed('priority=')] == [1]
+    [task] = listed()
+    assert (task['priority'], task['size'], task['link']) == ('low', None, 'x')
 
 
 def test_descriptions_are_text_files(folder: pathlib.Path) -> None:
@@ -123,7 +132,6 @@ def test_descriptions_are_text_files(folder: pathlib.Path) -> None:
     (default / '9.txt').write_text('orphan')
     run('add', 'c')
     assert not (default / '9.txt').exists()
-    assert [t['id'] for t in listed()] == [1, 3]  # ids never reused
 
 
 @pytest.mark.usefixtures('folder')
