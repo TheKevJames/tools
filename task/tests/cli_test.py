@@ -173,3 +173,14 @@ def test_describe_refuses_concurrent_change(
         == "task 1's description changed while editing"
     )
     assert listed()[0]['description'] == 'x\n\ntheirs'
+
+
+@pytest.mark.usefixtures('folder')
+def test_monthly_recurrence_clamps_to_month_end() -> None:
+    run('add', 'a', '--next', '2026-01-31', '--interval', '1m')
+    assert run('1', 'done') == (
+        'completed recurring task, next occurrence: 2026-02-28\n'
+    )
+    assert run('1', 'done') == (
+        'completed recurring task, next occurrence: 2026-03-28\n'
+    )

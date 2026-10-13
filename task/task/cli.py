@@ -77,7 +77,17 @@ MoveNamespace = Annotated[
 ]
 Tag = Annotated[str | None, typer.Option('--tag', help='Section, eg. build')]
 Next = Annotated[str | None, typer.Option('--next')]
-Interval = Annotated[str | None, typer.Option('--interval')]
+Interval = Annotated[
+    str | None,
+    typer.Option(
+        '--interval',
+        help=(
+            'Repeat every N days, weeks, or months, eg. 3d, 2w, 1m. Months'
+            ' past the end of a shorter month land on its last day, and stay'
+            ' there: Jan 31, Feb 28, Mar 28.'
+        ),
+    ),
+]
 Shift = Annotated[bool | None, typer.Option('--shift/--no-shift')]
 Description = Annotated[str | None, typer.Option('--description')]
 DescriptionAppend = Annotated[str | None, typer.Option('--description-append')]
