@@ -2,11 +2,11 @@ use crate::display::App;
 use crate::settings::Branch;
 
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
+use ratatui::prelude::Text;
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::Span;
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState};
 use ratatui::Frame;
-use ratatui::prelude::Text;
 
 pub fn draw(f: &mut Frame, app: &mut App) {
     if app.notifs.enabled {

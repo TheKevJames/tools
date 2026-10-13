@@ -160,7 +160,7 @@ impl Settings {
         // https://github.com/mehcode/config-rs/issues/64
         match builder.build() {
             Ok(config) => config.try_deserialize(),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 }

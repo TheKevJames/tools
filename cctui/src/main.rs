@@ -5,9 +5,11 @@ mod util;
 
 use crate::display::{ui, App};
 
-use crossterm::ExecutableCommand;
 use crossterm::event::{self, KeyCode, KeyEventKind};
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
+use crossterm::terminal::{
+    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+};
+use crossterm::ExecutableCommand;
 use log::debug;
 use ratatui::prelude::{CrosstermBackend, Terminal};
 use settings::Settings;
