@@ -1,5 +1,6 @@
 import configparser
 
+import prometheus_client
 import pytest
 
 from atc1441_exporter import main
@@ -57,17 +58,15 @@ def test_processor_matches_uppercase_config_sections() -> None:
     # headers per the README, so the processor must match case-insensitively.
     sensors = configparser.ConfigParser()
     sensors['A4:C1:38:D8:F8:9D'] = {'name': 'Living Room'}
+    registry = prometheus_client.CollectorRegistry()
 
-    process = main._build_processor(sensors)  # pylint: disable=protected-access
+    process = main.build_processor(sensors, registry)
     process(ATC_EVENT)
 
-    (sample,) = [
-        s
-        for metric in main.TEMPERATURE.collect()
-        for s in metric.samples
-        if s.labels == {'name': 'Living Room'}
-    ]
-    assert sample.value == 23.4
+    assert (
+        registry.get_sample_value('atc_temperature', {'name': 'Living Room'})
+        == 23.4
+    )
 
 
 @pytest.mark.parametrize(

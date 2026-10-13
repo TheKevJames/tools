@@ -15,11 +15,6 @@ from . import utils
 from ._aioblescan import events
 from ._aioblescan import scanner
 
-BATTERY = prometheus_client.Gauge('atc_battery', 'Battery', ['name'])
-HUMIDITY = prometheus_client.Gauge('atc_humidity', 'Humidity', ['name'])
-TEMPERATURE = prometheus_client.Gauge('atc_temperature', 'Temp.', ['name'])
-VOLTAGE = prometheus_client.Gauge('atc_voltage', 'Voltage', ['name'])
-
 # ATC1441 service data marker: AD type 0x16 (service data, 16-bit UUID)
 # followed by UUID 0x181A on the wire (little-endian bytes 1a 18).
 ATC_PREAMBLE = '161a18'
@@ -36,6 +31,28 @@ class Measurement:
     humidity: int
     temperature: float
     voltage: float
+
+
+class Metrics:
+    def __init__(self, registry: prometheus_client.CollectorRegistry) -> None:
+        self.battery = prometheus_client.Gauge(
+            'atc_battery', 'Battery', ['name'], registry=registry
+        )
+        self.humidity = prometheus_client.Gauge(
+            'atc_humidity', 'Humidity', ['name'], registry=registry
+        )
+        self.temperature = prometheus_client.Gauge(
+            'atc_temperature', 'Temp.', ['name'], registry=registry
+        )
+        self.voltage = prometheus_client.Gauge(
+            'atc_voltage', 'Voltage', ['name'], registry=registry
+        )
+
+    def record(self, name: str, measurement: Measurement) -> None:
+        self.battery.labels(name).set(measurement.battery)
+        self.humidity.labels(name).set(measurement.humidity)
+        self.temperature.labels(name).set(measurement.temperature)
+        self.voltage.labels(name).set(measurement.voltage)
 
 
 def decode_data_atc1441(
@@ -91,9 +108,11 @@ async def _open_scanner(
     )
 
 
-def _build_processor(
+def build_processor(
     sensors: configparser.ConfigParser,
+    registry: prometheus_client.CollectorRegistry = prometheus_client.REGISTRY,
 ) -> Callable[[bytes], None]:
+    metrics = Metrics(registry)
     adv_cache: dict[str, str] = {}
 
     # The vendored parser emits lowercase MACs, so normalise the configured
@@ -127,10 +146,7 @@ def _build_processor(
         if not measurement:
             return
 
-        BATTERY.labels(name).set(measurement.battery)
-        HUMIDITY.labels(name).set(measurement.humidity)
-        TEMPERATURE.labels(name).set(measurement.temperature)
-        VOLTAGE.labels(name).set(measurement.voltage)
+        metrics.record(name, measurement)
 
     return process
 
@@ -153,7 +169,7 @@ async def _run(interface: int, port: int, filename: str) -> None:
 
     loop = asyncio.get_running_loop()
     transport, btctrl = await _open_scanner(loop, sock)
-    btctrl.process = _build_processor(sensors)
+    btctrl.process = build_processor(sensors)
 
     prometheus_client.start_http_server(port)
 
