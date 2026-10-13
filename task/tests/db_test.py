@@ -12,20 +12,13 @@ import pytest
 from hypothesis import strategies as st
 
 from task import db
+from task import migrations
 from task import query
 from task import schema
 
 NAME = st.text(string.ascii_letters + string.digits, min_size=1, max_size=8)
-SEGMENT = (
-    st.text(
-        st.characters(categories=['L', 'N', 'P', 'S'], exclude_characters='/')
-        | st.just(' '),
-        min_size=1,
-        max_size=8,
-    )
-    .map(lambda x: x.strip().lower())
-    .filter(lambda x: x and x.isprintable() and '/' not in x)
-)
+TAG = st.from_regex(r'[a-z0-9][a-z0-9_.-]{0,7}', fullmatch=True)
+NAMESPACE = st.sampled_from([schema.DEFAULT, 'b', 'c.d'])
 SUMMARY = st.text(
     st.characters(exclude_categories=['Cs'], exclude_characters='\n'),
     min_size=1,
@@ -73,7 +66,8 @@ TASK = st.builds(
     schema.Task,
     summary=SUMMARY,
     details=details(st.dates()),
-    tag=st.lists(SEGMENT, min_size=1, max_size=3).map('/'.join),
+    namespace=NAMESPACE,
+    tag=TAG,
     description=DESCRIPTION,
     owner=OWNER,
     link=LINK,
@@ -81,19 +75,17 @@ TASK = st.builds(
     size=st.none() | st.sampled_from(schema.Size),
 )
 
-# Small alphabets, so that filters often match. Tag segments include ones
-# sorting either side of `/`, and summaries non-ASCII case.
+# Small alphabets, so that filters often match, and summaries non-ASCII case.
 TODAY = datetime.date.today()
-QUERY_TAG = st.lists(
-    st.sampled_from(['a', 'a!', 'é', schema.TRIAGE]), min_size=1, max_size=3
-).map('/'.join)
+QUERY_NAME = st.sampled_from(['a', 'a-b', 'b', schema.TRIAGE, schema.DEFAULT])
 QUERY_TASK = st.builds(
     schema.Task,
     summary=st.text('aAbÉé ', min_size=1, max_size=3).filter(str.strip),
     details=details(
         st.dates(TODAY - datetime.timedelta(3), TODAY + datetime.timedelta(5))
     ),
-    tag=QUERY_TAG,
+    namespace=st.sampled_from([schema.DEFAULT, 'a', 'b']),
+    tag=QUERY_NAME,
     owner=st.sampled_from([None, 'a', 'A', 'b']),
     link=st.sampled_from([None, 'a', 'A/b']),
     priority=st.none() | st.sampled_from(schema.Priority),
@@ -104,8 +96,8 @@ FILTER = st.builds(
     st.sampled_from(query.Target),
     st.sampled_from(['=', '!=', '~', '!~']),
     st.sampled_from(['', 'high', 'small'])
-    | QUERY_TAG
-    | st.text('aAbÉé/! ', max_size=4),
+    | QUERY_NAME
+    | st.text('aAbÉé-! ', max_size=4),
 )
 
 
@@ -116,10 +108,25 @@ def task_folder() -> Generator[pathlib.Path]:
         yield pathlib.Path(folder)
 
 
+def database(folder: pathlib.Path) -> sqlite3.Connection:
+    """The default namespace's database, created unmigrated."""
+    (folder / schema.DEFAULT).mkdir()
+    return sqlite3.connect(
+        folder / schema.DEFAULT / db.DATABASE, isolation_level=None
+    )
+
+
 def store(tasks: list[schema.Task]) -> None:
-    with db.write() as conn:
+    namespaces = {task.namespace for task in tasks}
+    for namespace in namespaces - {schema.DEFAULT}:
+        db.add_namespace(namespace)
+    with db.write(schema.DEFAULT, *namespaces) as conn:
         for task in tasks:
             db.insert(conn, task)
+
+
+def location(task: schema.Task) -> tuple[str, int | None]:
+    return task.namespace, task.ident
 
 
 @hypothesis.settings(max_examples=200, deadline=None)
@@ -128,48 +135,53 @@ def test_save_load_roundtrip(tasks: list[schema.Task]) -> None:
     with task_folder():
         store(tasks)
         with db.connect() as conn:
-            loaded = db.select(conn, ' ORDER BY id')
+            loaded = db.select(conn, ' ORDER BY namespace, id')
 
-    assert loaded == tasks
+    assert loaded == sorted(tasks, key=location)
 
 
 def reference_match(filter_: query.Filter, task: schema.Task) -> bool:
-    if filter_.target == query.Target.tag:
-        names = task.tag_names
-        paths = ['/'.join(names[:i]) for i in range(2, len(names) + 1)]
-        candidates = names + paths
-    else:
-        value = {
-            query.Target.summary: task.summary,
-            query.Target.owner: task.owner,
-            query.Target.link: task.link,
-            query.Target.priority: task.priority,
-            query.Target.size: task.size,
-        }[filter_.target]
-        candidates = [(value or '').lower()]
+    value = {
+        query.Target.summary: task.summary,
+        query.Target.namespace: task.namespace,
+        query.Target.tag: task.tag,
+        query.Target.owner: task.owner,
+        query.Target.link: task.link,
+        query.Target.priority: task.priority,
+        query.Target.size: task.size,
+    }[filter_.target]
+    candidate = (value or '').lower()
 
     if filter_.contains:
-        matched = any(filter_.data in x for x in candidates)
+        matched = filter_.data in candidate
     else:
-        matched = filter_.data in candidates
+        matched = filter_.data == candidate
     return matched is not filter_.negate
 
 
 def reference_key(
     order: query.SortOrder, task: schema.Task
 ) -> tuple[object, ...]:
+    if order == query.SortOrder.tag:
+        return (
+            task.namespace != schema.DEFAULT,
+            task.namespace,
+            task.tag != schema.TRIAGE,
+            task.tag,
+            task.ident,
+        )
     if order == query.SortOrder.due:
         next_ = task.details.next_ if task.details else datetime.date.min
-        return (task.details is not None, next_, task.ident)
-    if order == query.SortOrder.tag:
-        return (task.tag != schema.TRIAGE, task.tag_names, task.ident)
-    if order == query.SortOrder.created:
+        key: tuple[object, ...] = (task.details is not None, next_)
+    elif order == query.SortOrder.created:
         assert task.created
-        return (task.created, task.ident)
-    if order == query.SortOrder.updated:
+        key = (task.created,)
+    elif order == query.SortOrder.updated:
         assert task.updated
-        return (-task.updated.timestamp(), task.ident)
-    return (task.ident,)
+        key = (-task.updated.timestamp(),)
+    else:
+        key = ()
+    return (*key, task.ident, task.namespace)
 
 
 @hypothesis.settings(max_examples=300, deadline=None)
@@ -180,14 +192,6 @@ def reference_key(
     limit=st.integers(-1, 4),
     order=st.sampled_from(query.SortOrder),
     scheduled=st.booleans(),
-)
-@hypothesis.example(  # a path match must be anchored at the root
-    tasks=[schema.Task(summary='a', details=None, tag='a/b/a')],
-    filters=['tag=b/a'],
-    days=-1,
-    limit=-1,
-    order=query.SortOrder.ident,
-    scheduled=False,
 )
 def test_query_matches_reference(  # pylint: disable=too-many-arguments
     tasks: list[schema.Task],
@@ -202,7 +206,7 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
     with task_folder():
         store(tasks)
         with db.connect() as conn:
-            selected = [t.ident for t in db.select(conn, *clauses)]
+            selected = [location(t) for t in db.select(conn, *clauses)]
 
     target = TODAY + datetime.timedelta(days=days)
     expected = [
@@ -215,7 +219,7 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
     expected.sort(key=lambda t: reference_key(order, t))
     if limit >= 0:
         expected = expected[:limit]
-    assert selected == [t.ident for t in expected]
+    assert selected == [location(t) for t in expected]
 
 
 @pytest.mark.parametrize(
@@ -224,6 +228,8 @@ def test_query_matches_reference(  # pylint: disable=too-many-arguments
         "summary = ''",
         "summary = 'a' || char(10) || 'b'",
         "tag = 'Triage'",
+        "tag = 'a/b'",
+        "tag = '-a'",
         "next = '2026-02-30'",
         "next = '2026-01-01', interval = '0d'",
         "next = '2026-01-01', interval = '1y'",
@@ -241,7 +247,9 @@ def test_constraints_refuse_bad_data(assignment: str) -> None:
     with task_folder():
         store([schema.Task(summary='a', details=None, tag=schema.TRIAGE)])
         with db.connect() as conn, pytest.raises(sqlite3.IntegrityError):
-            conn.execute(f'UPDATE task SET {assignment}')
+            conn.conn.execute(
+                f'UPDATE {conn.table(schema.DEFAULT)} SET {assignment}'
+            )
 
 
 CONTENT = (
@@ -271,16 +279,16 @@ def test_updated_bumps_only_on_change(
 ) -> None:
     with task_folder():
         store([old])
-        ident = old.ident
-        assert ident is not None
         new = old.model_copy(update={f: getattr(other, f) for f in fields})
-        with db.write() as conn:
-            conn.execute(
-                'UPDATE task SET created = :t, updated = :t', {'t': EPOCH}
+        with db.write(old.namespace) as conn:
+            conn.conn.execute(
+                f'UPDATE {conn.table(old.namespace)}'
+                ' SET created = :t, updated = :t',
+                {'t': EPOCH},
             )
-            before = db.get(conn, ident)
+            before = db.get(conn, old.ref)
             db.update(conn, new)
-            after = db.get(conn, ident)
+            after = db.get(conn, old.ref)
 
     assert content(after) == content(new)
     assert after.created == before.created
@@ -294,8 +302,8 @@ def test_migration_keeps_tasks_and_never_reuses_ids(
     deleted: list[int],
 ) -> None:
     with task_folder() as folder:
-        conn = sqlite3.connect(folder / 'tasks.db', isolation_level=None)
-        conn.execute(db.MIGRATIONS[0])
+        conn = database(folder)
+        conn.execute(migrations.MIGRATIONS[0])
         conn.execute('PRAGMA user_version = 1')
         conn.executemany(
             "INSERT INTO task (summary, tag, owner) VALUES (?, 'a', ?)",
@@ -307,7 +315,7 @@ def test_migration_keeps_tasks_and_never_reuses_ids(
         conn.close()
 
         added = schema.Task(summary='new', details=None, tag='a')
-        with db.write() as conn:
+        with db.write(schema.DEFAULT) as conn:
             kept = db.select(conn, ' ORDER BY id')
             db.insert(conn, added)
 
@@ -322,9 +330,9 @@ def test_migration_keeps_tasks_and_never_reuses_ids(
 
 def test_migration_deletes_done_tasks_and_never_reuses_ids() -> None:
     with task_folder() as folder:
-        conn = sqlite3.connect(folder / 'tasks.db', isolation_level=None)
+        conn = database(folder)
         # The last version with a `done` column.
-        for migration in db.MIGRATIONS[:7]:
+        for migration in migrations.MIGRATIONS[:7]:
             conn.execute(migration)
         conn.execute('PRAGMA user_version = 7')
         conn.executemany(
@@ -333,13 +341,112 @@ def test_migration_deletes_done_tasks_and_never_reuses_ids() -> None:
         )
         conn.close()
         for ident in (1, 2):
-            (folder / f'{ident}.txt').write_text('notes')
+            (folder / schema.DEFAULT / f'{ident}.txt').write_text('notes')
 
         added = schema.Task(summary='new', details=None, tag='a')
-        with db.write() as conn:
+        with db.write(schema.DEFAULT) as conn:
             kept = db.select(conn, ' ORDER BY id')
             db.insert(conn, added)
 
         assert [(t.ident, t.description) for t in kept] == [(1, 'notes')]
-        assert not (folder / '2.txt').exists()
+        assert not (folder / schema.DEFAULT / '2.txt').exists()
         assert added.ident == 4
+
+
+@hypothesis.settings(max_examples=100, deadline=None)
+@hypothesis.given(st.lists(TASK, min_size=1, max_size=8), st.data())
+def test_move_gives_a_new_id_and_keeps_the_rest(
+    tasks: list[schema.Task], data: st.DataObject
+) -> None:
+    with task_folder() as folder:
+        store(tasks)
+        source = data.draw(st.sampled_from(tasks)).ref
+        target = data.draw(NAMESPACE.filter(lambda n: n != source.namespace))
+        if target not in db.namespaces():
+            db.add_namespace(target)
+        with db.write(source.namespace, target) as conn:
+            conn.conn.execute(
+                f'UPDATE {conn.table(source.namespace)}'
+                ' SET created = :t, updated = :t WHERE id = :id',
+                {'t': EPOCH, 'id': source.ident},
+            )
+            before = db.get(conn, source)
+            moved = before.model_copy()
+            moved.namespace = target
+            db.move(conn, moved, source)
+        with db.connect() as conn:
+            after = db.select(conn, ' ORDER BY namespace, id')
+
+        [found] = [t for t in after if t.ref == moved.ref]
+        assert not (folder / source.namespace / f'{source.ident}.txt').exists()
+        described = folder / target / f'{moved.ident}.txt'
+        assert described.exists() == (before.description is not None)
+
+    others = sorted((t for t in tasks if t.ref != source), key=location)
+    assert [t for t in after if t.ref != moved.ref] == others
+    # Ids are never reused, in the target or anywhere else.
+    assert moved.ident == 1 + sum(t.namespace == target for t in tasks)
+    unplaced = {'id', 'namespace', 'updated'}
+    assert {k: v for k, v in found.to_json().items() if k not in unplaced} == {
+        k: v for k, v in before.to_json().items() if k not in unplaced
+    }
+    assert found == moved
+    assert before.updated
+    assert found.updated
+    assert found.updated > before.updated
+
+
+def test_unwritable_namespace_is_readable_only() -> None:
+    with task_folder() as folder:
+        store([schema.Task(summary='a', details=None, tag='a', namespace='b')])
+        directory = folder / 'b'
+        tasks_db = directory / db.DATABASE
+        directory.chmod(0o555)
+        tasks_db.chmod(0o444)
+        try:
+            with db.connect() as conn:
+                [task] = db.select(conn)
+            with (
+                db.write('b') as conn,
+                pytest.raises(sqlite3.OperationalError, match='readonly'),
+            ):
+                db.update(conn, task)
+            directory.chmod(0o755)
+            tasks_db.chmod(0o644)
+            with db.write('b') as conn:
+                conn.conn.execute('PRAGMA user_version = 1')
+            directory.chmod(0o555)
+            tasks_db.chmod(0o444)
+            with (
+                pytest.raises(schema.TaskError, match='^namespace b: '),
+                db.connect(),
+            ):
+                pass
+        finally:
+            directory.chmod(0o755)
+            tasks_db.chmod(0o644)
+
+
+def test_only_empty_namespaces_may_be_deleted() -> None:
+    with task_folder() as folder:
+        store([schema.Task(summary='a', details=None, tag='a', namespace='b')])
+        for namespace, error in (
+            (schema.DEFAULT, 'cannot be deleted'),
+            ('b', 'not empty'),
+            ('c', 'no such namespace'),
+        ):
+            with pytest.raises(schema.TaskError, match=error):
+                db.delete_namespace(namespace)
+
+        with db.write('b') as conn:
+            db.delete(conn, schema.Ref('b', 1))
+        (folder / 'b' / '9.txt').write_text('orphan')
+        (folder / 'b' / '.9.txt.tmp').write_text('half written')
+        db.delete_namespace('b')
+        assert not (folder / 'b').exists()
+
+        db.add_namespace('c')
+        (folder / 'c' / 'unexpected').write_text('')
+        with pytest.raises(schema.TaskError, match='^namespace c: '):
+            db.delete_namespace('c')
+        assert db.namespaces() == [schema.DEFAULT]

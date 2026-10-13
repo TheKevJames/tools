@@ -18,14 +18,14 @@ from . import schema
 
 class SubjectGroup(core.TyperGroup):
     """
-    Enable `task <id> <cmd>` by rewriting an integer-led invocation.
+    Enable `task <id> <cmd>` by rewriting a task-led invocation.
 
-    A leading integer is the task id (the subject); it is moved to sit behind
-    the command so ordinary Typer parsing applies. A bare integer means `show`.
+    A leading task id (the subject) is moved to sit behind the command so
+    ordinary Typer parsing applies. A bare task id means `show`.
     """
 
     def parse_args(self, ctx: _click.Context, args: list[str]) -> list[str]:
-        if args and args[0].lstrip('-').isdigit():
+        if args and schema.REF_RE.fullmatch(args[0]):
             if len(args) == 1:
                 args = ['show', args[0]]
             else:
@@ -38,6 +38,8 @@ class SubjectGroup(core.TyperGroup):
 
 
 app = typer.Typer(cls=SubjectGroup, add_completion=False, no_args_is_help=True)
+namespace_app = typer.Typer(no_args_is_help=True)
+app.add_typer(namespace_app, name='namespace', help='Manage namespaces.')
 
 
 @app.callback()
@@ -48,18 +50,32 @@ def main() -> None:
 Ago = Annotated[int, typer.Option('-a', '--ago')]
 Days = Annotated[int, typer.Option('-d', '--days')]
 Filter = Annotated[
-    str, typer.Option('-f', '--filter', help='tag=bar,summary!~bq')
+    str,
+    typer.Option('-f', '--filter', help='namespace=foo,tag=bar,summary!~bq'),
 ]
 Limit = Annotated[int, typer.Option('-l', '--limit')]
 Sort = Annotated[query.SortOrder, typer.Option('-s', '--sort')]
 AsJson = Annotated[bool, typer.Option('--json', help='Machine-readable.')]
 
+Ref = Annotated[
+    schema.Ref,
+    typer.Argument(
+        metavar='ID', parser=schema.Ref.parse, help='[namespace:]id'
+    ),
+]
+NamespaceName = Annotated[str, typer.Argument(metavar='NAMESPACE')]
+
 # Shared detail flags: `add` and `set` funnel these into Task.update, keeping a
 # single source of truth for task modifications.
 Summary = Annotated[str | None, typer.Option('--summary')]
-Tag = Annotated[
-    str | None, typer.Option('--tag', help='Section path, eg. bakery/build')
+AddNamespace = Annotated[str, typer.Option('-n', '--namespace')]
+MoveNamespace = Annotated[
+    str | None,
+    typer.Option(
+        '-n', '--namespace', help='Move the task here; it gets a new id.'
+    ),
 ]
+Tag = Annotated[str | None, typer.Option('--tag', help='Section, eg. build')]
 Next = Annotated[str | None, typer.Option('--next')]
 Interval = Annotated[str | None, typer.Option('--interval')]
 Shift = Annotated[bool | None, typer.Option('--shift/--no-shift')]
@@ -102,8 +118,8 @@ def list_(
 ) -> None:
     """List all tasks."""
     clauses = query.compile_(filter_, days, limit, sort)
-    with db.connect() as conn:
-        tasks = db.select(conn, *clauses)
+    with db.connect() as store:
+        tasks = db.select(store, *clauses)
     print_tasks(tasks, as_json)
 
 
@@ -117,14 +133,15 @@ def due(
 ) -> None:
     """List scheduled tasks due within the given number of days."""
     clauses = query.compile_(filter_, days, limit, sort, scheduled=True)
-    with db.connect() as conn:
-        tasks = db.select(conn, *clauses)
+    with db.connect() as store:
+        tasks = db.select(store, *clauses)
     print_tasks(tasks, as_json)
 
 
 @app.command('add')
-def add(
+def add(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     summary: str,
+    namespace: AddNamespace = schema.DEFAULT,
     tag: Tag = None,
     next_: Next = None,
     interval: Interval = None,
@@ -136,7 +153,12 @@ def add(
     size: SizeOpt = None,
 ) -> None:
     """Add a new task, optionally with schedule details."""
-    task = schema.Task(summary=summary, details=None, tag=schema.TRIAGE)
+    task = schema.Task(
+        summary=summary,
+        details=None,
+        namespace=schema.normalize_name('namespace', namespace),
+        tag=schema.TRIAGE,
+    )
     task.update(
         tag=tag,
         next_=next_,
@@ -148,15 +170,15 @@ def add(
         priority=priority,
         size=size,
     )
-    with db.write() as conn:
-        db.insert(conn, task)
+    with db.write(task.namespace) as store:
+        db.insert(store, task)
 
 
 @app.command('show', rich_help_panel=SUBJECT_PANEL)
-def show(ident: int, as_json: AsJson = False) -> None:
+def show(ref: Ref, as_json: AsJson = False) -> None:
     """Show a task's full details and status."""
-    with db.connect() as conn:
-        task = db.get(conn, ident)
+    with db.connect() as store:
+        task = db.get(store, ref)
     if as_json:
         print(json.dumps(task.to_json(), indent=2))
         return
@@ -164,18 +186,18 @@ def show(ident: int, as_json: AsJson = False) -> None:
 
 
 @app.command('done', rich_help_panel=SUBJECT_PANEL)
-def done(ident: int, ago: Ago = 0) -> None:
+def done(ref: Ref, ago: Ago = 0) -> None:
     """Complete a task: delete it, or advance it if it recurs."""
-    with db.write() as conn:
-        task = db.get(conn, ident)
+    with db.write(ref.namespace) as store:
+        task = db.get(store, ref)
         completed = task.complete(ago)
         if completed is None:
-            db.delete(conn, task)
+            db.delete(store, ref)
         else:
-            db.update(conn, completed)
+            db.update(store, completed)
 
     if completed is None:
-        print(f'deleted task {ident}: {task.summary}')
+        print(f'deleted task {ref}: {task.summary}')
         return
     assert completed.details, 'completed recurring task has no details'
     print(
@@ -184,20 +206,21 @@ def done(ident: int, ago: Ago = 0) -> None:
 
 
 @app.command('delay', rich_help_panel=SUBJECT_PANEL)
-def delay(ident: int, days: int) -> None:
+def delay(ref: Ref, days: int) -> None:
     """Postpone a task by the given number of days."""
-    with db.write() as conn:
-        delayed = db.get(conn, ident).postpone(days)
-        db.update(conn, delayed)
+    with db.write(ref.namespace) as store:
+        delayed = db.get(store, ref).postpone(days)
+        db.update(store, delayed)
 
     assert delayed.details, 'delayed task has no details'
     print(f'delayed task, next occurrence: {delayed.details.next_}')
 
 
 @app.command('set', rich_help_panel=SUBJECT_PANEL)
-def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments
-    ident: int,
+def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals
+    ref: Ref,
     summary: Summary = None,
+    namespace: MoveNamespace = None,
     tag: Tag = None,
     next_: Next = None,
     interval: Interval = None,
@@ -210,11 +233,15 @@ def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     size: SizeOpt = None,
     force: Force = False,
 ) -> None:
-    """Edit a task's summary, section, metadata, or schedule."""
-    with db.write() as conn:
-        task = db.get(conn, ident)
+    """Edit a task's summary, namespace, section, metadata, or schedule."""
+    target = ref.namespace
+    if namespace is not None:
+        target = schema.normalize_name('namespace', namespace)
+    with db.write(ref.namespace, target) as store:
+        task = db.get(store, ref)
         task.update(
             summary=summary,
+            namespace=namespace,
             tag=tag,
             next_=next_,
             interval=interval,
@@ -227,14 +254,20 @@ def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments
             size=size,
             force=force,
         )
-        db.update(conn, task)
+        if task.namespace == ref.namespace:
+            db.update(store, task)
+        else:
+            db.move(store, task, ref)
+
+    if task.namespace != ref.namespace:
+        print(f'moved to {task.ref}')
 
 
 @app.command('describe', rich_help_panel=SUBJECT_PANEL)
-def describe(ident: int) -> None:
+def describe(ref: Ref) -> None:
     """Edit a task's description in $EDITOR."""
-    with db.connect() as conn:
-        original = db.get(conn, ident).description
+    with db.connect() as store:
+        original = db.get(store, ref).description
 
     # The editor runs without the write lock, so other writers carry on; the
     # result is only saved if nobody else changed the description meanwhile.
@@ -249,23 +282,42 @@ def describe(ident: int) -> None:
     finally:
         path.unlink()
 
-    with db.write() as conn:
-        task = db.get(conn, ident)
+    with db.write(ref.namespace) as store:
+        task = db.get(store, ref)
         if task.description != original:
             raise schema.TaskError(
-                f"task {ident}'s description changed while editing"
+                f"task {ref}'s description changed while editing"
             )
         task.update(description=edited)
-        db.update(conn, task)
+        db.update(store, task)
 
 
 @app.command('unset', rich_help_panel=SUBJECT_PANEL)
-def unset(ident: int, fields: list[schema.ClearableField]) -> None:
+def unset(ref: Ref, fields: list[schema.ClearableField]) -> None:
     """Clear fields from a task; `unset <id> owner` releases a claim."""
-    with db.write() as conn:
-        task = db.get(conn, ident)
+    with db.write(ref.namespace) as store:
+        task = db.get(store, ref)
         task.clear(fields)
-        db.update(conn, task)
+        db.update(store, task)
+
+
+@namespace_app.command('list')
+def namespace_list() -> None:
+    """List namespaces."""
+    for namespace in db.namespaces():
+        print(namespace)
+
+
+@namespace_app.command('add')
+def namespace_add(namespace: NamespaceName) -> None:
+    """Add a namespace."""
+    db.add_namespace(schema.normalize_name('namespace', namespace))
+
+
+@namespace_app.command('delete')
+def namespace_delete(namespace: NamespaceName) -> None:
+    """Delete an empty namespace."""
+    db.delete_namespace(schema.normalize_name('namespace', namespace))
 
 
 def cli() -> None:
