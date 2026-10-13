@@ -95,8 +95,8 @@ fn draw_notifs(f: &mut Frame, app: &mut App, area: Rect) {
         .count();
     let total = &app.notifs.all.items.len();
     let title = match current == total {
-        true => format!(" Notifications ({}) ", &total),
-        false => format!(" Notifications ({}/{}) ", &current, &total),
+        true => format!(" Notifications ({}) ", total),
+        false => format!(" Notifications ({}/{}) ", current, total),
     };
 
     let style = match app.state.state.selected() {
@@ -137,8 +137,8 @@ fn draw_repos(f: &mut Frame, app: &mut App, area: Rect) {
                 .filter(|&r| r.name == repo.name)
                 .count()
             {
-                1 => format!("{}", repo.name),
-                _ if repo.cctray.is_some() => format!("{}", repo.name),
+                1 => repo.name.to_string(),
+                _ if repo.cctray.is_some() => repo.name.to_string(),
                 _ if repo.circleci.is_some() => {
                     let circleci = repo.circleci.as_ref().unwrap();
                     if circleci.branch == Branch::default() {
@@ -150,14 +150,14 @@ fn draw_repos(f: &mut Frame, app: &mut App, area: Rect) {
                         )
                     }
                 }
-                _ => format!("{}", repo.name), // impossible
+                _ => repo.name.to_string(), // impossible
             };
             (text, status)
         })
         .map(|(text, status)| {
             Text::styled(
                 text,
-                match status.status.as_ref() {
+                match status.status {
                     "error" => style_error,
                     "failed" => style_failure,
                     "success" => style_success,
@@ -169,7 +169,7 @@ fn draw_repos(f: &mut Frame, app: &mut App, area: Rect) {
 
     // TODO: better handling for too many repos to fit nicely on screen
     let height = area.height - 2; // header/footer
-    let columns = ((app.repos.all.items.len() as u16) + height - 1) / height;
+    let columns = (app.repos.all.items.len() as u16).div_ceil(height);
     // TODO: handle columns==0 edge case
     let constraints = vec![Constraint::Percentage(100 / columns); columns as usize];
     let chunks = Layout::default()
@@ -184,7 +184,7 @@ fn draw_repos(f: &mut Frame, app: &mut App, area: Rect) {
                 .add_modifier(Modifier::BOLD),
             _ => Style::default().fg(Color::White),
         };
-        let rows = List::new(lines.iter().map(|x| x.clone()).collect::<Vec<Text>>())
+        let rows = List::new(lines.to_vec())
             .block(
                 Block::default()
                     .borders(Borders::ALL)
@@ -194,7 +194,7 @@ fn draw_repos(f: &mut Frame, app: &mut App, area: Rect) {
             .highlight_style(style);
 
         // share our state selector across columns
-        let mut local_state: &mut ListState = &mut (&*app.repos.all.state).clone();
+        let mut local_state: ListState = *app.repos.all.state;
         let selected = match local_state.selected() {
             Some(x) if x < (height as usize) * i => None,
             Some(x) if x >= (height as usize) * (i + 1) => None,
@@ -219,22 +219,22 @@ fn draw_recent(f: &mut Frame, app: &mut App, area: Rect) {
         .rev()
         .filter(|(_, (_, visible))| *visible)
         .map(|(status, (repo, _))| {
-            let text = if let Some(_) = &repo.cctray {
-                format!("{}", repo.name)
+            let text = if repo.cctray.is_some() {
+                repo.name.to_string()
             } else if let Some(circleci) = &repo.circleci {
                 format!(
                     "{} ({} on {})",
                     repo.name, circleci.workflow, circleci.branch
                 )
             } else {
-                format!("{}", repo.name)
+                repo.name.to_string()
             };
             (text, status)
         })
         .map(|(text, status)| {
             ListItem::new(Span::styled(
                 text,
-                match status.status.as_ref() {
+                match status.status {
                     "error" => style_error,
                     "failed" => style_failure,
                     "success" => style_success,

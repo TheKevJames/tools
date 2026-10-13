@@ -3,22 +3,12 @@ use std::cmp::min;
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct FilteredListState {
     offset: usize,
     selected: Option<usize>,
 
     public: ListState,
-}
-
-impl Default for FilteredListState {
-    fn default() -> FilteredListState {
-        FilteredListState {
-            offset: 0,
-            selected: None,
-            public: ListState::default(),
-        }
-    }
 }
 
 impl FilteredListState {
@@ -58,7 +48,7 @@ impl<T> StatefulList<T> {
     pub fn with_items(items: Vec<T>) -> StatefulList<T> {
         StatefulList {
             state: FilteredListState::default(),
-            items: items,
+            items,
         }
     }
 
@@ -102,7 +92,7 @@ impl<T: Debug, V: Debug> StatefulHash<T, V> {
     pub fn with_items(items: BTreeMap<T, (V, bool)>) -> StatefulHash<T, V> {
         StatefulHash {
             state: FilteredListState::default(),
-            items: items,
+            items,
         }
     }
 

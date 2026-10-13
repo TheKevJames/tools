@@ -22,7 +22,7 @@ impl StatusItem {
     fn new(status: &'static str) -> Self {
         StatusItem {
             id: String::new(),
-            status: status,
+            status,
             timestamp: String::from(""),
             url: None,
         }
@@ -109,13 +109,13 @@ impl CCTrayStatus {
             .into_iter()
             .filter(|x| x.name.as_str() == repo)
             .collect();
-        CCTrayStatus { projects: projects }
+        CCTrayStatus { projects }
     }
 }
 impl From<CCTrayStatus> for Status {
     fn from(src: CCTrayStatus) -> Self {
         Status {
-            items: Some(src.projects.iter().map(|x| StatusItem::from(x)).collect()),
+            items: Some(src.projects.iter().map(StatusItem::from).collect()),
         }
     }
 }
@@ -150,10 +150,9 @@ struct CircleCIStatus {
 impl From<CircleCIStatus> for Status {
     fn from(src: CircleCIStatus) -> Self {
         Status {
-            items: match src.items {
-                Some(xs) => Some(xs.iter().map(|x| StatusItem::from(x)).collect()),
-                None => None,
-            },
+            items: src
+                .items
+                .map(|xs| xs.iter().map(StatusItem::from).collect()),
         }
     }
 }
@@ -192,7 +191,7 @@ impl ReposPoller {
             recent: StatefulHash::with_items(BTreeMap::new()),
             polling: !delay.is_empty(),
             client: Client::new(),
-            delay: delay,
+            delay,
         }
     }
 
@@ -255,7 +254,7 @@ impl ReposPoller {
 
     pub fn get_selected_url(&self) -> Option<String> {
         match self.all.state.selected() {
-            Some(i) => match self.all.items.iter().skip(i).next() {
+            Some(i) => match self.all.items.iter().nth(i) {
                 Some((repo, (status, _))) => {
                     let chunks = repo.name.split("/").collect::<Vec<_>>();
                     match &status.url {
@@ -297,7 +296,7 @@ impl ReposPoller {
             // soon after un-filtering
             // TODO: once we can do in-place upgrades, we should be able to
             // avoid toggling off polling while filtered
-            for (_, val) in self.delay.iter_mut() {
+            for val in self.delay.values_mut() {
                 *val = max(*val, 10);
             }
         }
@@ -306,7 +305,7 @@ impl ReposPoller {
         for (repo, (_, visible)) in self.all.items.iter_mut() {
             *visible = matches_filter(filter, &[&repo.name]);
         }
-        for (_, (repo, visible)) in self.recent.items.iter_mut() {
+        for (repo, visible) in self.recent.items.values_mut() {
             *visible = matches_filter(filter, &[&repo.name]);
         }
         self.all.first();
@@ -319,7 +318,7 @@ impl ReposPoller {
             KeyCode::Char('j') => self.all.next(),
             KeyCode::Char('k') => self.all.prev(),
             KeyCode::Char('r') => {
-                for (_, val) in self.delay.iter_mut() {
+                for val in self.delay.values_mut() {
                     *val = 0;
                 }
             }
@@ -339,40 +338,30 @@ impl ReposPoller {
                 }
 
                 // TODO: async then consider multiple updates per tick?
-                match Self::make_request(&self.client, &repo) {
-                    Some(status) => {
-                        match status.items {
-                            Some(items) if items.len() > 0 => {
-                                self.all
-                                    .items
-                                    .insert(repo.clone(), (items[0].clone(), true));
-                                for job in items {
-                                    self.recent.items.insert(job, (repo.clone(), true));
-                                    if self.recent.items.len() > 5 {
-                                        let entry = match self.recent.items.iter().next() {
-                                            Some((k, _)) => Some(k.clone()),
-                                            _ => None,
-                                        };
-                                        if entry.is_some() {
-                                            self.recent.items.remove(&entry.unwrap());
-                                        }
-                                    }
+                // TODO: should we add a backoff handler?
+                if let Some(status) = Self::make_request(&self.client, repo) {
+                    match status.items {
+                        Some(items) if !items.is_empty() => {
+                            self.all
+                                .items
+                                .insert(repo.clone(), (items[0].clone(), true));
+                            for job in items {
+                                self.recent.items.insert(job, (repo.clone(), true));
+                                if self.recent.items.len() > 5 {
+                                    self.recent.items.pop_first();
                                 }
                             }
-                            _ => {
-                                // TODO: figure out how to grab most recent run from >90 days ago
-                                // warn!("got unknown CI status for {}", repo.name);
-                                self.all
-                                    .items
-                                    .insert(repo.clone(), (StatusItem::new("unknown"), true));
-                                ()
-                            }
                         }
-                        allow_processing = false; // be kind to our event loop
-                        *val = repo.refresh * 10; // 10 ticks per second
+                        _ => {
+                            // TODO: figure out how to grab most recent run from >90 days ago
+                            // warn!("got unknown CI status for {}", repo.name);
+                            self.all
+                                .items
+                                .insert(repo.clone(), (StatusItem::new("unknown"), true));
+                        }
                     }
-                    // TODO: should we add a backoff handler?
-                    None => (),
+                    allow_processing = false; // be kind to our event loop
+                    *val = repo.refresh * 10; // 10 ticks per second
                 }
                 continue;
             }

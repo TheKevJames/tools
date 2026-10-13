@@ -78,7 +78,7 @@ impl NotifsPoller {
             enabled: !delay.is_empty(),
             polling: !delay.is_empty(),
             client: Client::new(),
-            delay: delay,
+            delay,
         }
     }
 
@@ -89,7 +89,7 @@ impl NotifsPoller {
                 let request = client
                     .get(url)
                     .header("User-Agent", "CCTUI")
-                    .header("Authorization", format!("Bearer {}", &notif.token));
+                    .header("Authorization", format!("Bearer {}", notif.token));
                 match request.send() {
                     Ok(resp) => match resp.json() {
                         Ok(body) => Some(body),
@@ -110,7 +110,7 @@ impl NotifsPoller {
     pub fn get_selected_url(&self) -> Option<String> {
         match self.all.state.selected() {
             Some(i) => {
-                match self.all.items.iter().skip(i).next() {
+                match self.all.items.iter().nth(i) {
                     Some((status, (notif, _))) => match &notif.service {
                         NotifService::Github => {
                             debug!("fetching user-facing URL from {}", status.subject.url);
@@ -118,7 +118,7 @@ impl NotifsPoller {
                                 .client
                                 .get(&status.subject.url)
                                 .header("User-Agent", "CCTUI")
-                                .header("Authorization", format!("Bearer {}", &notif.token));
+                                .header("Authorization", format!("Bearer {}", notif.token));
                             match request.send() {
                                 Ok(resp) => match resp.json() {
                                     Ok(body) => {
@@ -162,7 +162,7 @@ impl NotifsPoller {
             // soon after un-filtering
             // TODO: once we can do in-place upgrades, we should be able to
             // avoid toggling off polling while filtered
-            for (_, val) in self.delay.iter_mut() {
+            for val in self.delay.values_mut() {
                 *val = max(*val, 10);
             }
         }
@@ -187,13 +187,13 @@ impl NotifsPoller {
 
         // TODO: until we can do in-place updates, do a bit of debouncing to
         // avoid changing things while the user is interacting
-        for (_, val) in self.delay.iter_mut() {
+        for val in self.delay.values_mut() {
             *val = max(*val, 30);
         }
 
         match key {
             KeyCode::Enter => {
-                for (_, val) in self.delay.iter_mut() {
+                for val in self.delay.values_mut() {
                     // force refresh a few seconds after opening a notif
                     // TODO: only refresh the feed that got modified?
                     *val = 30;
@@ -204,7 +204,7 @@ impl NotifsPoller {
             KeyCode::Char('j') => self.all.next(),
             KeyCode::Char('k') => self.all.prev(),
             KeyCode::Char('r') => {
-                for (_, val) in self.delay.iter_mut() {
+                for val in self.delay.values_mut() {
                     *val = 0;
                 }
             }
@@ -224,13 +224,13 @@ impl NotifsPoller {
                 }
 
                 debug!("fetching notifications for {}", notif.service);
-                if let Some(items) = Self::make_request(&self.client, &notif) {
+                if let Some(items) = Self::make_request(&self.client, notif) {
                     self.all.items = self
                         .all
                         .items
                         .clone()
                         .into_iter()
-                        .filter(|(i, (n, _))| &n != &notif || items.contains(&i))
+                        .filter(|(i, (n, _))| n != notif || items.contains(i))
                         .collect();
                     for item in items {
                         self.all.items.insert(item.clone(), (notif.clone(), true));

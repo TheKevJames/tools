@@ -24,7 +24,7 @@ impl App {
             filter: String::new(),
             notifs: NotifsPoller::new(settings),
             repos: ReposPoller::new(settings),
-            state: state,
+            state,
             visible_notifs: settings.layout.visible_notifs,
         }
     }
