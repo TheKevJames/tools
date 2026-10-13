@@ -46,6 +46,6 @@ COPY --from=fetcher /tmp/wait-for /usr/bin
 COPY --link pubsubc.py /usr/bin/pubsubc
 COPY --link run /usr/bin/run
 
-EXPOSE 8681 8682/udp
+EXPOSE 8681 8682
 
 ENTRYPOINT ["/usr/bin/run"]

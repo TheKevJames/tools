@@ -6,6 +6,7 @@ import dataclasses
 import logging
 import os
 import socket
+import struct
 from collections.abc import Callable
 from typing import cast
 
@@ -15,14 +16,11 @@ from . import utils
 from ._aioblescan import events
 from ._aioblescan import scanner
 
-BATTERY = prometheus_client.Gauge('atc_battery', 'Battery', ['name'])
-HUMIDITY = prometheus_client.Gauge('atc_humidity', 'Humidity', ['name'])
-TEMPERATURE = prometheus_client.Gauge('atc_temperature', 'Temp.', ['name'])
-VOLTAGE = prometheus_client.Gauge('atc_voltage', 'Voltage', ['name'])
-
-# ATC1441 service data marker: AD type 0x16 (service data, 16-bit UUID)
-# followed by UUID 0x181A on the wire (little-endian bytes 1a 18).
-ATC_PREAMBLE = '161a18'
+# Environmental Sensing UUID 0x181A, as the vendored parser presents it (it
+# reverses the little-endian wire bytes).
+ATC1441_SERVICE_UUID = b'\x18\x1a'
+# mac(6) temp(2, 0.1C) humidity(1, %) battery(1, %) battery(2, mV) counter(1)
+ATC1441_PAYLOAD = struct.Struct('>6shBBHB')
 
 DEBUG = os.environ.get('DEBUG', '').lower() == 'true'
 
@@ -38,39 +36,57 @@ class Measurement:
     voltage: float
 
 
-def decode_data_atc1441(
-    adv_cache: dict[str, str], mac: str, data_str: str
-) -> Measurement | None:
-    data_idx = data_str.find(ATC_PREAMBLE)
-    if data_idx == -1:
-        logger.debug('dropping packet with missing preamble')
-        return None
+class Metrics:
+    def __init__(self, registry: prometheus_client.CollectorRegistry) -> None:
+        self.battery = prometheus_client.Gauge(
+            'atc_battery', 'Battery', ['name'], registry=registry
+        )
+        self.humidity = prometheus_client.Gauge(
+            'atc_humidity', 'Humidity', ['name'], registry=registry
+        )
+        self.temperature = prometheus_client.Gauge(
+            'atc_temperature', 'Temp.', ['name'], registry=registry
+        )
+        self.voltage = prometheus_client.Gauge(
+            'atc_voltage', 'Voltage', ['name'], registry=registry
+        )
 
-    offset = data_idx + len(ATC_PREAMBLE)
-    stripped_data_str = data_str[offset : offset + 26]
-    if len(stripped_data_str) != 26:
+    def record(self, name: str, measurement: Measurement) -> None:
+        self.battery.labels(name).set(measurement.battery)
+        self.humidity.labels(name).set(measurement.humidity)
+        self.temperature.labels(name).set(measurement.temperature)
+        self.voltage.labels(name).set(measurement.voltage)
+
+
+def atc1441_service_data(event: events.HCI_Event) -> bytes | None:
+    for adv in event.retrieve(events.Adv_Data):
+        uuid, *payload = adv.payload
+        if uuid.val == ATC1441_SERVICE_UUID and payload:
+            return cast('bytes', payload[0].val)
+    return None
+
+
+def decode_data_atc1441(
+    adv_cache: dict[str, int], mac: str, payload: bytes
+) -> Measurement | None:
+    if len(payload) != ATC1441_PAYLOAD.size:
         logger.debug('dropping packet with invalid length')
         return None
 
-    adv_number = stripped_data_str[-2:]  # last data in packet is adv number
-    prev_adv_number = adv_cache.get(mac)
-    if prev_adv_number == adv_number:
+    _, temp, humidity, battery_percent, battery_mv, adv_number = (
+        ATC1441_PAYLOAD.unpack(payload)
+    )
+    if adv_cache.get(mac) == adv_number:
         return None
 
     logger.info('received ATC1441 packet from %s', mac)
     adv_cache[mac] = adv_number
 
-    temp_bytes = bytearray.fromhex(stripped_data_str[12:16])
-    temp = int.from_bytes(temp_bytes, byteorder='big', signed=True)
-    humidity = int(stripped_data_str[16:18], 16)
-    battery_voltage = int(stripped_data_str[20:24], 16) / 1000
-    battery_percent = int(stripped_data_str[18:20], 16)
-
     return Measurement(
         battery=battery_percent,
         humidity=humidity,
         temperature=temp / 10.0,
-        voltage=battery_voltage,
+        voltage=battery_mv / 1000,
     )
 
 
@@ -91,10 +107,12 @@ async def _open_scanner(
     )
 
 
-def _build_processor(
+def build_processor(
     sensors: configparser.ConfigParser,
+    registry: prometheus_client.CollectorRegistry = prometheus_client.REGISTRY,
 ) -> Callable[[bytes], None]:
-    adv_cache: dict[str, str] = {}
+    metrics = Metrics(registry)
+    adv_cache: dict[str, int] = {}
 
     # The vendored parser emits lowercase MACs, so normalise the configured
     # section names to match regardless of how the user cased config.ini.
@@ -111,9 +129,6 @@ def _build_processor(
             logger.exception('could not decode HCI event')
             return
 
-        if event.raw_data is None:
-            return
-
         peers = event.retrieve('peer')
         if not peers:
             return
@@ -123,14 +138,16 @@ def _build_processor(
             logger.debug('dropping packet for untracked device: %s', mac)
             return
 
-        measurement = decode_data_atc1441(adv_cache, mac, event.raw_data.hex())
+        payload = atc1441_service_data(event)
+        if payload is None:
+            logger.debug('dropping packet without ATC1441 service data')
+            return
+
+        measurement = decode_data_atc1441(adv_cache, mac, payload)
         if not measurement:
             return
 
-        BATTERY.labels(name).set(measurement.battery)
-        HUMIDITY.labels(name).set(measurement.humidity)
-        TEMPERATURE.labels(name).set(measurement.temperature)
-        VOLTAGE.labels(name).set(measurement.voltage)
+        metrics.record(name, measurement)
 
     return process
 
@@ -153,7 +170,7 @@ async def _run(interface: int, port: int, filename: str) -> None:
 
     loop = asyncio.get_running_loop()
     transport, btctrl = await _open_scanner(loop, sock)
-    btctrl.process = _build_processor(sensors)
+    btctrl.process = build_processor(sensors)
 
     prometheus_client.start_http_server(port)
 

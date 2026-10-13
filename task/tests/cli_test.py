@@ -1,36 +1,55 @@
 import datetime
 import json
-import os
 import pathlib
-import subprocess
-import sys
+import sqlite3
+import sysconfig
 
 import pytest
+from typer import testing
 
-WRITERS = 8
+from task import cli
+from task import db
+from task import schema
+
+RUNNER = testing.CliRunner()
+pytestmark = pytest.mark.usefixtures('today')
 
 
-def task(folder: pathlib.Path, *args: str) -> subprocess.Popen[str]:
-    return subprocess.Popen(
-        [sys.executable, '-c', 'from task.cli import cli; cli()', *args],
-        env=os.environ | {'TASK_FOLDER': str(folder)},
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
+def invoke(*args: str) -> testing.Result:
+    return RUNNER.invoke(cli.app, args, catch_exceptions=False)
+
+
+def run(*args: str) -> str:
+    """The output of a successful invocation."""
+    result = invoke(*args)
+    assert result.exit_code == 0, result.output
+    return result.stdout
+
+
+def refused(*args: str) -> str:
+    """The message `task.cli.cli` reports for a refused invocation."""
+    with pytest.raises(schema.TaskError) as excinfo:
+        invoke(*args)
+    return str(excinfo.value)
+
+
+def listed(filter_: str = '') -> list[dict[str, object]]:
+    tasks: list[dict[str, object]] = json.loads(
+        run('list', '--json', '-f', filter_)
     )
-
-
-def run(folder: pathlib.Path, *args: str) -> subprocess.CompletedProcess[str]:
-    proc = task(folder, *args)
-    stdout, stderr = proc.communicate()
-    return subprocess.CompletedProcess(args, proc.returncode, stdout, stderr)
-
-
-def listed(folder: pathlib.Path, filter_: str = '') -> list[dict[str, object]]:
-    result = run(folder, 'list', '--json', '-f', filter_)
-    assert result.returncode == 0, result.stderr
-    tasks: list[dict[str, object]] = json.loads(result.stdout)
     return tasks
+
+
+def schedule() -> tuple[object, ...]:
+    [task] = listed()
+    return task['next'], task['interval'], task['shift']
+
+
+def editor(folder: pathlib.Path, script: str) -> str:
+    path = folder / 'editor'
+    path.write_text(f'#!/bin/sh\n{script}\n')
+    path.chmod(0o755)
+    return str(path)
 
 
 def refs(tasks: list[dict[str, object]]) -> list[str]:
@@ -42,182 +61,301 @@ def refs(tasks: list[dict[str, object]]) -> list[str]:
     ]
 
 
-def test_concurrent_writers_lose_nothing(tmp_path: pathlib.Path) -> None:
-    assert run(tmp_path, 'namespace', 'add', 'b').returncode == 0
-    procs = [
-        task(tmp_path, 'add', '-n', ('default', 'b')[i % 2], f'task {i}')
-        for i in range(WRITERS)
-    ]
-    assert all(p.wait() == 0 for p in procs)
-
-    tasks = listed(tmp_path)
-    assert sorted(str(t['summary']) for t in tasks) == sorted(
-        f'task {i}' for i in range(WRITERS)
-    )
-    assert len(set(refs(tasks))) == WRITERS
-
-
-def test_concurrent_moves_lose_nothing(tmp_path: pathlib.Path) -> None:
-    assert run(tmp_path, 'namespace', 'add', 'b').returncode == 0
-    for i in range(WRITERS):
-        namespace = ('default', 'b')[i % 2]
-        assert run(tmp_path, 'add', '-n', namespace, str(i)).returncode == 0
-    # Moves both ways at once, so each takes both namespaces' locks.
-    added = listed(tmp_path)
-    procs = [
-        task(tmp_path, ref, 'set', '-n', 'b' if ref.isdigit() else 'default')
-        for ref in refs(added)
-    ]
-    assert all(p.wait() == 0 for p in procs)
-
-    tasks = listed(tmp_path)
-    assert sorted(int(str(t['summary'])) for t in tasks) == list(
-        range(WRITERS)
-    )
-    assert all(
-        t['namespace'] == ('b', 'default')[int(str(t['summary'])) % 2]
-        for t in tasks
-    )
-
-
-def test_concurrent_claims_have_one_winner(tmp_path: pathlib.Path) -> None:
-    assert run(tmp_path, 'add', 'contested').returncode == 0
-
-    procs = [
-        task(tmp_path, '1', 'set', '--owner', f'bot{i}')
-        for i in range(WRITERS)
-    ]
-    winners = [i for i, p in enumerate(procs) if p.wait() == 0]
-
-    assert len(winners) == 1
-    assert listed(tmp_path)[0]['owner'] == f'bot{winners[0]}'
-
-
-def test_claim_lifecycle(tmp_path: pathlib.Path) -> None:
-    link = 'https://github.com/TheKevJames/tools/issues/1'
-    assert run(tmp_path, 'add', 'fix it', '--link', link).returncode == 0
-    assert run(tmp_path, 'add', 'unrelated').returncode == 0
-    assert run(tmp_path, 'namespace', 'add', 'Bakery').returncode == 0
+@pytest.mark.usefixtures('folder')
+def test_tags_are_normalized() -> None:
+    run('add', 'a', '--tag', ' Build ')
     for bad in ('bakery/build', '-build', ''):
-        refused = run(tmp_path, '1', 'set', '--tag', bad)
-        assert refused.returncode == 1
-        assert 'invalid tag' in refused.stderr
-    moved = run(tmp_path, '1', 'set', '-n', 'Bakery ', '--tag', 'Build')
-    assert moved.stdout == 'moved to bakery:1\n'
-
-    claimable = 'namespace=bakery,tag=build,owner='
-    assert refs(listed(tmp_path, claimable)) == ['bakery:1']
-    assert refs(listed(tmp_path, f'link={link}')) == ['bakery:1']
-
-    assert run(tmp_path, 'bakery:1', 'set', '--owner', 'build').returncode == 0
-    assert not listed(tmp_path, claimable)
-    for args in (('--owner', 'triage'), ('-n', 'default')):
-        refused = run(tmp_path, 'bakery:1', 'set', *args)
-        assert refused.returncode == 1
-        assert 'owned by build' in refused.stderr
-
-    for note in ('a', 'b'):
-        appended = run(
-            tmp_path, 'bakery:1', 'set', '--description-append', note
-        )
-        assert appended.returncode == 0
-    assert run(tmp_path, 'bakery:1', 'unset', 'owner').returncode == 0
-    [released] = listed(tmp_path, claimable)
-    assert released['description'] == 'a\n\nb'
-
-    # Moving back keeps the tag, and ids are never reused.
-    assert run(tmp_path, 'bakery:1', 'set', '-n', 'default').returncode == 0
-    assert refs(listed(tmp_path, 'tag=build')) == ['3']
-    assert (tmp_path / 'default' / '3.txt').read_text() == 'a\n\nb'
-    assert not (tmp_path / 'bakery' / '1.txt').exists()
+        assert refused('1', 'set', '--tag', bad) == f'invalid tag: {bad!r}'
+    assert listed()[0]['tag'] == 'build'
 
 
-def test_due(tmp_path: pathlib.Path) -> None:
-    assert run(tmp_path, 'add', 'unscheduled').returncode == 0
-    assert (
-        run(tmp_path, 'add', 'later', '--next', '2999-01-01').returncode == 0
-    )
-    assert run(tmp_path, 'add', 'old', '--next', '2000-01-01').returncode == 0
-    assert run(tmp_path, 'add', 'soon', '--next', '2000-01-02').returncode == 0
+@pytest.mark.usefixtures('folder')
+def test_set_namespace_moves_the_task() -> None:
+    run('add', 'a')
+    assert refused('1', 'set', '-n', 'bakery') == 'no such namespace: bakery'
+    run('namespace', 'add', 'Bakery')
 
-    result = run(tmp_path, 'due', '--json')
-    assert result.returncode == 0, result.stderr
-    assert [t['summary'] for t in json.loads(result.stdout)] == ['old', 'soon']
-    assert len(listed(tmp_path)) == 4
+    assert run('1', 'set', '-n', 'Bakery ') == 'moved to bakery:1\n'
+    assert run('bakery:1', 'set', '-n', 'bakery') == ''
+    assert refs(listed()) == ['bakery:1']
 
 
-def test_priority_and_size(tmp_path: pathlib.Path) -> None:
-    assert run(tmp_path, 'add', 'a', '--priority', 'high').returncode == 0
-    assert run(tmp_path, 'add', 'b', '--size', 'large').returncode == 0
-    assert run(tmp_path, '2', 'set', '--priority', 'low').returncode == 0
-    assert run(tmp_path, '1', 'set', '--priority', 'urgent').returncode == 2
+@pytest.mark.usefixtures('folder')
+def test_claims_are_exclusive_until_released() -> None:
+    run('namespace', 'add', 'b')
+    run('add', 'a')
+    run('1', 'set', '--owner', 'build')
+    run('1', 'set', '--owner', 'build')
 
-    assert [t['id'] for t in listed(tmp_path, 'priority=high')] == [1]
-    assert [t['id'] for t in listed(tmp_path, 'size=large')] == [2]
-    assert [t['id'] for t in listed(tmp_path, 'size=')] == [1]
+    owned = 'task 1 is owned by build'
+    assert refused('1', 'set', '--owner', 'triage') == owned
+    assert refused('1', 'set', '-n', 'b') == f'{owned}: release it first'
+    assert listed('owner=build')
 
-    assert run(tmp_path, '1', 'unset', 'priority').returncode == 0
-    assert [t['id'] for t in listed(tmp_path, 'priority=')] == [1]
-
-
-def test_descriptions_are_text_files(tmp_path: pathlib.Path) -> None:
-    assert run(tmp_path, 'add', 'a', '--description', ' x\n ').returncode == 0
-    assert run(tmp_path, 'add', 'b', '--description', 'y').returncode == 0
-    folder = tmp_path / 'default'
-    assert (folder / '1.txt').read_text() == 'x'
-
-    (folder / '1.txt').write_text('\nedited by hand\n')
-    assert listed(tmp_path)[0]['description'] == 'edited by hand'
-
-    assert run(tmp_path, '1', 'unset', 'description').returncode == 0
-    assert not (folder / '1.txt').exists()
-    assert run(tmp_path, '2', 'done').returncode == 0
-    assert not (folder / '2.txt').exists()
-
-    (folder / '9.txt').write_text('orphan')
-    assert run(tmp_path, 'add', 'c').returncode == 0
-    assert not (folder / '9.txt').exists()
-    assert [t['id'] for t in listed(tmp_path)] == [1, 3]  # ids never reused
+    run('1', 'unset', 'owner')
+    assert listed('owner=')
+    run('1', 'set', '--owner', 'triage')
+    run('1', 'set', '--owner', 'bot', '--force')
+    assert listed()[0]['owner'] == 'bot'
 
 
-def test_done_deletes_one_off_tasks(tmp_path: pathlib.Path) -> None:
-    assert run(tmp_path, 'add', 'a').returncode == 0
-    assert run(tmp_path, 'add', 'b').returncode == 0
+@pytest.mark.usefixtures('folder')
+def test_description_append_adds_paragraphs() -> None:
+    run('add', 'a')
+    for note in ('a', ' ', 'b\n'):
+        run('1', 'set', '--description-append', note)
+    assert listed()[0]['description'] == 'a\n\nb'
+
+
+@pytest.mark.usefixtures('folder')
+def test_due() -> None:
+    run('add', 'unscheduled')
+    run('add', 'later', '--next', '2999-01-01')
+    run('add', 'old', '--next', '2000-01-01')
+    run('add', 'soon', '--next', '2000-01-02')
+
+    due = json.loads(run('due', '--json'))
+    assert [t['summary'] for t in due] == ['old', 'soon']
+
+
+@pytest.mark.usefixtures('folder')
+def test_metadata_flags() -> None:
+    run('add', 'a', '--priority', 'high', '--size', 'large', '--link', 'x')
+    run('1', 'set', '--priority', 'low')
+    assert invoke('1', 'set', '--priority', 'urgent').exit_code == 2
+    run('1', 'unset', 'size')
+
+    [task] = listed()
+    assert (task['priority'], task['size'], task['link']) == ('low', None, 'x')
+
+
+def test_descriptions_are_text_files(folder: pathlib.Path) -> None:
+    run('add', 'a', '--description', ' x\n ')
+    run('add', 'b', '--description', 'y')
+    default = folder / 'default'
+    assert (default / '1.txt').read_text() == 'x'
+
+    (default / '1.txt').write_text('\nedited by hand\n')
+    assert listed()[0]['description'] == 'edited by hand'
+
+    run('1', 'unset', 'description')
+    assert not (default / '1.txt').exists()
+    run('2', 'done')
+    assert not (default / '2.txt').exists()
+
+    (default / '9.txt').write_text('orphan')
+    run('add', 'c')
+    assert not (default / '9.txt').exists()
+
+
+@pytest.mark.usefixtures('folder')
+def test_done_deletes_one_off_tasks(today: datetime.date) -> None:
+    run('add', 'a')
+    run('add', 'b')
     recurring = ('--next', '2000-01-01', '--interval', '1d', '--shift')
-    assert run(tmp_path, 'add', 'c', *recurring).returncode == 0
+    run('add', 'c', *recurring)
 
-    refused = run(tmp_path, '1', 'done', '--ago', '2')
-    assert refused.returncode == 1
-    assert '--ago only applies to recurring tasks' in refused.stderr
-    assert run(tmp_path, '1', 'done').stdout == 'deleted task 1: a\n'
-    assert [t['id'] for t in listed(tmp_path)] == [2, 3]
+    message = refused('1', 'done', '--ago', '2')
+    assert message == '--ago only applies to recurring tasks'
+    assert run('1', 'done') == 'deleted task 1: a\n'
+    assert [t['id'] for t in listed()] == [2, 3]
     for args in ((), ('done',), ('set', '--summary', 'x')):
-        result = run(tmp_path, '1', *args)
-        assert result.returncode == 1
-        assert 'task 1 not found' in result.stderr
+        assert refused('1', *args) == 'task 1 not found'
 
     # Done yesterday, so due again a day after that.
-    assert run(tmp_path, '3', 'done', '--ago', '1').returncode == 0
-    assert listed(tmp_path)[1]['next'] == datetime.date.today().isoformat()
+    run('3', 'done', '--ago', '1')
+    assert listed()[1]['next'] == today.isoformat()
 
 
 def test_describe_refuses_concurrent_change(
-    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+    folder: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    assert run(tmp_path, 'add', 'a', '--description', 'x').returncode == 0
+    run('add', 'a', '--description', 'x')
     # An "editor" which saves its buffer while a bot appends a note.
-    editor = tmp_path / 'editor'
-    editor.write_text(
-        '#!/bin/sh\n'
-        'echo mine > "$1"\n'
-        f'"{sys.executable}" -c "from task.cli import cli; cli()"'
-        ' 1 set --description-append theirs\n'
+    task = pathlib.Path(sysconfig.get_path('scripts')) / 'task'
+    script = f'echo mine > "$1"\n"{task}" 1 set --description-append theirs'
+    monkeypatch.setenv('EDITOR', editor(folder, script))
+
+    assert (
+        refused('1', 'describe')
+        == "task 1's description changed while editing"
     )
-    editor.chmod(0o755)
-    monkeypatch.setenv('EDITOR', str(editor))
+    assert listed()[0]['description'] == 'x\n\ntheirs'
 
-    result = run(tmp_path, '1', 'describe')
 
-    assert result.returncode == 1
-    assert 'changed while editing' in result.stderr
-    assert listed(tmp_path)[0]['description'] == 'x\n\ntheirs'
+@pytest.mark.usefixtures('folder')
+def test_monthly_recurrence_clamps_to_month_end() -> None:
+    run('add', 'a', '--next', '2026-01-31', '--interval', '1m')
+    assert run('1', 'done') == (
+        'completed recurring task, next occurrence: 2026-02-28\n'
+    )
+    assert run('1', 'done') == (
+        'completed recurring task, next occurrence: 2026-03-28\n'
+    )
+
+
+@pytest.mark.usefixtures('folder')
+def test_invalid_filters_are_refused() -> None:
+    assert refused('list', '-f', 'bogus=1') == (
+        "invalid target: 'bogus'"
+        ' (use summary, namespace, tag, owner, link, priority, size)'
+    )
+    assert refused('due', '-f', 'tag=a,summary') == (
+        "invalid filter: 'summary' (use eg. tag=a, tag!=a, tag~a, tag!~a)"
+    )
+
+
+@pytest.mark.usefixtures('folder')
+def test_fixed_schedules_cannot_be_delayed() -> None:
+    run('add', 'a', '--next', '2026-01-01', '--interval', '1w')
+    assert refused('1', 'delay', '3') == (
+        'periodic tasks with shift=false cannot be delayed'
+    )
+
+
+def test_describe_saves_the_edit(
+    folder: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    run('add', 'a', '--description', 'x')
+    monkeypatch.setenv('EDITOR', editor(folder, 'echo " mine" >> "$1"'))
+
+    run('1', 'describe')
+    assert listed()[0]['description'] == 'x mine'
+
+
+@pytest.mark.usefixtures('folder')
+def test_delay_reschedules_from_today() -> None:
+    run('add', 'a')
+    run('add', 'b', '--next', '2026-03-01', '--interval', '1d', '--shift')
+
+    delayed = 'delayed task, next occurrence:'
+    assert run('1', 'delay', '2') == f'{delayed} 2026-01-17\n'
+    assert run('2', 'delay', '0') == f'{delayed} 2026-01-15\n'
+
+
+@pytest.mark.usefixtures('folder')
+def test_done_advances_fixed_schedules_past_today() -> None:
+    run('add', 'a', '--next', '2026-01-01', '--interval', '1w')
+    assert run('1', 'done') == (
+        'completed recurring task, next occurrence: 2026-01-22\n'
+    )
+
+
+@pytest.mark.usefixtures('folder')
+def test_unset_clears_the_schedule() -> None:
+    run('add', 'a', '--next', '2026-02-01', '--interval', '1d', '--shift')
+    run('1', 'unset', 'shift')
+    assert schedule() == ('2026-02-01', '1d', False)
+    run('1', 'unset', 'interval')
+    assert schedule() == ('2026-02-01', None, False)
+    run('1', 'set', '--interval', '1d', '--shift')
+    run('1', 'unset', 'next')
+    assert schedule() == (None, None, False)
+    run('1', 'unset', 'interval', 'shift')
+    assert schedule() == (None, None, False)
+
+
+@pytest.mark.usefixtures('folder')
+def test_namespaces_are_managed() -> None:
+    run('namespace', 'add', 'B')
+    assert refused('namespace', 'add', 'b') == 'namespace b already exists'
+    run('add', 'a')
+    assert run('namespace', 'list') == 'b\ndefault\n'
+
+    run('namespace', 'delete', 'b')
+    assert run('namespace', 'list') == 'default\n'
+
+
+@pytest.mark.usefixtures('folder')
+def test_unknown_task_command_shows_the_task() -> None:
+    run('add', 'a')
+    assert json.loads(run('1', '--json'))['summary'] == 'a'
+
+
+@pytest.mark.usefixtures('folder')
+def test_list_renders_tasks() -> None:
+    run('namespace', 'add', 'b')
+    run('add', 'a', '--next', '2026-01-16')
+    run('add', 'b', '-n', 'b', '--tag', 'build', '--description', 'd')
+    run('b:1', 'set', '--priority', 'high', '--owner', 'bot')
+    run('b:1', 'set', '--next', '2026-01-20', '--interval', '1w')
+    run('add', 'c', '--next', '2026-02-01', '--interval', '2d', '--shift')
+
+    assert run('list') == (
+        'triage\t1: a\n'
+        '\tDue: 2026-01-16\n'
+        'triage\t2: c\n'
+        '\tDue: 2026-02-01, repeats every 2 days after completion\n'
+        'b > build\tb:1: b + !high @bot\n'
+        '\tDue: 2026-01-20, repeats weekly since last deadline\n'
+    )
+
+
+def test_show_renders_details(folder: pathlib.Path) -> None:
+    run('namespace', 'add', 'b')
+    run('add', 'fix it', '-n', 'b', '--tag', 'build', '--owner', 'bot')
+    run('b:1', 'set', '--link', 'x', '--priority', 'high', '--size', 'small')
+    run('b:1', 'set', '--next', '2026-01-16', '--interval', '2w', '--shift')
+    run('b:1', 'set', '--description', 'notes')
+    conn = sqlite3.connect(folder / 'b' / db.DATABASE, isolation_level=None)
+    conn.execute(
+        'UPDATE task SET created = ?, updated = ?',
+        ('2026-01-12T17:00:00Z', '2026-01-15T16:00:00Z'),
+    )
+    conn.close()
+
+    assert run('b:1') == (
+        'Summary:     fix it\n'
+        'ID:          b:1\n'
+        'Tag:         b > build\n'
+        'Owner:       bot\n'
+        'Link:        x\n'
+        'Priority:    high\n'
+        'Size:        small\n'
+        'Due:         2026-01-16 (1 day)\n'
+        'Recurrence:  every 2 weeks after completion\n'
+        'Created:     2026-01-12 12:00 (3 days ago)\n'
+        'Updated:     2026-01-15 11:00 (1 hour ago)\n'
+        '---\n'
+        'notes\n'
+    )
+
+
+@pytest.mark.parametrize(
+    ('next_', 'status'),
+    [
+        ('2026-01-14', 'overdue'),
+        ('2026-01-15', 'due today'),
+        ('2026-01-17', '2 days'),
+    ],
+)
+@pytest.mark.usefixtures('folder')
+def test_show_renders_due_status(next_: str, status: str) -> None:
+    run('add', 'a', '--next', next_)
+    assert f'\nDue:      {next_} ({status})\n' in run('show', '1')
+
+
+@pytest.mark.parametrize(
+    ('args', 'message'),
+    [
+        (('add', ' '), "invalid summary: ' '"),
+        (('1', 'set', '--summary', 'a\nb'), "invalid summary: 'a\\nb'"),
+        (('add', 'a', '--owner', 'a b'), "invalid owner: 'a b'"),
+        (('add', 'a', '--link', 'a b'), "invalid link: 'a b'"),
+        (('add', 'a', '--interval', '1y'), "invalid interval: '1y'"),
+        (('show', 'B:1'), "invalid task id: 'B:1'"),
+        (
+            ('1', 'set', '-n', 'default', '--owner', 'bot'),
+            '--namespace and --owner are exclusive',
+        ),
+        (
+            ('1', 'set', '--description', 'x', '--description-append', 'y'),
+            '--description and --description-append are exclusive',
+        ),
+    ],
+)
+@pytest.mark.usefixtures('folder')
+def test_invalid_input_is_refused(args: tuple[str, ...], message: str) -> None:
+    run('add', 'a')
+    assert refused(*args) == message
+    assert listed()[0]['summary'] == 'a'

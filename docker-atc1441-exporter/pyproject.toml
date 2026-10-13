@@ -8,7 +8,7 @@ license = { text = "MIT" }
 authors = [{ name = "Kevin James", email = "KevinJames@thekev.in" }]
 
 # BLE scanning uses a vendored, pruned subset of aioblescan (pure-Python, raw
-# HCI socket) at atc1441_exporter/_aioblescan.py; it has no runtime dependency.
+# HCI socket) at atc1441_exporter/_aioblescan/; it has no runtime dependency.
 dependencies = [
     "prometheus-client==0.26.0",
 ]
@@ -23,9 +23,13 @@ dev = [
     "flake8-import-restrictions==2.1",
     "flake8-requirements==2.3.0",
     "flake8==7.4.1",
+    "hypothesis==6.169.0",
     "pylint==4.1.3",
     "pytest==9.1.1",
 ]
+
+[tool.pylint.main]
+source-roots = ["."]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

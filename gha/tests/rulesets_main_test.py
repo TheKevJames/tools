@@ -1,9 +1,10 @@
 import copy
-import http.server
 import json
 import pathlib
-import threading
-from collections.abc import Iterator
+import shutil
+import urllib.parse
+from collections.abc import Callable
+from collections.abc import Mapping
 from typing import Any
 
 import pytest
@@ -14,6 +15,7 @@ from gha_tools.rulesets import main
 ADMIN = 'admin-token'
 READER = 'read-token'
 REPO = 'owner/repo'
+API = f'https://api.github.com/repos/{REPO}'
 
 # Defaults the real API fills into rule parameters (observed on public repos).
 _PARAM_DEFAULTS = {
@@ -33,7 +35,12 @@ class FakeGitHub:
         self.private = False
         self.classic = False
         self.rulesets: dict[int, dict[str, Any]] = {}
+        # Defined on the owning organization and inherited by the repo; the
+        # repo endpoints list and read these but cannot change them.
+        self.inherited: dict[int, dict[str, Any]] = {}
         self.calls: list[str] = []
+        # 'METHOD /path' -> status to fail that request with.
+        self.errors: dict[str, int] = {}
         self._next_id = 100
 
     def store(
@@ -51,17 +58,50 @@ class FakeGitHub:
         self.rulesets[ruleset_id] = stored
         return ruleset_id
 
+    def inherit(self, body: dict[str, Any]) -> None:
+        ruleset_id = self.store(body)
+        self.inherited[ruleset_id] = self.rulesets.pop(ruleset_id)
+
     def detail(self, ruleset_id: int, admin: bool) -> dict[str, Any]:
-        body = copy.deepcopy(self.rulesets[ruleset_id])
+        org = ruleset_id in self.inherited
+        stored = self.inherited if org else self.rulesets
+        body = copy.deepcopy(stored[ruleset_id])
         if not admin:
             del body['bypass_actors']
+        owner = REPO.split('/', maxsplit=1)[0]
         server_fields = {
             'id': ruleset_id,
-            'source_type': 'Repository',
-            'source': REPO,
+            'source_type': 'Organization' if org else 'Repository',
+            'source': owner if org else REPO,
             'node_id': f'RRS_{ruleset_id}',
+            '_links': {'self': {'href': f'{API}/rulesets/{ruleset_id}'}},
+            'created_at': '2026-01-01T00:00:00Z',
+            'updated_at': '2026-01-01T00:00:00Z',
         }
         return server_fields | body
+
+    def _list(self, query: str) -> list[dict[str, Any]]:
+        params = urllib.parse.parse_qs(query)
+        ids = list(self.rulesets)
+        if params.get('includes_parents', ['true']) == ['true']:
+            ids = [*self.inherited, *ids]
+        per_page = min(int(params.get('per_page', ['30'])[0]), 100)
+        summary = (
+            'id',
+            'name',
+            'target',
+            'source_type',
+            'source',
+            'enforcement',
+            'node_id',
+            '_links',
+            'created_at',
+            'updated_at',
+        )
+        return [
+            {k: v for k, v in self.detail(i, False).items() if k in summary}
+            for i in ids[:per_page]
+        ]
 
     def handle(
         self,
@@ -70,10 +110,13 @@ class FakeGitHub:
         token: str,
         body: Any,  # noqa: ANN401
     ) -> tuple[int, Any]:
-        self.calls.append(f'{method} {path}')
+        call = f'{method} {path}'
+        self.calls.append(call)
         admin = token == ADMIN
         if token not in {ADMIN, READER}:
             return 401, {'message': 'Bad credentials'}
+        if call in self.errors:
+            return self.errors[call], {'message': 'Server Error'}
         base = f'/repos/{REPO}'
         if path == base:
             return 200, {'private': self.private, 'default_branch': 'master'}
@@ -90,16 +133,26 @@ class FakeGitHub:
         admin: bool,
         body: Any,  # noqa: ANN401
     ) -> tuple[int, Any]:
-        if path.startswith('/rulesets?') and method == 'GET':
-            return 200, [
-                {'id': i, 'name': r['name'], 'source_type': 'Repository'}
-                for i, r in self.rulesets.items()
-            ]
-        if path == '/rulesets' and method == 'POST':
+        route, _, query = path.partition('?')
+        if route == '/rulesets' and method == 'GET':
+            return 200, self._list(query)
+        if route == '/rulesets' and method == 'POST':
             return self._write(admin, body, None)
-        ruleset_id = int(path.removeprefix('/rulesets/'))
-        if method == 'GET':
+        ruleset_id = int(route.removeprefix('/rulesets/'))
+        return self._ruleset(method, ruleset_id, admin, body)
+
+    def _ruleset(
+        self,
+        method: str,
+        ruleset_id: int,
+        admin: bool,
+        body: Any,  # noqa: ANN401
+    ) -> tuple[int, Any]:
+        known = ruleset_id in self.rulesets
+        if method == 'GET' and (known or ruleset_id in self.inherited):
             return 200, self.detail(ruleset_id, admin)
+        if not known:
+            return 404, {'message': 'Not Found'}
         if method == 'PUT':
             return self._write(admin, body, ruleset_id)
         if not admin:
@@ -133,35 +186,28 @@ class FakeGitHub:
         }
         if body['name'] in others:
             return 422, {'message': 'Name must be unique'}
+        status = 201 if ruleset_id is None else 200
         ruleset_id = self.store(body, ruleset_id)
-        return 200, self.detail(ruleset_id, admin)
+        return status, self.detail(ruleset_id, admin)
 
 
 @pytest.fixture(name='github', scope='function')
-def github_fixture(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeGitHub]:
+def github_fixture(
+    serve: Callable[..., str], monkeypatch: pytest.MonkeyPatch
+) -> FakeGitHub:
     fake = FakeGitHub()
 
-    class Handler(http.server.BaseHTTPRequestHandler):
-        def _serve(self) -> None:
-            length = int(self.headers.get('Content-Length') or 0)
-            body = json.loads(self.rfile.read(length)) if length else None
-            token = self.headers['Authorization'].removeprefix('Bearer ')
-            status, payload = fake.handle(self.command, self.path, token, body)
-            self.send_response(status)
-            self.end_headers()
-            if payload is not None:
-                self.wfile.write(json.dumps(payload).encode())
+    def handle(
+        method: str,
+        path: str,
+        headers: Mapping[str, str],
+        body: Any,  # noqa: ANN401
+    ) -> tuple[int, Any]:
+        token = headers['Authorization'].removeprefix('Bearer ')
+        return fake.handle(method, path, token, body)
 
-        do_GET = do_POST = do_PUT = do_DELETE = _serve
-
-    server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    monkeypatch.setenv(
-        'GITHUB_API_URL', f'http://127.0.0.1:{server.server_address[1]}'
-    )
-    yield fake
-    server.shutdown()
+    monkeypatch.setenv('GITHUB_API_URL', serve(handle))
+    return fake
 
 
 BASE = {
@@ -238,9 +284,7 @@ def _run(
         monkeypatch.setenv('GH_TOKEN', token)
     (checkout / 'summary.md').unlink(missing_ok=True)
     args = ['--mode', mode, '--repository', REPO, '--directory', checkout]
-    code = main.main([str(arg) for arg in args])
-    print((checkout / 'summary.md').read_text())
-    return code
+    return main.main([str(arg) for arg in args])
 
 
 def test_apply_converges_and_check_detects_drift(
@@ -298,12 +342,23 @@ def test_api_rejections_are_reported(
     assert len(github.rulesets) == 2
 
 
+def test_rulesets_inherited_from_the_org_are_left_alone(
+    github: FakeGitHub, checkout: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    github.inherit(BASE | {'name': 'org-wide'})
+    assert _run(monkeypatch, checkout, 'apply', ADMIN) == 0
+    assert 'org-wide' not in (checkout / 'summary.md').read_text()
+    assert _run(monkeypatch, checkout, 'check', ADMIN) == 0
+
+
 def test_private_repositories_are_skipped(
     github: FakeGitHub, checkout: pathlib.Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     github.private = True
     assert _run(monkeypatch, checkout, 'apply', ADMIN) == 0
-    assert github.calls == [f'GET /repos/{REPO}']
+    assert not [
+        c for c in github.calls if '/rulesets' in c or '/protection' in c
+    ]
     assert 'require GitHub Pro' in (checkout / 'summary.md').read_text()
 
 
@@ -324,3 +379,114 @@ def test_misconfiguration_fails_before_touching_github(
     assert _run(monkeypatch, checkout, 'apply', ADMIN) == 1
     assert 'no ruleset definitions' in (checkout / 'summary.md').read_text()
     assert not github.calls
+
+
+def _requiring(name: str, *contexts: str) -> desired.Ruleset:
+    checks = [{'context': context} for context in contexts]
+    rule = {
+        'type': 'required_status_checks',
+        'parameters': {'required_status_checks': checks},
+    }
+    return CHECKS | {'name': name, 'rules': [rule]}
+
+
+@pytest.mark.usefixtures('github')
+def test_required_check_warnings_reach_the_summary(
+    checkout: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    rulesets = checkout / '.github' / 'rulesets'
+    for ruleset in (
+        _requiring('more', 'lnt', 'build readme'),
+        _requiring('dup', 'lnt'),
+    ):
+        (rulesets / f'{ruleset["name"]}.json').write_text(json.dumps(ruleset))
+    workflows = checkout / '.github' / 'workflows'
+    (workflows / 'docs.yaml').write_text(
+        'on:\n'
+        '  pull_request:\n'
+        '    paths: [docs/**]\n'
+        'jobs:\n'
+        '  readme:\n'
+        '    name: build readme\n'
+    )
+    (workflows / 'broken.yml').write_text('jobs: [unclosed\n')
+    # Valid YAML that isn't a workflow is not worth a warning.
+    (workflows / 'empty.yml').write_text('')
+    (workflows / 'list.yml').write_text('- not a mapping\n')
+
+    assert _run(monkeypatch, checkout, 'plan', READER) == 0
+    summary = (checkout / 'summary.md').read_text()
+    warnings = [
+        line for line in summary.splitlines() if line.startswith('- **warning')
+    ]
+    # "lnt" is required twice but warned about once.
+    assert len(warnings) == 3
+    for expected in (
+        'broken.yml: could not parse workflow',
+        '"lnt" matches no workflow job',
+        '"build readme" only comes from path-filtered workflow(s) docs.yaml',
+    ):
+        assert any(expected in warning for warning in warnings)
+
+    shutil.rmtree(workflows)
+    assert _run(monkeypatch, checkout, 'plan', READER) == 0
+    summary = (checkout / 'summary.md').read_text()
+    assert '"lint" matches no workflow job' in summary
+
+
+@pytest.mark.parametrize(
+    ('content', 'message'),
+    [
+        ('{"name": ', 'base.json: invalid JSON'),
+        ('[]', 'base.json: expected a JSON object'),
+        (json.dumps(BASE | {'target': None}), 'missing string "target"'),
+        (
+            json.dumps(BASE | {'enforcement': 1}),
+            'missing string "enforcement"',
+        ),
+        (json.dumps(BASE | {'rules': {}}), '"rules" must be a list'),
+    ],
+)
+def test_invalid_definitions_fail_before_touching_github(
+    github: FakeGitHub,
+    checkout: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    content: str,
+    message: str,
+) -> None:
+    (checkout / '.github' / 'rulesets' / 'base.json').write_text(content)
+    assert _run(monkeypatch, checkout, 'apply', ADMIN) == 1
+    assert message in (checkout / 'summary.md').read_text()
+    assert not github.calls
+
+
+@pytest.mark.parametrize(
+    ('token', 'failing', 'status'),
+    [('bogus', None, 401), (ADMIN, f'GET /repos/{REPO}', 500)],
+)
+def test_api_errors_fail_the_run(
+    github: FakeGitHub,
+    checkout: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    token: str,
+    failing: str | None,
+    status: int,
+) -> None:
+    if failing is not None:
+        github.errors[failing] = status
+    assert _run(monkeypatch, checkout, 'check', token) == 1
+    assert f'HTTP {status}' in (checkout / 'summary.md').read_text()
+
+
+def test_failed_classic_protection_delete_fails_apply(
+    github: FakeGitHub, checkout: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    github.classic = True
+    github.errors[f'DELETE /repos/{REPO}/branches/master/protection'] = 500
+    assert _run(monkeypatch, checkout, 'apply', ADMIN) == 1
+    summary = (checkout / 'summary.md').read_text()
+    assert 'delete classic branch protection: DELETE' in summary
+    assert 'HTTP 500' in summary
+    assert github.classic
+    # Rulesets are still created, so the branch is not left unprotected.
+    assert len(github.rulesets) == 2

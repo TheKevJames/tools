@@ -1,7 +1,6 @@
 import pathlib
 
 from gha_tools.rulesets import checks
-from gha_tools.rulesets import desired
 
 CI = """
 name: ci
@@ -39,9 +38,7 @@ def _warnings(tmp_path: pathlib.Path, contexts: list[str]) -> list[str]:
     (workflows / 'docs.yaml').write_text(DOCS)
     jobs, problems = checks.load_jobs(workflows)
     assert not problems
-    found = checks.warnings(contexts, jobs)
-    print(found)
-    return found
+    return checks.warnings(contexts, jobs)
 
 
 def test_names_reported_by_workflow_jobs_are_accepted(
@@ -54,27 +51,3 @@ def test_names_reported_by_workflow_jobs_are_accepted(
         'ci/circleci: pre-commit',
     ]
     assert not _warnings(tmp_path, contexts)
-
-
-def test_unknown_and_path_filtered_checks_warn(tmp_path: pathlib.Path) -> None:
-    found = _warnings(tmp_path, ['lnt', 'build readme'])
-    assert len(found) == 2
-    assert '"lnt" matches no workflow job' in found[0]
-    assert 'path-filtered workflow(s) docs.yaml' in found[1]
-
-
-def test_required_contexts_collects_across_rulesets() -> None:
-    def ruleset(*names: str) -> desired.Ruleset:
-        checks_param = [{'context': name} for name in names]
-        return {
-            'rules': [
-                {'type': 'deletion'},
-                {
-                    'type': 'required_status_checks',
-                    'parameters': {'required_status_checks': checks_param},
-                },
-            ]
-        }
-
-    rulesets = [ruleset('wip', 'lint'), ruleset('lint'), {'rules': []}]
-    assert checks.required_contexts(rulesets) == ['lint', 'wip']

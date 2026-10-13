@@ -11,12 +11,13 @@ pub struct Layout {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum Level {
-    ERROR,
-    WARN,
-    INFO,
-    DEBUG,
-    TRACE,
+    Error,
+    Warn,
+    Info,
+    Debug,
+    Trace,
 }
 impl fmt::Display for Level {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -95,7 +96,7 @@ pub struct CCTray {
     pub url: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq)]
 pub struct CircleCI {
     #[serde(default)]
     pub branch: Branch,
@@ -106,14 +107,22 @@ pub struct CircleCI {
 }
 impl Ord for CircleCI {
     fn cmp(&self, other: &Self) -> Ordering {
-        match self.branch.cmp(&other.branch) {
-            Ordering::Equal => self.workflow.cmp(&other.workflow),
-            x => x,
-        }
+        self.branch
+            .cmp(&other.branch)
+            .then_with(|| self.workflow.cmp(&other.workflow))
+            .then_with(|| self.vcs.cmp(&other.vcs))
+            .then_with(|| self.token.cmp(&other.token))
+    }
+}
+impl PartialOrd for CircleCI {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, PartialOrd)]
+// Field order defines the derived Ord, which is the display order of the
+// repos pane.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Repo {
     // TODO: display: Enum { always, failing, ... }
     pub name: String,
@@ -121,15 +130,6 @@ pub struct Repo {
     pub circleci: Option<CircleCI>,
     #[serde(default)]
     pub refresh: Refresh,
-}
-impl Ord for Repo {
-    fn cmp(&self, other: &Self) -> Ordering {
-        match self.name.cmp(&other.name) {
-            Ordering::Equal if self.cctray.is_some() => self.cctray.cmp(&other.cctray),
-            Ordering::Equal if self.circleci.is_some() => self.circleci.cmp(&other.circleci),
-            x => x,
-        }
-    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -160,7 +160,7 @@ impl Settings {
         // https://github.com/mehcode/config-rs/issues/64
         match builder.build() {
             Ok(config) => config.try_deserialize(),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 }

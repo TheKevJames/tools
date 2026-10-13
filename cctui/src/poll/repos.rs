@@ -1,5 +1,5 @@
 use crate::settings::{Repo, Settings};
-use crate::util::StatefulHash;
+use crate::util::{matches_filter, StatefulHash};
 
 use crossterm::event::KeyCode;
 use log::{error, warn};
@@ -9,8 +9,9 @@ use serde_xml_rs::from_str;
 use std::cmp::{max, Ordering};
 use std::collections::{BTreeMap, HashMap};
 
-#[derive(Clone, Debug, Eq, PartialEq, PartialOrd)]
+#[derive(Clone, Debug)]
 pub struct StatusItem {
+    id: String,
     // TODO: status: Enum { Cancelled, Failed, .. }
     pub status: &'static str,
     // TODO: inprogress: boolean
@@ -20,10 +21,16 @@ pub struct StatusItem {
 impl StatusItem {
     fn new(status: &'static str) -> Self {
         StatusItem {
-            status: status,
+            id: String::new(),
+            status,
             timestamp: String::from(""),
             url: None,
         }
+    }
+
+    fn with_id(mut self, id: String) -> Self {
+        self.id = id;
+        self
     }
 
     fn with_timestamp(mut self, timestamp: String) -> Self {
@@ -38,9 +45,22 @@ impl StatusItem {
 }
 impl Ord for StatusItem {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.timestamp.cmp(&other.timestamp)
+        self.timestamp
+            .cmp(&other.timestamp)
+            .then_with(|| self.id.cmp(&other.id))
     }
 }
+impl PartialOrd for StatusItem {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl PartialEq for StatusItem {
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
+impl Eq for StatusItem {}
 
 #[derive(Debug)]
 struct Status {
@@ -49,7 +69,6 @@ struct Status {
 
 #[derive(Debug, Deserialize)]
 struct CCTrayStatusItem {
-    activity: String,
     #[serde(rename = "lastBuildLabel")]
     last_build_label: String,
     #[serde(rename = "lastBuildStatus")]
@@ -72,6 +91,7 @@ impl From<&CCTrayStatusItem> for StatusItem {
             }
         };
         StatusItem::new(status)
+            .with_id(format!("{}#{}", src.name, src.last_build_label))
             .with_timestamp(src.last_build_time.clone())
             .with_url(src.web_url.clone())
     }
@@ -89,13 +109,13 @@ impl CCTrayStatus {
             .into_iter()
             .filter(|x| x.name.as_str() == repo)
             .collect();
-        CCTrayStatus { projects: projects }
+        CCTrayStatus { projects }
     }
 }
 impl From<CCTrayStatus> for Status {
     fn from(src: CCTrayStatus) -> Self {
         Status {
-            items: Some(src.projects.iter().map(|x| StatusItem::from(x)).collect()),
+            items: Some(src.projects.iter().map(StatusItem::from).collect()),
         }
     }
 }
@@ -104,10 +124,7 @@ impl From<CCTrayStatus> for Status {
 struct CircleCIStatusItem {
     id: String,
     status: String,
-    duration: u16,
-    created_at: String,
     stopped_at: String,
-    credits_used: u16,
 }
 impl From<&CircleCIStatusItem> for StatusItem {
     fn from(src: &CircleCIStatusItem) -> Self {
@@ -120,22 +137,22 @@ impl From<&CircleCIStatusItem> for StatusItem {
                 "unknown"
             }
         };
-        StatusItem::new(status).with_timestamp(src.stopped_at.clone())
+        StatusItem::new(status)
+            .with_id(src.id.clone())
+            .with_timestamp(src.stopped_at.clone())
     }
 }
 
 #[derive(Debug, Deserialize)]
 struct CircleCIStatus {
-    next_page_token: Option<String>,
     items: Option<Vec<CircleCIStatusItem>>,
 }
 impl From<CircleCIStatus> for Status {
     fn from(src: CircleCIStatus) -> Self {
         Status {
-            items: match src.items {
-                Some(xs) => Some(xs.iter().map(|x| StatusItem::from(x)).collect()),
-                None => None,
-            },
+            items: src
+                .items
+                .map(|xs| xs.iter().map(StatusItem::from).collect()),
         }
     }
 }
@@ -174,7 +191,7 @@ impl ReposPoller {
             recent: StatefulHash::with_items(BTreeMap::new()),
             polling: !delay.is_empty(),
             client: Client::new(),
-            delay: delay,
+            delay,
         }
     }
 
@@ -237,7 +254,7 @@ impl ReposPoller {
 
     pub fn get_selected_url(&self) -> Option<String> {
         match self.all.state.selected() {
-            Some(i) => match self.all.items.iter().skip(i).next() {
+            Some(i) => match self.all.items.iter().nth(i) {
                 Some((repo, (status, _))) => {
                     let chunks = repo.name.split("/").collect::<Vec<_>>();
                     match &status.url {
@@ -279,39 +296,17 @@ impl ReposPoller {
             // soon after un-filtering
             // TODO: once we can do in-place upgrades, we should be able to
             // avoid toggling off polling while filtered
-            for (_, val) in self.delay.iter_mut() {
+            for val in self.delay.values_mut() {
                 *val = max(*val, 10);
             }
         }
 
         // TODO: include repo.circleci.{workflow,branch} in check
         for (repo, (_, visible)) in self.all.items.iter_mut() {
-            let show = {
-                if filter.chars().count() > 0 && &filter[0..1] == "!" {
-                    if filter.chars().count() > 1 {
-                        !repo.name.contains(&filter[1..])
-                    } else {
-                        true
-                    }
-                } else {
-                    repo.name.contains(filter)
-                }
-            };
-            *visible = show;
+            *visible = matches_filter(filter, &[&repo.name]);
         }
-        for (_, (repo, visible)) in self.recent.items.iter_mut() {
-            let show = {
-                if filter.chars().count() > 0 && &filter[0..1] == "!" {
-                    if filter.chars().count() > 1 {
-                        !repo.name.contains(&filter[1..])
-                    } else {
-                        true
-                    }
-                } else {
-                    repo.name.contains(filter)
-                }
-            };
-            *visible = show;
+        for (repo, visible) in self.recent.items.values_mut() {
+            *visible = matches_filter(filter, &[&repo.name]);
         }
         self.all.first();
     }
@@ -323,7 +318,7 @@ impl ReposPoller {
             KeyCode::Char('j') => self.all.next(),
             KeyCode::Char('k') => self.all.prev(),
             KeyCode::Char('r') => {
-                for (_, val) in self.delay.iter_mut() {
+                for val in self.delay.values_mut() {
                     *val = 0;
                 }
             }
@@ -343,40 +338,30 @@ impl ReposPoller {
                 }
 
                 // TODO: async then consider multiple updates per tick?
-                match Self::make_request(&self.client, &repo) {
-                    Some(status) => {
-                        match status.items {
-                            Some(items) if items.len() > 0 => {
-                                self.all
-                                    .items
-                                    .insert(repo.clone(), (items[0].clone(), true));
-                                for job in items {
-                                    self.recent.items.insert(job, (repo.clone(), true));
-                                    if self.recent.items.len() > 5 {
-                                        let entry = match self.recent.items.iter().next() {
-                                            Some((k, _)) => Some(k.clone()),
-                                            _ => None,
-                                        };
-                                        if entry.is_some() {
-                                            self.recent.items.remove(&entry.unwrap());
-                                        }
-                                    }
+                // TODO: should we add a backoff handler?
+                if let Some(status) = Self::make_request(&self.client, repo) {
+                    match status.items {
+                        Some(items) if !items.is_empty() => {
+                            self.all
+                                .items
+                                .insert(repo.clone(), (items[0].clone(), true));
+                            for job in items {
+                                self.recent.items.insert(job, (repo.clone(), true));
+                                if self.recent.items.len() > 5 {
+                                    self.recent.items.pop_first();
                                 }
                             }
-                            _ => {
-                                // TODO: figure out how to grab most recent run from >90 days ago
-                                // warn!("got unknown CI status for {}", repo.name);
-                                self.all
-                                    .items
-                                    .insert(repo.clone(), (StatusItem::new("unknown"), true));
-                                ()
-                            }
                         }
-                        allow_processing = false; // be kind to our event loop
-                        *val = repo.refresh * 10; // 10 ticks per second
+                        _ => {
+                            // TODO: figure out how to grab most recent run from >90 days ago
+                            // warn!("got unknown CI status for {}", repo.name);
+                            self.all
+                                .items
+                                .insert(repo.clone(), (StatusItem::new("unknown"), true));
+                        }
                     }
-                    // TODO: should we add a backoff handler?
-                    None => (),
+                    allow_processing = false; // be kind to our event loop
+                    *val = repo.refresh * 10; // 10 ticks per second
                 }
                 continue;
             }

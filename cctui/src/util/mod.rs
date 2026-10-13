@@ -1,24 +1,14 @@
 use ratatui::widgets::ListState;
-use std::cmp::{max, min};
+use std::cmp::min;
 use std::collections::BTreeMap;
 use std::fmt::Debug;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct FilteredListState {
     offset: usize,
     selected: Option<usize>,
 
     public: ListState,
-}
-
-impl Default for FilteredListState {
-    fn default() -> FilteredListState {
-        FilteredListState {
-            offset: 0,
-            selected: None,
-            public: ListState::default(),
-        }
-    }
 }
 
 impl FilteredListState {
@@ -58,7 +48,7 @@ impl<T> StatefulList<T> {
     pub fn with_items(items: Vec<T>) -> StatefulList<T> {
         StatefulList {
             state: FilteredListState::default(),
-            items: items,
+            items,
         }
     }
 
@@ -68,14 +58,14 @@ impl<T> StatefulList<T> {
     }
 
     pub fn last(&mut self) {
-        let target = Some(self.items.len() - 1);
+        let target = self.items.len().checked_sub(1);
         self.state.select(target, target);
     }
 
     pub fn next(&mut self) {
         match self.state.selected() {
             Some(curr) => {
-                let target = Some(min(curr + 1, self.items.len()));
+                let target = Some(min(curr + 1, self.items.len().saturating_sub(1)));
                 self.state.select(target, target);
             }
             None => self.first(),
@@ -85,7 +75,7 @@ impl<T> StatefulList<T> {
     pub fn prev(&mut self) {
         match self.state.selected() {
             Some(curr) => {
-                let target = Some(max(curr - 1, 0));
+                let target = Some(curr.saturating_sub(1));
                 self.state.select(target, target);
             }
             None => self.first(),
@@ -102,7 +92,7 @@ impl<T: Debug, V: Debug> StatefulHash<T, V> {
     pub fn with_items(items: BTreeMap<T, (V, bool)>) -> StatefulHash<T, V> {
         StatefulHash {
             state: FilteredListState::default(),
-            items: items,
+            items,
         }
     }
 
@@ -125,8 +115,7 @@ impl<T: Debug, V: Debug> StatefulHash<T, V> {
                 return;
             }
         }
-        let target = self.items.len() - 1;
-        self.state.select(Some(target), Some(target));
+        self.first();
     }
 
     pub fn next(&mut self) {
@@ -169,5 +158,15 @@ impl<T: Debug, V: Debug> StatefulHash<T, V> {
             }
             None => self.first(),
         }
+    }
+}
+
+/// Whether any of `fields` contains `filter`. A leading `!` inverts the
+/// match; a bare `!` matches everything.
+pub fn matches_filter(filter: &str, fields: &[&str]) -> bool {
+    match filter.strip_prefix('!') {
+        Some("") => true,
+        Some(negated) => !fields.iter().any(|field| field.contains(negated)),
+        None => fields.iter().any(|field| field.contains(filter)),
     }
 }

@@ -30,9 +30,10 @@ def _http(
 
 
 class DockerHubClient:
-    base = 'https://hub.docker.com/v2'
-
-    def __init__(self, repository: str, username: str, password: str) -> None:
+    def __init__(
+        self, base: str, repository: str, username: str, password: str
+    ) -> None:
+        self.base = base
         self.repository = repository
         token = _http(
             'POST',
@@ -64,9 +65,8 @@ class DockerHubClient:
 
 
 class QuayClient:
-    base = 'https://quay.io/api/v1'
-
-    def __init__(self, repository: str, token: str) -> None:
+    def __init__(self, base: str, repository: str, token: str) -> None:
+        self.base = base
         self.repository = repository
         self._headers = {'Authorization': f'Bearer {token}'}
 
@@ -112,12 +112,17 @@ def make_client(
 ) -> DockerHubClient | QuayClient:
     if registry == 'dockerhub':
         return DockerHubClient(
+            os.environ.get('DOCKERHUB_API_URL', 'https://hub.docker.com/v2'),
             repository,
             _require_env('DOCKER_USER'),
             _require_env('DOCKER_PASS'),
         )
     if registry == 'quay':
-        return QuayClient(repository, _require_env('QUAY_APIKEY'))
+        return QuayClient(
+            os.environ.get('QUAY_API_URL', 'https://quay.io/api/v1'),
+            repository,
+            _require_env('QUAY_APIKEY'),
+        )
     raise ValueError(f'unknown registry: {registry}')
 
 

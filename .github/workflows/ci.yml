@@ -4,7 +4,7 @@ on: [pull_request, push]
 
 jobs:
   lint:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    if: &not-fork github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7.0.1
@@ -20,41 +20,56 @@ jobs:
           prek-version: v0.5.5
           extra-args: --all-files
 
-  test-atc1441:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+  lint-cctui:
+    if: *not-fork
     runs-on: ubuntu-26.04
+    defaults:
+      run:
+        working-directory: cctui
     steps:
+      - uses: actions/checkout@v7.0.1
+      # installs the version pinned in cctui/rust-toolchain.toml
+      - run: rustup toolchain install
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+
+  test-atc1441:
+    if: *not-fork
+    runs-on: ubuntu-26.04
+    defaults:
+      run:
+        working-directory: docker-atc1441-exporter
+    steps: &pytest
       - uses: actions/checkout@v7.0.1
       - uses: astral-sh/setup-uv@v10.3.0
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
           version: 0.13.0
       - run: uv run --frozen pytest
-        working-directory: docker-atc1441-exporter
 
   test-gha:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    if: *not-fork
     runs-on: ubuntu-26.04
-    steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: astral-sh/setup-uv@v10.3.0
-        with:
-          # renovate: datasource=github-releases depName=astral-sh/uv
-          version: 0.13.0
-      - run: uv run --frozen pytest
+    defaults:
+      run:
         working-directory: gha
+    steps: *pytest
+
+  test-pubsub:
+    if: *not-fork
+    runs-on: ubuntu-26.04
+    defaults:
+      run:
+        working-directory: docker-gcloud-pubsub-emulator
+    steps: *pytest
 
   test-task:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    if: *not-fork
     runs-on: ubuntu-26.04
-    steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: astral-sh/setup-uv@v10.3.0
-        with:
-          # renovate: datasource=github-releases depName=astral-sh/uv
-          version: 0.13.0
-      - run: uv run --frozen pytest
+    defaults:
+      run:
         working-directory: task
+    steps: *pytest
 
   docker-atc1441:
     needs: [lint, test-atc1441]
@@ -65,6 +80,16 @@ jobs:
       context: docker-atc1441-exporter
       platforms: linux/amd64,linux/arm64
       tag-cmd: awk -F'= ' '/^version =/ {print substr($2, 2, length($2)-2)}' pyproject.toml
+
+  docker-gcloud-pubsub-emulator:
+    needs: [lint, test-pubsub]
+    uses: ./.github/workflows/_docker-image.yml
+    secrets: inherit
+    with:
+      image: gcloud-pubsub-emulator
+      context: docker-gcloud-pubsub-emulator
+      platforms: linux/amd64,linux/arm64
+      tag-cmd: awk -F':|-' '/google-cloud-cli/ {print $4}' Dockerfile
 
   docker:
     name: docker-${{ matrix.image }}
@@ -81,8 +106,6 @@ jobs:
               echo "${CADDY_VERSION}-${SECURITY_VERSION}"
           - image: fava
             tag-cmd: awk -F'=' '/ARG FAVA_VERSION=/ {print $2}' Dockerfile
-          - image: gcloud-pubsub-emulator
-            tag-cmd: awk -F':|-' '/google-cloud-cli/ {print $4}' Dockerfile
           - image: mysqltuner
             tag-cmd: awk -F'=' '/VERSION=/ {print $2}' Makefile
           - image: tuning-primer

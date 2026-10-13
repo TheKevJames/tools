@@ -5,9 +5,11 @@ mod util;
 
 use crate::display::{ui, App};
 
-use crossterm::ExecutableCommand;
 use crossterm::event::{self, KeyCode, KeyEventKind};
-use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
+use crossterm::terminal::{
+    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+};
+use crossterm::ExecutableCommand;
 use log::debug;
 use ratatui::prelude::{CrosstermBackend, Terminal};
 use settings::Settings;
@@ -53,7 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut app = App::new(&settings);
     debug!("starting app");
     loop {
-        terminal.draw(|mut f| ui::draw(&mut f, &mut app))?;
+        terminal.draw(|f| ui::draw(f, &mut app))?;
         app.on_tick();
 
         if event::poll(std::time::Duration::from_millis(16))? {

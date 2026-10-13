@@ -11,7 +11,7 @@ Heavily inspired by `MiTemperature2`_, `xiaomi-sensor-exporter`_, and
 from former with the OpenMetrics scrapability of the latter two.
 
 Special thank you as well to `aioblescan`_, a pruned subset of which has been
-vendored in (see ``atc1441_exporter/_aioblescan.py``) to handle passive BLE
+vendored in (see ``atc1441_exporter/_aioblescan/``) to handle passive BLE
 scanning and advertising-report parsing over a raw HCI socket.
 
 Usage

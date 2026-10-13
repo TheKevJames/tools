@@ -24,7 +24,7 @@ impl App {
             filter: String::new(),
             notifs: NotifsPoller::new(settings),
             repos: ReposPoller::new(settings),
-            state: state,
+            state,
             visible_notifs: settings.layout.visible_notifs,
         }
     }
@@ -58,12 +58,12 @@ impl App {
                         self.notifs.filter(&self.filter);
                         self.repos.filter(&self.filter);
                         self.state.first();
-                    },
+                    }
                     KeyCode::Char(c) => self.filter.push(c),
                     _ => (),
                 }
                 return;
-            },
+            }
             _ => (),
         }
         match key {
@@ -76,7 +76,7 @@ impl App {
             KeyCode::Char('/') => {
                 self.filter.clear();
                 self.state.last();
-            },
+            }
             KeyCode::Char('J') => self.visible_notifs = min(self.visible_notifs + 1, 20),
             KeyCode::Char('K') => self.visible_notifs = max(self.visible_notifs - 1, 1),
             _ => (),

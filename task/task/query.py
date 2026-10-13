@@ -50,14 +50,18 @@ class Filter(pydantic.BaseModel, extra='forbid'):
             match = re.match(
                 r'(?P<target>[^!=~]+)(?P<op>!?[=~])(?P<data>.*)', filter_
             )
-            assert match, f'{filter_} is not a valid filter'
+            if not match:
+                raise schema.TaskError(
+                    f'invalid filter: {filter_!r}'
+                    ' (use eg. tag=a, tag!=a, tag~a, tag!~a)'
+                )
             op = match.group('op')
 
             yield cls(
                 data=match.group('data').lower(),
                 negate=op.startswith('!'),
                 contains=op.endswith('~'),
-                target=Target(match.group('target')),
+                target=schema.parse_enum(Target, match.group('target')),
             )
 
     def sql(self, param: str) -> str:

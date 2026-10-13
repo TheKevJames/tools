@@ -1,3 +1,4 @@
+import calendar
 import dataclasses
 import datetime
 import enum
@@ -134,7 +135,10 @@ class Interval(pydantic.BaseModel, extra='forbid'):
         if self.raw.endswith('m'):
             months = self.value
             tyear, tmonth = divmod(value.month - 1 + months, 12)
-            return value.replace(year=value.year + tyear, month=tmonth + 1)
+            year, month = value.year + tyear, tmonth + 1
+            # Clamping drifts: Jan 31 -> Feb 28 -> Mar 28.
+            day = min(value.day, calendar.monthrange(year, month)[1])
+            return datetime.date(year, month, day)
 
         assert False, f'invalid interval {self.raw}'
 
@@ -254,7 +258,7 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
             new_task.details = Details.model_validate(details)
         elif self.details:
             if self.details.interval and not self.details.shift:
-                raise AssertionError(
+                raise TaskError(
                     'periodic tasks with shift=false cannot be delayed'
                 )
         else:
