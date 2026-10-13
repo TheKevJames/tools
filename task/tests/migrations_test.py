@@ -67,3 +67,17 @@ def test_migration_deletes_done_tasks(folder: pathlib.Path) -> None:
 
     assert [(t.ident, t.description) for t in kept] == [(1, 'notes')]
     assert not (folder / schema.DEFAULT / '2.txt').exists()
+
+
+def test_newer_database_is_refused(folder: pathlib.Path) -> None:
+    version = len(migrations.MIGRATIONS) + 1
+    conn = database(folder)
+    conn.execute(f'PRAGMA user_version = {version}')
+    conn.close()
+
+    message = (
+        f'^namespace default: database is at version {version},'
+        ' newer than this task CLI$'
+    )
+    with pytest.raises(schema.TaskError, match=message), db.connect():
+        pass

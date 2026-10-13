@@ -21,11 +21,16 @@ def folder(
     return tmp_path
 
 
-@pytest.fixture(scope='function')
-def today() -> Generator[datetime.date]:
+@pytest.fixture(scope='function', name='now')
+def fixture_now() -> Generator[datetime.datetime]:
     """
     Stop the clock. SQLite's own clock, which stamps `created` and `updated`,
     keeps running.
     """
     with time_machine.travel(NOW, tick=False):
-        yield NOW.date()
+        yield NOW
+
+
+@pytest.fixture(scope='function')
+def today(now: datetime.datetime) -> datetime.date:
+    return now.date()

@@ -1,6 +1,7 @@
 import datetime
 
 import hypothesis
+import pytest
 from hypothesis import strategies as st
 
 from task import schema
@@ -28,3 +29,18 @@ def test_interval_moves_forward(
     interval: schema.Interval, date: datetime.date
 ) -> None:
     assert interval.apply(date) > date
+
+
+@pytest.mark.parametrize(
+    ('raw', 'rendered'),
+    [
+        ('1d', 'daily'),
+        ('3d', 'every 3 days'),
+        ('1w', 'weekly'),
+        ('2w', 'every 2 weeks'),
+        ('1m', 'monthly'),
+        ('12m', 'every 12 months'),
+    ],
+)
+def test_interval_renders(raw: str, rendered: str) -> None:
+    assert str(schema.Interval(raw=raw)) == rendered
