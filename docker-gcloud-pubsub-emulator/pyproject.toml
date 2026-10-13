@@ -26,6 +26,9 @@ dev = [
     "pytest==9.1.1",
 ]
 
+[tool.pylint.main]
+source-roots = ["."]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
