@@ -195,3 +195,11 @@ def test_invalid_filters_are_refused() -> None:
     assert refused('due', '-f', 'tag=a,summary') == (
         "invalid filter: 'summary' (use eg. tag=a, tag!=a, tag~a, tag!~a)"
     )
+
+
+@pytest.mark.usefixtures('folder')
+def test_fixed_schedules_cannot_be_delayed() -> None:
+    run('add', 'a', '--next', '2026-01-01', '--interval', '1w')
+    assert refused('1', 'delay', '3') == (
+        'periodic tasks with shift=false cannot be delayed'
+    )

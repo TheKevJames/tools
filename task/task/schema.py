@@ -258,7 +258,7 @@ class Task(pydantic.BaseModel, extra='forbid', validate_assignment=True):
             new_task.details = Details.model_validate(details)
         elif self.details:
             if self.details.interval and not self.details.shift:
-                raise AssertionError(
+                raise TaskError(
                     'periodic tasks with shift=false cannot be delayed'
                 )
         else:
