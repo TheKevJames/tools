@@ -37,17 +37,17 @@ def _emit_output(deleted: Sequence[str]) -> None:
 def _delete_all(
     client: registries.DockerHubClient | registries.QuayClient,
     tags: Sequence[str],
-) -> int:
-    failures = 0
+) -> list[str]:
+    deleted: list[str] = []
     for name in tags:
         try:
             client.delete_tag(name)
         except Exception as exc:
-            failures += 1
             print(f'  FAILED {name}: {exc}', file=sys.stderr)
         else:
+            deleted.append(name)
             print(f'  deleted {name}')
-    return failures
+    return deleted
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -80,9 +80,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         _emit_output([])
         return 0
 
-    failures = _delete_all(client, doomed)
-    _emit_output([] if failures else doomed)
-    return 1 if failures else 0
+    deleted = _delete_all(client, doomed)
+    _emit_output(deleted)
+    return 0 if len(deleted) == len(doomed) else 1
 
 
 if __name__ == '__main__':

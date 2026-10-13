@@ -323,3 +323,15 @@ def test_missing_credentials_are_rejected(
         monkeypatch.setenv(variable, value)
     with pytest.raises(ValueError, match=variable):
         main.main(['--registry', registry_name, '--repository', REPO])
+
+
+def test_partial_failure_reports_what_was_deleted(
+    registry: FakeRegistry, output: pathlib.Path
+) -> None:
+    registry.tags = {'sha-0a': OLD, 'sha-0b': OLD, 'sha-0c': OLD}
+    registry.failing = {'sha-0b'}
+    assert _run(registry, '--execute') == 1
+    assert registry.deleted == ['sha-0a', 'sha-0c']
+    assert output.read_text() == (
+        'deleted-count=2\ndeleted-tags=sha-0a sha-0c\n'
+    )
