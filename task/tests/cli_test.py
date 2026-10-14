@@ -198,11 +198,34 @@ def test_monthly_recurrence_clamps_to_month_end() -> None:
 def test_invalid_filters_are_refused() -> None:
     assert refused('list', '-f', 'bogus=1') == (
         "invalid target: 'bogus'"
-        ' (use summary, namespace, tag, owner, link, priority, size)'
+        ' (use summary, namespace, tag, owner, link, priority, size, next)'
     )
     assert refused('due', '-f', 'tag=a,summary') == (
         "invalid filter: 'summary' (use eg. tag=a, tag!=a, tag~a, tag!~a)"
     )
+    assert refused('list', '-f', 'next~2026') == (
+        'next only supports exact matches'
+        ' (use eg. next=2026-01-31, next!=2026-01-31, next=)'
+    )
+    assert refused('list', '-f', 'next=2026-1-31') == (
+        "invalid date: '2026-1-31' (use eg. 2026-01-31)"
+    )
+
+
+@pytest.mark.usefixtures('folder')
+def test_filter_by_next() -> None:
+    run('add', 'unscheduled')
+    run('add', 'a', '--next', '2026-01-31')
+    run('add', 'b', '--next', '2026-02-01')
+
+    def summaries(filter_: str) -> list[object]:
+        return [t['summary'] for t in listed(filter_)]
+
+    assert summaries('next=') == ['unscheduled']
+    assert summaries('next!=') == ['a', 'b']
+    assert summaries('next=2026-01-31') == ['a']
+    assert summaries('next=20260131') == ['a']
+    assert summaries('next!=2026-01-31') == ['unscheduled', 'b']
 
 
 @pytest.mark.usefixtures('folder')

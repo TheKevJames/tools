@@ -19,6 +19,7 @@ class Target(enum.StrEnum):
     link = 'link'
     priority = 'priority'
     size = 'size'
+    next = 'next'
 
 
 # Filter values are compared lowercased. `fold` is Python's str.lower,
@@ -32,6 +33,7 @@ COLUMNS = {
     Target.link: "fold(coalesce(link, ''))",
     Target.priority: "coalesce(priority, '')",
     Target.size: "coalesce(size, '')",
+    Target.next: "coalesce(next, '')",
 }
 
 
@@ -40,6 +42,25 @@ class Filter(pydantic.BaseModel, extra='forbid'):
     negate: bool
     contains: bool
     target: Target
+
+    @pydantic.model_validator(mode='after')
+    def check_next(self) -> Self:
+        """Dates match exactly, as stored: YYYY-MM-DD, or empty if unset."""
+        if self.target is not Target.next:
+            return self
+        if self.contains:
+            raise schema.TaskError(
+                'next only supports exact matches'
+                ' (use eg. next=2026-01-31, next!=2026-01-31, next=)'
+            )
+        if self.data:
+            try:
+                self.data = datetime.date.fromisoformat(self.data).isoformat()
+            except ValueError:
+                raise schema.TaskError(
+                    f'invalid date: {self.data!r} (use eg. 2026-01-31)'
+                ) from None
+        return self
 
     @classmethod
     def parse(cls, raw: str) -> Iterator[Self]:
