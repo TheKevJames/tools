@@ -113,6 +113,13 @@
             ],
         },
         {
+            "groupName": "pi",
+            "matchDatasources": ["npm"],
+            "matchDepNames": [
+                "/^@earendil-works/pi-/",
+            ],
+        },
+        {
             "groupName": "pydantic",
             "matchDatasources": ["pypi"],
             "matchDepNames": [
