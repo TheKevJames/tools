@@ -131,7 +131,7 @@ jobs:
       - if: steps.changes.outputs.autodecline == 'true'
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 26.11.1
+          node-version: 26.12.0
       - name: push and deploy clasp project
         if: steps.changes.outputs.autodecline == 'true'
         working-directory: autodecline-meetings
