@@ -8,8 +8,10 @@
     set -eu
     TIMEOUT="${PUBSUB_EMULATOR_WAIT_TIMEOUT:-15}"
     echo "Waiting up to ${TIMEOUT}s for emulator..."
-    /usr/bin/wait-for localhost:8681 -t "${TIMEOUT}" -- env PUBSUB_EMULATOR_HOST=localhost:8681 /usr/bin/pubsubc
-    echo "[run] Done building projects/topics/subscriptions! Opening readiness port..."
+    /usr/bin/wait-for localhost:8681 -t "${TIMEOUT}" -- \
+        env PUBSUB_EMULATOR_HOST=localhost:8681 /usr/bin/pubsubc
+    echo "[run] Done building projects/topics/subscriptions!" \
+        "Opening readiness port..."
     nc -lkp 8682
 ) &
 
