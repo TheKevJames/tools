@@ -81,6 +81,46 @@ def test_set_namespace_moves_the_task() -> None:
 
 
 @pytest.mark.usefixtures('folder')
+def test_add_reports_the_new_ref() -> None:
+    run('namespace', 'add', 'b')
+    assert run('add', 'a') == 'added task 1: a\n'
+    assert run('add', 'b', '-n', 'b') == 'added task b:1: b\n'
+
+
+@pytest.mark.parametrize(
+    'args',
+    [
+        ('add', 'c', '-n', 'b', '--tag', 'build'),
+        ('1', 'set', '--priority', 'high', '--description-append', 'y'),
+        ('1', 'set', '-n', 'b'),
+        ('1', 'unset', 'shift', 'description'),
+        ('1', 'describe'),
+        ('1', 'delay', '2'),
+        ('1', 'done'),
+        ('2', 'done'),
+    ],
+)
+def test_writes_report_the_resulting_task(
+    folder: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    args: tuple[str, ...],
+) -> None:
+    monkeypatch.setenv('EDITOR', editor(folder, 'echo " mine" >> "$1"'))
+    run('namespace', 'add', 'b')
+    recurring = ('--next', '2026-03-01', '--interval', '1d', '--shift')
+    run('add', 'a', *recurring, '--description', 'x')
+    run('add', 'b')
+
+    reported = json.loads(run(*args, '--json'))
+    print(f'{args} reported {reported}')
+    if reported is None:
+        assert refused(args[0]) == f'task {args[0]} not found'
+        return
+    [ref] = refs([reported])
+    assert json.loads(run(ref, '--json')) == reported
+
+
+@pytest.mark.usefixtures('folder')
 def test_claims_are_exclusive_until_released() -> None:
     run('namespace', 'add', 'b')
     run('add', 'a')
@@ -187,10 +227,10 @@ def test_describe_refuses_concurrent_change(
 def test_monthly_recurrence_clamps_to_month_end() -> None:
     run('add', 'a', '--next', '2026-01-31', '--interval', '1m')
     assert run('1', 'done') == (
-        'completed recurring task, next occurrence: 2026-02-28\n'
+        'completed recurring task 1, next occurrence: 2026-02-28\n'
     )
     assert run('1', 'done') == (
-        'completed recurring task, next occurrence: 2026-03-28\n'
+        'completed recurring task 1, next occurrence: 2026-03-28\n'
     )
 
 
@@ -251,16 +291,19 @@ def test_delay_reschedules_from_today() -> None:
     run('add', 'a')
     run('add', 'b', '--next', '2026-03-01', '--interval', '1d', '--shift')
 
-    delayed = 'delayed task, next occurrence:'
-    assert run('1', 'delay', '2') == f'{delayed} 2026-01-17\n'
-    assert run('2', 'delay', '0') == f'{delayed} 2026-01-15\n'
+    assert run('1', 'delay', '2') == (
+        'delayed task 1, next occurrence: 2026-01-17\n'
+    )
+    assert run('2', 'delay', '0') == (
+        'delayed task 2, next occurrence: 2026-01-15\n'
+    )
 
 
 @pytest.mark.usefixtures('folder')
 def test_done_advances_fixed_schedules_past_today() -> None:
     run('add', 'a', '--next', '2026-01-01', '--interval', '1w')
     assert run('1', 'done') == (
-        'completed recurring task, next occurrence: 2026-01-22\n'
+        'completed recurring task 1, next occurrence: 2026-01-22\n'
     )
 
 

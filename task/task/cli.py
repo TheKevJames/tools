@@ -118,6 +118,14 @@ def print_tasks(tasks: Iterable[schema.Task], as_json: bool) -> None:
         print(task)
 
 
+def report(task: schema.Task | None, as_json: bool, message: str = '') -> None:
+    """With --json, the task as it stands after the command; else message."""
+    if as_json:
+        print(json.dumps(task.to_json() if task else None, indent=2))
+    elif message:
+        print(message)
+
+
 @app.command('list')
 def list_(
     days: Days = -1,
@@ -161,6 +169,7 @@ def add(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     link: Link = None,
     priority: PriorityOpt = None,
     size: SizeOpt = None,
+    as_json: AsJson = False,
 ) -> None:
     """Add a new task, optionally with schedule details."""
     task = schema.Task(
@@ -182,6 +191,7 @@ def add(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     )
     with db.write(task.namespace) as store:
         db.insert(store, task)
+    report(task, as_json, f'added task {task.ref}: {task.summary}')
 
 
 @app.command('show', rich_help_panel=SUBJECT_PANEL)
@@ -189,14 +199,11 @@ def show(ref: Ref, as_json: AsJson = False) -> None:
     """Show a task's full details and status."""
     with db.connect() as store:
         task = db.get(store, ref)
-    if as_json:
-        print(json.dumps(task.to_json(), indent=2))
-        return
-    print(task.render_detail())
+    report(task, as_json, task.render_detail())
 
 
 @app.command('done', rich_help_panel=SUBJECT_PANEL)
-def done(ref: Ref, ago: Ago = 0) -> None:
+def done(ref: Ref, ago: Ago = 0, as_json: AsJson = False) -> None:
     """Complete a task: delete it, or advance it if it recurs."""
     with db.write(ref.namespace) as store:
         task = db.get(store, ref)
@@ -207,23 +214,30 @@ def done(ref: Ref, ago: Ago = 0) -> None:
             db.update(store, completed)
 
     if completed is None:
-        print(f'deleted task {ref}: {task.summary}')
+        report(None, as_json, f'deleted task {ref}: {task.summary}')
         return
     assert completed.details, 'completed recurring task has no details'
-    print(
-        f'completed recurring task, next occurrence: {completed.details.next_}'
+    report(
+        completed,
+        as_json,
+        f'completed recurring task {ref},'
+        f' next occurrence: {completed.details.next_}',
     )
 
 
 @app.command('delay', rich_help_panel=SUBJECT_PANEL)
-def delay(ref: Ref, days: int) -> None:
+def delay(ref: Ref, days: int, as_json: AsJson = False) -> None:
     """Postpone a task by the given number of days."""
     with db.write(ref.namespace) as store:
         delayed = db.get(store, ref).postpone(days)
         db.update(store, delayed)
 
     assert delayed.details, 'delayed task has no details'
-    print(f'delayed task, next occurrence: {delayed.details.next_}')
+    report(
+        delayed,
+        as_json,
+        f'delayed task {ref}, next occurrence: {delayed.details.next_}',
+    )
 
 
 @app.command('set', rich_help_panel=SUBJECT_PANEL)
@@ -242,6 +256,7 @@ def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments,to
     priority: PriorityOpt = None,
     size: SizeOpt = None,
     force: Force = False,
+    as_json: AsJson = False,
 ) -> None:
     """Edit a task's summary, namespace, section, metadata, or schedule."""
     target = ref.namespace
@@ -269,12 +284,12 @@ def set_(  # pylint: disable=too-many-arguments,too-many-positional-arguments,to
         else:
             db.move(store, task, ref)
 
-    if task.namespace != ref.namespace:
-        print(f'moved to {task.ref}')
+    moved = task.namespace != ref.namespace
+    report(task, as_json, f'moved to {task.ref}' if moved else '')
 
 
 @app.command('describe', rich_help_panel=SUBJECT_PANEL)
-def describe(ref: Ref) -> None:
+def describe(ref: Ref, as_json: AsJson = False) -> None:
     """Edit a task's description in $EDITOR."""
     with db.connect() as store:
         original = db.get(store, ref).description
@@ -300,15 +315,19 @@ def describe(ref: Ref) -> None:
             )
         task.update(description=edited)
         db.update(store, task)
+    report(task, as_json)
 
 
 @app.command('unset', rich_help_panel=SUBJECT_PANEL)
-def unset(ref: Ref, fields: list[schema.ClearableField]) -> None:
+def unset(
+    ref: Ref, fields: list[schema.ClearableField], as_json: AsJson = False
+) -> None:
     """Clear fields from a task; `unset <id> owner` releases a claim."""
     with db.write(ref.namespace) as store:
         task = db.get(store, ref)
         task.clear(fields)
         db.update(store, task)
+    report(task, as_json)
 
 
 @namespace_app.command('list')
