@@ -63,14 +63,6 @@ jobs:
         working-directory: docker-gcloud-pubsub-emulator
     steps: *pytest
 
-  test-task:
-    if: *not-fork
-    runs-on: ubuntu-26.04
-    defaults:
-      run:
-        working-directory: task
-    steps: *pytest
-
   docker-atc1441:
     needs: [lint, test-atc1441]
     uses: ./.github/workflows/_docker-image.yml
