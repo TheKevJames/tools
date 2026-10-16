@@ -65,9 +65,8 @@
             "matchDepNames": [
                 "/^shellcheck-py/shellcheck-py$/",
             ],
-            // eg. v0.11.0.1
-            // TODO: v0.11.0.1-1
-            "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?$",
+            // eg. v0.11.0.1 and v0.11.0.1-1
+            "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(\\.(?<build>\\d+))?(-(?<revision>\\d+))?$",
         },
         {
             "matchDepNames": [
