@@ -34,7 +34,6 @@
           {"context": "test-atc1441"},
           {"context": "test-gha"},
           {"context": "test-pubsub"},
-          {"context": "test-task"},
           {"context": "wip"}
         ]
       }
