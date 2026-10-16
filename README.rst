@@ -11,7 +11,6 @@ completely forgotten about.
 - `Autodecline Meetings`_
 - `CCTUI`_
 - `CircleCI Orbs`_
-- `CSS UserStyles`_
 - `DDTUI`_
 - `Dockerized caddy + caddy-security`_
 - `Dockerized Fava`_
@@ -27,7 +26,6 @@ completely forgotten about.
 .. _ATC1441 OpenMetrics Exporter: https://github.com/TheKevJames/tools/tree/master/docker-atc1441-exporter
 .. _Autodecline Meetings: https://github.com/TheKevJames/tools/tree/master/autodecline-meetings
 .. _CCTUI: https://github.com/TheKevJames/tools/tree/master/cctui
-.. _CSS UserStyles: https://github.com/TheKevJames/tools/tree/master/userstyles
 .. _CircleCI Orbs: https://github.com/TheKevJames/tools/tree/master/circleci-orbs
 .. _DDTUI: https://github.com/TheKevJames/tools/tree/master/ddtui
 .. _Dockerized Fava: https://github.com/TheKevJames/tools/tree/master/docker-fava
