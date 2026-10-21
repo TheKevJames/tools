@@ -1,5 +1,6 @@
 import http.server
 import json
+import pathlib
 import threading
 from collections.abc import Callable
 from collections.abc import Iterator
@@ -7,6 +8,8 @@ from collections.abc import Mapping
 from typing import Any
 
 import pytest
+
+from tests import fake_github
 
 # (method, path including query, headers, decoded JSON body) -> (status, JSON)
 Handler = Callable[[str, str, Mapping[str, str], Any], tuple[int, Any]]
@@ -51,3 +54,31 @@ def serve_fixture() -> Iterator[Serve]:
         server.shutdown()
         server.server_close()
         thread.join()
+
+
+@pytest.fixture(name='github', scope='function')
+def github_fixture(
+    serve: Serve, monkeypatch: pytest.MonkeyPatch
+) -> fake_github.FakeGitHub:
+    fake = fake_github.FakeGitHub()
+
+    def handle(
+        method: str,
+        path: str,
+        headers: Mapping[str, str],
+        body: Any,  # noqa: ANN401
+    ) -> tuple[int, Any]:
+        token = headers['Authorization'].removeprefix('Bearer ')
+        return fake.handle(method, path, token, body)
+
+    monkeypatch.setenv('GITHUB_API_URL', serve(handle))
+    return fake
+
+
+@pytest.fixture(name='checkout', scope='function')
+def checkout_fixture(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> pathlib.Path:
+    fake_github.write_checkout(tmp_path)
+    monkeypatch.setenv('GITHUB_STEP_SUMMARY', str(tmp_path / 'summary.md'))
+    return tmp_path

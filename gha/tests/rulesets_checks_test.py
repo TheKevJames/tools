@@ -1,6 +1,6 @@
 import pathlib
 
-from gha_tools.rulesets import checks
+from gha_tools.repo_settings.rulesets import checks
 
 CI = """
 name: ci

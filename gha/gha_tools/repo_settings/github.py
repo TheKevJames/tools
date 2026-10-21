@@ -4,8 +4,6 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-from gha_tools.rulesets import desired
-
 _TIMEOUT = 30
 
 
@@ -26,7 +24,7 @@ class Client:
         }
 
     def _request(
-        self, method: str, path: str, body: desired.Ruleset | None = None
+        self, method: str, path: str, body: dict[str, Any] | None = None
     ) -> Any:  # noqa: ANN401
         headers = self._headers.copy()
         data = None
@@ -49,7 +47,7 @@ class Client:
         result: dict[str, Any] = self._request('GET', self.base)
         return result
 
-    def rulesets(self) -> dict[str, desired.Ruleset]:
+    def rulesets(self) -> dict[str, dict[str, Any]]:
         """
         Rulesets defined on this repo itself, keyed by name.
 
@@ -66,10 +64,10 @@ class Client:
             if summary['source_type'] == 'Repository'
         }
 
-    def create_ruleset(self, body: desired.Ruleset) -> None:
+    def create_ruleset(self, body: dict[str, Any]) -> None:
         self._request('POST', f'{self.base}/rulesets', body)
 
-    def update_ruleset(self, ruleset_id: int, body: desired.Ruleset) -> None:
+    def update_ruleset(self, ruleset_id: int, body: dict[str, Any]) -> None:
         self._request('PUT', f'{self.base}/rulesets/{ruleset_id}', body)
 
     def delete_ruleset(self, ruleset_id: int) -> None:
@@ -93,3 +91,18 @@ class Client:
 
     def delete_classic_protection(self, branch: str) -> None:
         self._request('DELETE', self._protection_path(branch))
+
+    def actions_permissions(self) -> dict[str, Any] | None:
+        """The GITHUB_TOKEN's default permissions; None if the token can't."""
+        try:
+            result: dict[str, Any] = self._request(
+                'GET', f'{self.base}/actions/permissions/workflow'
+            )
+        except ApiError as exc:
+            if exc.status in {401, 403}:
+                return None
+            raise
+        return result
+
+    def set_actions_permissions(self, body: dict[str, Any]) -> None:
+        self._request('PUT', f'{self.base}/actions/permissions/workflow', body)

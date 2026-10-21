@@ -17,7 +17,7 @@ from typing import Any
 
 import yaml
 
-from gha_tools.rulesets import desired
+from gha_tools.repo_settings.rulesets import desired
 
 # Commit statuses posted by CircleCI; nothing in the repo predicts them.
 EXTERNAL_PREFIXES = ('ci/circleci:',)
