@@ -34,11 +34,6 @@ name: _repo-settings
 
 on:
   workflow_call:
-    inputs:
-      # TODO: remove with _rulesets.yml, its only user.
-      rulesets-only:
-        default: false
-        type: boolean
     secrets:
       REPO_SETTINGS_TOKEN:
         description: fine-grained PAT with Administration:write on the caller
@@ -69,13 +64,11 @@ jobs:
       - working-directory: tools/gha
         env:
           GH_TOKEN: ${{ github.token }}
-          RULESETS_ONLY: ${{ inputs.rulesets-only && '--rulesets-only' || '' }}
         run: >-
           uv run --frozen python -m gha_tools.repo_settings
           --mode plan
           --repository "${GITHUB_REPOSITORY}"
           --directory "${GITHUB_WORKSPACE}/caller"
-          ${RULESETS_ONLY}
 
   reconcile:
     # Scheduled runs always use the default branch's last commit.
@@ -106,10 +99,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.REPO_SETTINGS_TOKEN }}
           MODE: ${{ github.event_name == 'schedule' && 'check' || 'apply' }}
-          RULESETS_ONLY: ${{ inputs.rulesets-only && '--rulesets-only' || '' }}
         run: >-
           uv run --frozen python -m gha_tools.repo_settings
           --mode "${MODE}"
           --repository "${GITHUB_REPOSITORY}"
           --directory "${GITHUB_WORKSPACE}/caller"
-          ${RULESETS_ONLY}

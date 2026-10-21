@@ -35,38 +35,28 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         type=pathlib.Path,
         help='checkout of the repository',
     )
-    # TODO: remove once no caller uses _rulesets.yml, which predates
-    # .github/actions-permissions.json.
-    parser.add_argument(
-        '--rulesets-only', action='store_true', help='reconcile only rulesets'
-    )
     return parser.parse_args(argv)
 
 
 def _reconcile(
     client: github.Client,
     desired_rulesets: dict[str, desired.Ruleset],
-    permissions: actions_permissions.Permissions | None,
+    permissions: actions_permissions.Permissions,
     mode: str,
     out: report.Report,
 ) -> int:
     status = rulesets.reconcile(
         client, client.repository(), desired_rulesets, mode, out
     )
-    if permissions is not None:
-        status |= actions_permissions.reconcile(client, permissions, mode, out)
+    status |= actions_permissions.reconcile(client, permissions, mode, out)
     out.finish()
     return status
 
 
 def _run(args: argparse.Namespace, out: report.Report) -> int:
     desired_rulesets = rulesets.validate(args.directory, out)
-    permissions = None
-    if not args.rulesets_only:
-        permissions = actions_permissions.validate(args.directory, out)
-    if desired_rulesets is None or (
-        permissions is None and not args.rulesets_only
-    ):
+    permissions = actions_permissions.validate(args.directory, out)
+    if desired_rulesets is None or permissions is None:
         return 1
 
     token = os.environ.get('GH_TOKEN')

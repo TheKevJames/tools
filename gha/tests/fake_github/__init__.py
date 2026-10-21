@@ -293,7 +293,6 @@ def run(
     checkout: pathlib.Path,
     mode: str,
     token: str | None,
-    *extra: str,
 ) -> int:
     if token is None:
         monkeypatch.delenv('GH_TOKEN', raising=False)
@@ -301,4 +300,4 @@ def run(
         monkeypatch.setenv('GH_TOKEN', token)
     (checkout / 'summary.md').unlink(missing_ok=True)
     args = ['--mode', mode, '--repository', REPO, '--directory', checkout]
-    return main.main([*(str(arg) for arg in args), *extra])
+    return main.main([str(arg) for arg in args])
