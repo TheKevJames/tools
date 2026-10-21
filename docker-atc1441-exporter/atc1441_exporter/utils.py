@@ -18,12 +18,10 @@ HCIDEVDOWN = 0x400448CA
 
 def toggle_device(interface: int, enable: bool) -> None:
     """Power ON or OFF a bluetooth device."""
-    # TODO: figure out how to tell mypy this is a bluetooth socket
+    # AF_BLUETOOTH/BTPROTO_HCI exist only on Linux.
     # pylint: disable=no-member
     sock = socket.socket(
-        socket.AF_BLUETOOTH,  # type: ignore[attr-defined, unused-ignore]
-        socket.SOCK_RAW,
-        socket.BTPROTO_HCI,  # type: ignore[attr-defined, unused-ignore]
+        socket.AF_BLUETOOTH, socket.SOCK_RAW, socket.BTPROTO_HCI
     )
     # pylint: enable=no-member
 
