@@ -2,12 +2,18 @@ name: _repo-settings
 
 # Reusable workflow: reconcile the caller's repository settings with their
 # definitions in its .github/ directory:
-#   rulesets/*.json           branch rulesets (UI exports work verbatim);
-#                             authoritative: unlisted rulesets and any classic
-#                             branch protection on the default branch get
-#                             deleted
+#   rulesets/*.json           branch and tag rulesets (UI exports work
+#                             verbatim); authoritative: unlisted rulesets and
+#                             any classic branch protection on the default
+#                             branch get deleted
 #   actions-permissions.json  the GITHUB_TOKEN's default permissions and
 #                             whether Actions may approve pull requests
+#   environments/*.json       deployment environments and the refs that may
+#                             use them; authoritative when any are defined:
+#                             unlisted environments get deleted
+#   immutable-releases.json   whether published releases are immutable
+# Deploy keys are only reported on: any write key but the one titled "tag"
+# fails apply and check.
 # Callers should run it on changes to those files and to .github/workflows/**
 # (required checks are validated against workflow job names), on a schedule,
 # and manually, eg.
@@ -27,8 +33,9 @@ name: _repo-settings
 #
 # REPO_SETTINGS_TOKEN must be a fine-grained PAT with Administration:write;
 # the Actions GITHUB_TOKEN cannot be granted administration, so plan can
-# compare neither bypass actors nor Actions permissions. Private repos skip
-# rulesets, as GitHub Free doesn't support them there.
+# compare neither bypass actors, Actions permissions, immutable releases nor
+# deploy keys. Private repos skip rulesets and environments, as GitHub Free
+# doesn't support them there.
 #
 # Like _prune-tags.yml, this checks out the policy code from tools@master.
 

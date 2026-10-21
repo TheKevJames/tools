@@ -11,6 +11,7 @@ import pytest
 
 from gha_tools.repo_settings import main
 from gha_tools.repo_settings.rulesets import desired
+from tests.fake_github import settings
 
 ADMIN = 'admin-token'
 READER = 'read-token'
@@ -28,13 +29,14 @@ _PARAM_DEFAULTS = {
 }
 
 
-class FakeGitHub:
+class FakeGitHub(settings.Settings):
     """In-memory model of the slice of the repos API the reconciler uses."""
 
     # Shared by every instance: ids only need to be unique, as GitHub's are.
     _ids = itertools.count(100)
 
     def __init__(self) -> None:
+        super().__init__()
         self.private = False
         self.classic = False
         self.actions = {
@@ -140,7 +142,7 @@ class FakeGitHub:
             return self._protection(method, admin)
         if path == f'{base}/actions/permissions/workflow':
             return self._actions(method, admin, body)
-        return 404, {'message': 'Not Found'}
+        return self.route(method, path[len(base) :], admin, body)
 
     def _actions(
         self,
