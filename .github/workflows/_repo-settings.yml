@@ -1,0 +1,115 @@
+name: _repo-settings
+
+# Reusable workflow: reconcile the caller's repository settings with their
+# definitions in its .github/ directory:
+#   rulesets/*.json           branch rulesets (UI exports work verbatim);
+#                             authoritative: unlisted rulesets and any classic
+#                             branch protection on the default branch get
+#                             deleted
+#   actions-permissions.json  the GITHUB_TOKEN's default permissions and
+#                             whether Actions may approve pull requests
+# Callers should run it on changes to those files and to .github/workflows/**
+# (required checks are validated against workflow job names), on a schedule,
+# and manually, eg.
+#   jobs:
+#     repo-settings:
+#       uses: TheKevJames/tools/.github/workflows/_repo-settings.yml@master
+#       secrets:
+#         REPO_SETTINGS_TOKEN: ${{ secrets.REPO_SETTINGS_TOKEN }}
+#
+# Events map to modes:
+#   pull_request              plan: report changes using only the read-only
+#                             github.token; the admin token never reaches code
+#                             from an unmerged PR
+#   push (default branch),
+#   workflow_dispatch         apply
+#   schedule                  check: fail on drift without fixing it
+#
+# REPO_SETTINGS_TOKEN must be a fine-grained PAT with Administration:write;
+# the Actions GITHUB_TOKEN cannot be granted administration, so plan can
+# compare neither bypass actors nor Actions permissions. Private repos skip
+# rulesets, as GitHub Free doesn't support them there.
+#
+# Like _prune-tags.yml, this checks out the policy code from tools@master.
+
+on:
+  workflow_call:
+    inputs:
+      # TODO: remove with _rulesets.yml, its only user.
+      rulesets-only:
+        default: false
+        type: boolean
+    secrets:
+      REPO_SETTINGS_TOKEN:
+        description: fine-grained PAT with Administration:write on the caller
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          path: caller
+          persist-credentials: false
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: TheKevJames/tools
+          ref: master
+          path: tools
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          # renovate: datasource=github-releases depName=astral-sh/uv
+          version: 0.13.4
+      - working-directory: tools/gha
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RULESETS_ONLY: ${{ inputs.rulesets-only && '--rulesets-only' || '' }}
+        run: >-
+          uv run --frozen python -m gha_tools.repo_settings
+          --mode plan
+          --repository "${GITHUB_REPOSITORY}"
+          --directory "${GITHUB_WORKSPACE}/caller"
+          ${RULESETS_ONLY}
+
+  reconcile:
+    # Scheduled runs always use the default branch's last commit.
+    if: >-
+      github.event_name == 'schedule'
+      || (github.event_name != 'pull_request'
+          && github.ref_name == github.event.repository.default_branch)
+    runs-on: ubuntu-26.04
+    concurrency:
+      group: repo-settings-${{ github.repository }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          path: caller
+          persist-credentials: false
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: TheKevJames/tools
+          ref: master
+          path: tools
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          # renovate: datasource=github-releases depName=astral-sh/uv
+          version: 0.13.4
+      - working-directory: tools/gha
+        env:
+          GH_TOKEN: ${{ secrets.REPO_SETTINGS_TOKEN }}
+          MODE: ${{ github.event_name == 'schedule' && 'check' || 'apply' }}
+          RULESETS_ONLY: ${{ inputs.rulesets-only && '--rulesets-only' || '' }}
+        run: >-
+          uv run --frozen python -m gha_tools.repo_settings
+          --mode "${MODE}"
+          --repository "${GITHUB_REPOSITORY}"
+          --directory "${GITHUB_WORKSPACE}/caller"
+          ${RULESETS_ONLY}

@@ -3,7 +3,7 @@ import json
 import hypothesis
 import hypothesis.strategies as st
 
-from gha_tools.rulesets import desired
+from gha_tools.repo_settings.rulesets import desired
 
 _json = st.recursive(
     st.none() | st.booleans() | st.integers() | st.text(max_size=8),

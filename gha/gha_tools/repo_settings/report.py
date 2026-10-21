@@ -1,7 +1,4 @@
 import pathlib
-from collections.abc import Sequence
-
-from gha_tools.rulesets import diff
 
 MODES = ('plan', 'apply', 'check')
 
@@ -11,16 +8,6 @@ def _annotate(level: str, message: str) -> None:
     # API error bodies) stay in one annotation.
     encoded = message.replace('%', '%25').replace('\n', '%0A')
     print(f'::{level}::{encoded}', flush=True)
-
-
-def describe(change: diff.Change) -> str:
-    match change:
-        case diff.Create():
-            return f'create ruleset "{change.name}"'
-        case diff.Update():
-            return f'update ruleset "{change.name}"'
-        case diff.Delete():
-            return f'delete ruleset "{change.name}"'
 
 
 class Report:
@@ -46,23 +33,23 @@ class Report:
     def notice(self, message: str) -> None:
         self._record('notice', message)
 
-    def changes(
-        self, changes: Sequence[diff.Change], *, delete_classic: bool
-    ) -> None:
-        self._changes = [describe(c) for c in changes]
-        if delete_classic:
-            self._changes.append('delete classic branch protection')
-        for line in self._changes:
-            print(f'{self.mode}: {line}', flush=True)
-        for change in changes:
-            if isinstance(change, diff.Update):
-                print(change.detail, flush=True)
-                self._diffs.append((change.name, change.detail))
+    def change(self, line: str, detail: str | None = None) -> None:
+        """A change apply makes (or made), with an optional diff of it."""
+        self._changes.append(line)
+        print(f'{self.mode}: {line}', flush=True)
+        if detail is not None:
+            print(detail, flush=True)
+            self._diffs.append((line, detail))
+
+    def finish(self) -> None:
         if not self._changes:
             print(f'{self.mode}: no changes', flush=True)
 
     def summary(self) -> str:
-        lines = [f'## Rulesets ({self.mode}): {self.repository}', '']
+        lines = [
+            f'## Repository settings ({self.mode}): {self.repository}',
+            '',
+        ]
         lines.extend(f'- **{lvl}**: {msg}' for lvl, msg in self._messages)
         if self._messages:
             lines.append('')

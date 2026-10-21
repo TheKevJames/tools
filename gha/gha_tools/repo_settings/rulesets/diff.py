@@ -2,7 +2,7 @@ import dataclasses
 import difflib
 import json
 
-from gha_tools.rulesets import desired
+from gha_tools.repo_settings.rulesets import desired
 
 
 @dataclasses.dataclass(frozen=True)

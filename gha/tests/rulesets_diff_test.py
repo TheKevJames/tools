@@ -5,8 +5,8 @@ from typing import Any
 import hypothesis
 import hypothesis.strategies as st
 
-from gha_tools.rulesets import desired
-from gha_tools.rulesets import diff
+from gha_tools.repo_settings.rulesets import desired
+from gha_tools.repo_settings.rulesets import diff
 
 _scalars = st.one_of(
     st.none(),

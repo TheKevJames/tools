@@ -1,45 +1,33 @@
 """
-Reconcile a repository's rulesets with its `.github/rulesets/*.json` files.
+Branch rulesets, from `.github/rulesets/*.json`.
 
 The definitions are authoritative: rulesets missing from them are deleted, as
 is classic branch protection on the default branch, which would otherwise
 keep enforcing alongside the rulesets.
-
-Modes:
-  plan   report what apply would change; never fails on differences
-  apply  make the changes
-  check  fail if anything would change (drift detection)
 """
 
-import argparse
-import os
 import pathlib
 from collections.abc import Sequence
+from typing import Any
 
-from gha_tools.rulesets import checks
-from gha_tools.rulesets import desired
-from gha_tools.rulesets import diff
-from gha_tools.rulesets import github
-from gha_tools.rulesets import report
-
-
-def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument('--mode', required=True, choices=report.MODES)
-    parser.add_argument('--repository', required=True, help='owner/name')
-    parser.add_argument(
-        '--directory',
-        required=True,
-        type=pathlib.Path,
-        help='checkout of the repository',
-    )
-    return parser.parse_args(argv)
+from gha_tools.repo_settings import github
+from gha_tools.repo_settings import report
+from gha_tools.repo_settings.rulesets import checks
+from gha_tools.repo_settings.rulesets import desired
+from gha_tools.repo_settings.rulesets import diff
 
 
-def _validate(
+def describe(change: diff.Change) -> str:
+    match change:
+        case diff.Create():
+            return f'create ruleset "{change.name}"'
+        case diff.Update():
+            return f'update ruleset "{change.name}"'
+        case diff.Delete():
+            return f'delete ruleset "{change.name}"'
+
+
+def validate(
     root: pathlib.Path, out: report.Report
 ) -> dict[str, desired.Ruleset] | None:
     try:
@@ -83,7 +71,7 @@ def _apply(
             _apply_change(client, change)
         except github.ApiError as exc:
             failures += 1
-            out.error(f'{report.describe(change)}: {exc}')
+            out.error(f'{describe(change)}: {exc}')
     if delete_classic is not None:
         try:
             client.delete_classic_protection(delete_classic)
@@ -93,16 +81,17 @@ def _apply(
     return 1 if failures else 0
 
 
-def _reconcile(
+def reconcile(
     client: github.Client,
+    repo: dict[str, Any],
     rulesets: dict[str, desired.Ruleset],
     mode: str,
     out: report.Report,
 ) -> int:
-    repo = client.repository()
     if repo['private']:
         out.notice(
-            'skipped: rulesets on private repositories require GitHub Pro'
+            'rulesets skipped: rulesets on private repositories require '
+            'GitHub Pro'
         )
         return 0
 
@@ -117,41 +106,14 @@ def _reconcile(
     if classic is None:
         out.notice('classic branch protection was not checked (needs admin)')
 
-    out.changes(changes, delete_classic=bool(classic))
+    for change in changes:
+        detail = change.detail if isinstance(change, diff.Update) else None
+        out.change(describe(change), detail)
+    if classic:
+        out.change('delete classic branch protection')
     if mode == 'check' and (changes or classic):
         out.error('rulesets have drifted; run the workflow manually to apply')
         return 1
     if mode != 'apply':
         return 0
     return _apply(client, changes, branch if classic else None, out)
-
-
-def _run(args: argparse.Namespace, out: report.Report) -> int:
-    rulesets = _validate(args.directory, out)
-    if rulesets is None:
-        return 1
-
-    token = os.environ.get('GH_TOKEN')
-    if not token:
-        out.error(
-            'no token: set the RULESETS_TOKEN secret on this repository '
-            '(see `repo-template set-secret`)'
-        )
-        return 1
-
-    api = os.environ.get('GITHUB_API_URL', 'https://api.github.com')
-    client = github.Client(api, args.repository, token)
-    try:
-        return _reconcile(client, rulesets, args.mode, out)
-    except github.ApiError as exc:
-        out.error(str(exc))
-        return 1
-
-
-def main(argv: Sequence[str] | None = None) -> int:
-    args = _parse_args(argv)
-    out = report.Report(args.repository, args.mode)
-    try:
-        return _run(args, out)
-    finally:
-        out.write_summary(os.environ.get('GITHUB_STEP_SUMMARY'))
