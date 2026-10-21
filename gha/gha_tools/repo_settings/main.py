@@ -2,7 +2,8 @@
 Reconcile a repository's settings with their definitions in its `.github/`.
 
 Each setting has its own module: `rulesets` (`.github/rulesets/*.json`),
-`actions_permissions` (`.github/actions-permissions.json`), `environments`
+`actions_permissions` (`.github/actions-permissions.json`), `actions_policy`
+(`.github/actions-policy.json`), `environments`
 (`.github/environments/*.json`), `immutable_releases`
 (`.github/immutable-releases.json`), and `deploy_keys` (report-only, no
 definition).
@@ -20,6 +21,7 @@ import pathlib
 from collections.abc import Sequence
 
 from gha_tools.repo_settings import actions_permissions
+from gha_tools.repo_settings import actions_policy
 from gha_tools.repo_settings import deploy_keys
 from gha_tools.repo_settings import environments
 from gha_tools.repo_settings import github
@@ -49,6 +51,7 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
 class _Settings:
     rulesets: dict[str, desired.Ruleset]
     permissions: actions_permissions.Permissions
+    policy: actions_policy.Policy
     environments: dict[str, frozenset[environments.Policy]]
     immutable_releases: dict[str, bool]
 
@@ -57,16 +60,18 @@ def _validate(root: pathlib.Path, out: report.Report) -> _Settings | None:
     """Every definition, reporting all invalid ones before giving up."""
     desired_rulesets = rulesets.validate(root, out)
     permissions = actions_permissions.validate(root, out)
+    policy = actions_policy.validate(root, out)
     envs = environments.validate(root, out)
     immutable = immutable_releases.validate(root, out)
     if (
         desired_rulesets is None
         or permissions is None
+        or policy is None
         or envs is None
         or immutable is None
     ):
         return None
-    return _Settings(desired_rulesets, permissions, envs, immutable)
+    return _Settings(desired_rulesets, permissions, policy, envs, immutable)
 
 
 def _reconcile(
@@ -77,6 +82,7 @@ def _reconcile(
     status |= actions_permissions.reconcile(
         client, settings.permissions, mode, out
     )
+    status |= actions_policy.reconcile(client, settings.policy, mode, out)
     status |= environments.reconcile(
         client, repo, settings.environments, mode, out
     )

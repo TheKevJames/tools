@@ -8,6 +8,8 @@ name: _repo-settings
 #                             branch get deleted
 #   actions-permissions.json  the GITHUB_TOKEN's default permissions and
 #                             whether Actions may approve pull requests
+#   actions-policy.json       whether Actions is enabled, which actions may
+#                             run, and whether they must be SHA-pinned
 #   environments/*.json       deployment environments and the refs that may
 #                             use them; authoritative when any are defined:
 #                             unlisted environments get deleted
@@ -33,9 +35,9 @@ name: _repo-settings
 #
 # REPO_SETTINGS_TOKEN must be a fine-grained PAT with Administration:write;
 # the Actions GITHUB_TOKEN cannot be granted administration, so plan can
-# compare neither bypass actors, Actions permissions, immutable releases nor
-# deploy keys. Private repos skip rulesets and environments, as GitHub Free
-# doesn't support them there.
+# compare neither bypass actors, Actions permissions, the Actions policy,
+# immutable releases nor deploy keys. Private repos skip rulesets and
+# environments, as GitHub Free doesn't support them there.
 #
 # Like _prune-tags.yml, this checks out the policy code from tools@master.
 
