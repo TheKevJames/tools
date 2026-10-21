@@ -1,8 +1,11 @@
 """
 Reconcile a repository's settings with their definitions in its `.github/`.
 
-Each setting has its own module: `rulesets` (`.github/rulesets/*.json`) and
-`actions_permissions` (`.github/actions-permissions.json`).
+Each setting has its own module: `rulesets` (`.github/rulesets/*.json`),
+`actions_permissions` (`.github/actions-permissions.json`), `environments`
+(`.github/environments/*.json`), `immutable_releases`
+(`.github/immutable-releases.json`), and `deploy_keys` (report-only, no
+definition).
 
 Modes:
   plan   report what apply would change; never fails on differences
@@ -11,12 +14,16 @@ Modes:
 """
 
 import argparse
+import dataclasses
 import os
 import pathlib
 from collections.abc import Sequence
 
 from gha_tools.repo_settings import actions_permissions
+from gha_tools.repo_settings import deploy_keys
+from gha_tools.repo_settings import environments
 from gha_tools.repo_settings import github
+from gha_tools.repo_settings import immutable_releases
 from gha_tools.repo_settings import report
 from gha_tools.repo_settings import rulesets
 from gha_tools.repo_settings.rulesets import desired
@@ -38,25 +45,52 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+@dataclasses.dataclass(frozen=True)
+class _Settings:
+    rulesets: dict[str, desired.Ruleset]
+    permissions: actions_permissions.Permissions
+    environments: dict[str, frozenset[environments.Policy]]
+    immutable_releases: dict[str, bool]
+
+
+def _validate(root: pathlib.Path, out: report.Report) -> _Settings | None:
+    """Every definition, reporting all invalid ones before giving up."""
+    desired_rulesets = rulesets.validate(root, out)
+    permissions = actions_permissions.validate(root, out)
+    envs = environments.validate(root, out)
+    immutable = immutable_releases.validate(root, out)
+    if (
+        desired_rulesets is None
+        or permissions is None
+        or envs is None
+        or immutable is None
+    ):
+        return None
+    return _Settings(desired_rulesets, permissions, envs, immutable)
+
+
 def _reconcile(
-    client: github.Client,
-    desired_rulesets: dict[str, desired.Ruleset],
-    permissions: actions_permissions.Permissions,
-    mode: str,
-    out: report.Report,
+    client: github.Client, settings: _Settings, mode: str, out: report.Report
 ) -> int:
-    status = rulesets.reconcile(
-        client, client.repository(), desired_rulesets, mode, out
+    repo = client.repository()
+    status = rulesets.reconcile(client, repo, settings.rulesets, mode, out)
+    status |= actions_permissions.reconcile(
+        client, settings.permissions, mode, out
     )
-    status |= actions_permissions.reconcile(client, permissions, mode, out)
+    status |= environments.reconcile(
+        client, repo, settings.environments, mode, out
+    )
+    status |= immutable_releases.reconcile(
+        client, settings.immutable_releases, mode, out
+    )
+    status |= deploy_keys.reconcile(client, mode, out)
     out.finish()
     return status
 
 
 def _run(args: argparse.Namespace, out: report.Report) -> int:
-    desired_rulesets = rulesets.validate(args.directory, out)
-    permissions = actions_permissions.validate(args.directory, out)
-    if desired_rulesets is None or permissions is None:
+    settings = _validate(args.directory, out)
+    if settings is None:
         return 1
 
     token = os.environ.get('GH_TOKEN')
@@ -70,9 +104,7 @@ def _run(args: argparse.Namespace, out: report.Report) -> int:
     api = os.environ.get('GITHUB_API_URL', 'https://api.github.com')
     client = github.Client(api, args.repository, token)
     try:
-        return _reconcile(
-            client, desired_rulesets, permissions, args.mode, out
-        )
+        return _reconcile(client, settings, args.mode, out)
     except github.ApiError as exc:
         out.error(str(exc))
         return 1

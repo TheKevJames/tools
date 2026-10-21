@@ -106,3 +106,87 @@ class Client:
 
     def set_actions_permissions(self, body: dict[str, Any]) -> None:
         self._request('PUT', f'{self.base}/actions/permissions/workflow', body)
+
+    def _environment_path(self, name: str) -> str:
+        return f'{self.base}/environments/{urllib.parse.quote(name, safe="")}'
+
+    def environments(self) -> dict[str, dict[str, Any]]:
+        """
+        Environments keyed by name.
+
+        Only a single page of up to 100 environments is fetched.
+        """
+        result = self._request('GET', f'{self.base}/environments?per_page=100')
+        return {env['name']: env for env in result['environments']}
+
+    def put_environment(self, name: str, body: dict[str, Any]) -> None:
+        self._request('PUT', self._environment_path(name), body)
+
+    def delete_environment(self, name: str) -> None:
+        self._request('DELETE', self._environment_path(name))
+
+    def deployment_policies(self, name: str) -> dict[int, tuple[str, str]]:
+        """
+        An environment's (type, pattern) deployment policies, keyed by id.
+
+        Only a single page of up to 100 policies is fetched.
+        """
+        result = self._request(
+            'GET',
+            f'{self._environment_path(name)}/deployment-branch-policies'
+            '?per_page=100',
+        )
+        return {
+            policy['id']: (policy.get('type', 'branch'), policy['name'])
+            for policy in result['branch_policies']
+        }
+
+    def create_deployment_policy(
+        self, name: str, kind: str, pattern: str
+    ) -> None:
+        self._request(
+            'POST',
+            f'{self._environment_path(name)}/deployment-branch-policies',
+            {'name': pattern, 'type': kind},
+        )
+
+    def delete_deployment_policy(self, name: str, policy_id: int) -> None:
+        self._request(
+            'DELETE',
+            f'{self._environment_path(name)}/deployment-branch-policies/'
+            f'{policy_id}',
+        )
+
+    def deploy_keys(self) -> list[dict[str, Any]] | None:
+        """
+        Every deploy key; None if the token can't read them.
+
+        Only a single page of up to 100 keys is fetched.
+        """
+        try:
+            result: list[dict[str, Any]] = self._request(
+                'GET', f'{self.base}/keys?per_page=100'
+            )
+        except ApiError as exc:
+            if exc.status in {401, 403}:
+                return None
+            raise
+        return result
+
+    def immutable_releases(self) -> bool | None:
+        """Whether releases are immutable; None if the token can't tell."""
+        try:
+            result = self._request('GET', f'{self.base}/immutable-releases')
+        except ApiError as exc:
+            # Documented as the response when disabled, though GitHub also
+            # answers 200 with "enabled": false.
+            if exc.status == 404:
+                return False
+            if exc.status in {401, 403}:
+                return None
+            raise
+        return bool(result['enabled'])
+
+    def set_immutable_releases(self, enabled: bool) -> None:
+        method = 'PUT' if enabled else 'DELETE'
+        self._request(method, f'{self.base}/immutable-releases')
