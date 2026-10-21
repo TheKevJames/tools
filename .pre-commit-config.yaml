@@ -231,4 +231,4 @@ repos:
     rev: 3.0.0
     hooks:
       - id: script-must-not-have-extension
-        exclude: '^(docker-tuning-primer/root/tuning-primer-wrapper|slack-notifier/send-deploy-notif)\.sh$'
+        exclude: 'slack-notifier/send-deploy-notif.sh'
