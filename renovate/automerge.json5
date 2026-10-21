@@ -24,7 +24,6 @@
     "prHourlyLimit": 0,
     "packageRules": [
         // Automerge minor bumps when they are non-breaking (eg. v1 or greater for semver)
-        // TODO: PyTorch minors should be considered breaking changes
         {
             "matchUpdateTypes": ["minor"],
             "matchJsonata": ["isBreaking != true"],
@@ -38,6 +37,17 @@
                 "python",
                 "python/cpython",
                 "pypy",
+            ],
+            "automerge": false,
+        },
+        // Don't count PyTorch minors as non-breaking
+        {
+            "matchUpdateTypes": ["minor"],
+            "matchDatasources": ["pypi"],
+            "matchDepNames": [
+                "torch",
+                "torchaudio",
+                "torchvision",
             ],
             "automerge": false,
         },
