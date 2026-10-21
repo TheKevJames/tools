@@ -30,7 +30,10 @@
         },
         // always widen supported python versions
         {
-            "matchDepNames": ["/^python$/"],
+            "matchDepNames": [
+                "/^python$/",
+                "/^pypy$/",
+            ],
             "rangeStrategy": "widen",
         },
         // and any build system compatibility

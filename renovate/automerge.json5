@@ -37,6 +37,7 @@
                 "cimg/python",
                 "python",
                 "python/cpython",
+                "pypy",
             ],
             "automerge": false,
         },

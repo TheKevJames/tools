@@ -31,7 +31,10 @@
         // always widen supported python versions
         {
             "matchFileNames": ["{{arg0}}"],
-            "matchDepNames": ["/^python$/"],
+            "matchDepNames": [
+                "/^python$/",
+                "/^pypy$/",
+            ],
             "rangeStrategy": "widen",
         },
         // and any build system compatibility
