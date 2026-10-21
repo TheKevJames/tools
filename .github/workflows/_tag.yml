@@ -1,0 +1,124 @@
+name: _tag
+
+# Reusable workflow: on the caller's default branch, push a release tag for
+# the current version if it has none yet, so merging a version change is the
+# release. The tag push then triggers the caller's tag jobs (publishing,
+# _github-release.yml).
+#
+# The template's tags ruleset lets only the repo admin and deploy keys create
+# tags, so that a collaborator can't release, and GITHUB_TOKEN couldn't
+# anyway: it can't bypass rulesets and its pushes trigger no workflows. This
+# pushes with the repo's write deploy key, TAG_DEPLOY_KEY, an environment
+# secret of `tag`, which only the default branch may use (see
+# `repo-template set-deploy-key`). Pass it by name; it only resolves in the
+# job that names the environment:
+#   jobs:
+#     tag:
+#       needs: [lint, test]
+#       if: github.event_name == 'push'
+#       uses: TheKevJames/tools/.github/workflows/_tag.yml@master
+#       with:
+#         version-command: uv version --short
+#       secrets:
+#         TAG_DEPLOY_KEY: ${{ secrets.TAG_DEPLOY_KEY }}
+#
+# The version command is repo code, so it runs in a job without the key; the
+# job holding the key runs only first-party actions and git.
+
+on:
+  workflow_call:
+    inputs:
+      version-command:
+        description: prints the version to release, eg. `uv version --short`
+        required: true
+        type: string
+      tag-prefix:
+        description: prepended to the version, eg. `cctui-` in a monorepo
+        default: ''
+        type: string
+    secrets:
+      TAG_DEPLOY_KEY:
+        description: write deploy key, from the caller's `tag` environment
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    # The full ref: a tag named after the default branch has the same
+    # ref_name.
+    if: >-
+      github.event_name == 'push'
+      && github.ref == format('refs/heads/{0}',
+                              github.event.repository.default_branch)
+    runs-on: ubuntu-26.04
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      exists: ${{ steps.version.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          # renovate: datasource=github-releases depName=astral-sh/uv
+          version: 0.13.4
+      - id: version
+        env:
+          TAG_PREFIX: ${{ inputs.tag-prefix }}
+          VERSION_COMMAND: ${{ inputs.version-command }}
+        run: |
+          version="$(bash -c "${VERSION_COMMAND}")"
+          # Matches the `pypi` environment's tag policy, and keeps whatever
+          # the command printed from reaching the job holding the key.
+          if ! [[ "${TAG_PREFIX}" =~ ^[a-z0-9-]*$ ]] \
+              || ! [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?$ ]]; then
+            echo "::error::not a release version: '${TAG_PREFIX}${version}'"
+            exit 1
+          fi
+          tag="${TAG_PREFIX}${version}"
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          status=0
+          git ls-remote --exit-code --tags origin "refs/tags/${tag}" || status=$?
+          case "${status}" in
+            0) echo "exists=true" >> "${GITHUB_OUTPUT}" ;;
+            2) echo "exists=false" >> "${GITHUB_OUTPUT}" ;;
+            *) exit "${status}" ;;
+          esac
+
+  tag:
+    needs: version
+    if: needs.version.outputs.exists == 'false'
+    runs-on: ubuntu-26.04
+    environment:
+      name: tag
+      deployment: false
+    concurrency:
+      group: tag-${{ github.repository }}
+      cancel-in-progress: false
+    steps:
+      - env:
+          TAG_DEPLOY_KEY: ${{ secrets.TAG_DEPLOY_KEY }}
+        run: |
+          if [ -z "${TAG_DEPLOY_KEY}" ]; then
+            echo "::error::no TAG_DEPLOY_KEY in the tag environment (see repo-template set-deploy-key)"
+            exit 1
+          fi
+      # The key stays configured for the push below; no repo code runs here.
+      - uses: actions/checkout@v7.0.1  # zizmor: ignore[artipacked]
+        with:
+          ssh-key: ${{ secrets.TAG_DEPLOY_KEY }}
+      - env:
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          # An earlier run, queued behind this group, may have tagged it.
+          status=0
+          git ls-remote --exit-code --tags origin "refs/tags/${TAG}" || status=$?
+          case "${status}" in
+            0) echo "${TAG} already exists"; exit 0 ;;
+            2) ;;
+            *) exit "${status}" ;;
+          esac
+          git tag "${TAG}" "${GITHUB_SHA}"
+          git push origin "refs/tags/${TAG}"
