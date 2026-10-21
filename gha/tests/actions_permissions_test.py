@@ -125,25 +125,12 @@ def test_unreadable_actions_permissions_fail_admin_modes(
     assert 'could not read Actions workflow permissions' in summary
 
 
-def test_rulesets_only_ignores_actions_permissions(
+def test_missing_actions_permissions_fail_before_touching_github(
     github: fake_github.FakeGitHub,
     checkout: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     (checkout / '.github' / 'actions-permissions.json').unlink()
-    assert (
-        fake_github.run(
-            monkeypatch,
-            checkout,
-            'apply',
-            fake_github.ADMIN,
-            '--rulesets-only',
-        )
-        == 0
-    )
-    assert not [c for c in github.calls if '/actions/' in c]
-    assert len(github.rulesets) == 2
-
     assert (
         fake_github.run(monkeypatch, checkout, 'apply', fake_github.ADMIN) == 1
     )
@@ -151,6 +138,7 @@ def test_rulesets_only_ignores_actions_permissions(
         'actions-permissions.json: missing'
         in (checkout / 'summary.md').read_text()
     )
+    assert not github.calls
 
 
 def test_invalid_actions_permissions_fail_before_touching_github(
