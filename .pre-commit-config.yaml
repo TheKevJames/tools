@@ -8,7 +8,7 @@ default_install_hook_types:
 default_language_version:
   python: python3.11
 
-exclude: '^docker-tuning-primer/root/.*.sh$'
+exclude: '^docker-tuning-primer/root/tuning-primer\.sh$'
 
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit

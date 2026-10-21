@@ -14,4 +14,4 @@ COPY root /
 
 ENV TERM=rxvt
 
-ENTRYPOINT [ "/tuning-primer-wrapper.sh" ]
+ENTRYPOINT [ "/tuning-primer-wrapper" ]
