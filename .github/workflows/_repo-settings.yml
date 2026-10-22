@@ -64,10 +64,10 @@ jobs:
           ref: master
           path: tools
           persist-credentials: false
-      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: astral-sh/setup-uv@v10.3.2
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
-          version: 0.13.4
+          version: 0.13.5
       - working-directory: tools/gha
         env:
           GH_TOKEN: ${{ github.token }}
@@ -105,10 +105,10 @@ jobs:
           ref: master
           path: tools
           persist-credentials: false
-      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: astral-sh/setup-uv@v10.3.2
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
-          version: 0.13.4
+          version: 0.13.5
       - working-directory: tools/gha
         env:
           GH_TOKEN: ${{ secrets.REPO_SETTINGS_TOKEN }}

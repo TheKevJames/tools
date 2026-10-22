@@ -56,10 +56,10 @@ jobs:
         with:
           repository: TheKevJames/tools
           ref: master
-      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: astral-sh/setup-uv@v10.3.2
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
-          version: 0.13.4
+          version: 0.13.5
       - working-directory: gha
         env:
           REGISTRY: ${{ matrix.registry }}
