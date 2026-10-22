@@ -1,0 +1,7 @@
+{
+  "name": "autodecline-meetings",
+  "private": true,
+  "devDependencies": {
+    "@google/clasp": "3.4.1"
+  }
+}

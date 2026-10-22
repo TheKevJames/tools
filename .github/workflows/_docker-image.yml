@@ -58,16 +58,18 @@ jobs:
   build:
     runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: docker/setup-qemu-action@v4.4.0
-      - uses: docker/setup-buildx-action@v4.4.1
-      - uses: docker/login-action@v4.6.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1  # v4.4.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
         if: github.event_name == 'push'
         with:
           registry: docker.io
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
-      - uses: docker/login-action@v4.6.0
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
         if: github.event_name == 'push'
         with:
           registry: quay.io
@@ -79,7 +81,7 @@ jobs:
         env:
           TAG_CMD: ${{ inputs.tag-cmd }}
         run: echo "value=$(bash -c "$TAG_CMD")" >> "$GITHUB_OUTPUT"
-      - uses: docker/metadata-action@v6.2.0
+      - uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302  # v6.2.0
         id: meta
         with:
           images: |
@@ -89,7 +91,7 @@ jobs:
             type=sha
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
             type=raw,value=${{ steps.tag.outputs.value }},enable=${{ steps.tag.outputs.value != '' }}
-      - uses: docker/build-push-action@v7.4.0
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc  # v7.4.0
         with:
           context: ${{ inputs.context }}
           file: ${{ inputs.context }}/${{ inputs.dockerfile }}
@@ -104,25 +106,22 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && inputs.publish-readme }}
     runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: docker://pandoc/core:3.11.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker://pandoc/core:3.11.0@sha256:62518bfb6833705dc90a1634d8d879299bd820b3f74ad3b32fba8b618452553a
         with:
           args: -o README.md ${{ inputs.context }}/${{ inputs.readme }}
-      - name: install docker-pushrm
+      # docker-pushrm's releases publish no checksums, but its image can be
+      # pinned by digest.
+      - uses: docker://chko/docker-pushrm:1.9.0@sha256:812a950e5be7dca26cef33b61eb2076bfcfb6c2a8ec96c126371fc049c3b6608
         env:
-          # renovate: datasource=github-releases depName=christian-korneck/docker-pushrm
-          PUSHRM_VERSION: v1.9.0
-        run: |
-          mkdir -p ~/.docker/cli-plugins
-          curl -Lo ~/.docker/cli-plugins/docker-pushrm \
-            "https://github.com/christian-korneck/docker-pushrm/releases/download/${PUSHRM_VERSION}/docker-pushrm_linux_amd64"
-          chmod +x ~/.docker/cli-plugins/docker-pushrm
-      - uses: docker/login-action@v4.6.0
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
         with:
-          registry: docker.io
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
-      - run: docker pushrm thekevjames/${{ inputs.image }} --file=README.md
-      - env:
+          args: --file README.md thekevjames/${{ inputs.image }}
+      - uses: docker://chko/docker-pushrm:1.9.0@sha256:812a950e5be7dca26cef33b61eb2076bfcfb6c2a8ec96c126371fc049c3b6608
+        env:
           APIKEY__QUAY_IO: ${{ secrets.QUAY_APIKEY }}
-        run: docker pushrm quay.io/thekevjames/${{ inputs.image }} --file=README.md
+        with:
+          args: --file README.md quay.io/thekevjames/${{ inputs.image }}

@@ -2,62 +2,81 @@ name: ci
 
 on: [pull_request, push]
 
+permissions: {}
+
 jobs:
   lint:
-    if: &not-fork github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    # Internal PRs are already covered by the push run of their branch.
+    if: &not-internal-pr github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
           version: 0.13.4
           # renovate: datasource=docker depName=python
           python-version: 3.14.8
-      - uses: j178/prek-action@v3.1.0
+      - uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d  # v3.1.0
         with:
           # renovate: datasource=pypi depName=prek
           prek-version: v0.5.7
           extra-args: --all-files
 
   lint-cctui:
-    if: *not-fork
+    if: *not-internal-pr
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: cctui
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
       # installs the version pinned in cctui/rust-toolchain.toml
       - run: rustup toolchain install
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
 
   test-atc1441:
-    if: *not-fork
+    if: *not-internal-pr
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: docker-atc1441-exporter
     steps: &pytest
-      - uses: actions/checkout@v7.0.1
-      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
           version: 0.13.4
       - run: uv run --frozen pytest
 
   test-gha:
-    if: *not-fork
+    if: *not-internal-pr
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: gha
     steps: *pytest
 
   test-pubsub:
-    if: *not-fork
+    if: *not-internal-pr
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: docker-gcloud-pubsub-emulator
@@ -66,6 +85,8 @@ jobs:
   docker-atc1441:
     needs: [lint, test-atc1441]
     uses: ./.github/workflows/_docker-image.yml
+    permissions:
+      contents: read
     secrets: inherit
     with:
       image: atc1441-exporter
@@ -76,6 +97,8 @@ jobs:
   docker-gcloud-pubsub-emulator:
     needs: [lint, test-pubsub]
     uses: ./.github/workflows/_docker-image.yml
+    permissions:
+      contents: read
     secrets: inherit
     with:
       image: gcloud-pubsub-emulator
@@ -87,6 +110,8 @@ jobs:
     name: docker-${{ matrix.image }}
     needs: [lint]
     uses: ./.github/workflows/_docker-image.yml
+    permissions:
+      contents: read
     secrets: inherit
     strategy:
       matrix:
@@ -112,16 +137,23 @@ jobs:
     needs: lint
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    environment:
+      name: clasp
+      deployment: false
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: dorny/paths-filter@v4.0.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d  # v4.0.3
         id: changes
         with:
           filters: |
             autodecline:
               - 'autodecline-meetings/**'
       - if: steps.changes.outputs.autodecline == 'true'
-        uses: actions/setup-node@v7.1.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
           node-version: 26.12.1
       - name: push and deploy clasp project
@@ -130,11 +162,11 @@ jobs:
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
         run: |
-          npm install -g @google/clasp
+          npm ci --ignore-scripts
           echo "$CLASPRC_JSON" > "$HOME/.clasprc.json"
-          clasp push --force
+          npx --no clasp push --force
 
-          OUT=$(clasp version "CI ${GITHUB_SHA}")
+          OUT=$(npx --no clasp version "CI ${GITHUB_SHA}")
           echo "$OUT"
           VERSION=$(echo "$OUT" | grep -Eo 'Created version [0-9]+' | grep -Eo '[0-9]+' | tail -n 1)
           if [ -z "$VERSION" ]; then
@@ -143,4 +175,4 @@ jobs:
           fi
 
           echo "Created version: $VERSION"
-          clasp deploy -i "AKfycbz2NELCTdz4o83toWdcOoSJGNyV4lPC__99VzS9Ty2i_DVO5ftHeJL4rvTp97Ru99CE" -v "${VERSION}"
+          npx --no clasp deploy -i "AKfycbz2NELCTdz4o83toWdcOoSJGNyV4lPC__99VzS9Ty2i_DVO5ftHeJL4rvTp97Ru99CE" -v "${VERSION}"

@@ -57,10 +57,10 @@ jobs:
       tag: ${{ steps.version.outputs.tag }}
       exists: ${{ steps.version.outputs.exists }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
-      - uses: astral-sh/setup-uv@v10.3.0
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884  # v10.3.0
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
           version: 0.13.4
@@ -106,7 +106,7 @@ jobs:
             exit 1
           fi
       # The key stays configured for the push below; no repo code runs here.
-      - uses: actions/checkout@v7.0.1  # zizmor: ignore[artipacked]
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1  # zizmor: ignore[artipacked]
         with:
           ssh-key: ${{ secrets.TAG_DEPLOY_KEY }}
       - env:
