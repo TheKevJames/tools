@@ -14,7 +14,7 @@ def _write(checkout: pathlib.Path, text: str) -> None:
 @pytest.mark.parametrize('enabled', [True, False])
 def test_definitions_parse(enabled: bool) -> None:
     text = json.dumps({'enabled': enabled})
-    assert immutable_releases.parse('i.json', text) == {'enabled': enabled}
+    assert immutable_releases.parse('i.json', text) is enabled
 
 
 @pytest.mark.parametrize(
@@ -79,18 +79,20 @@ def test_disabled_is_also_reported_as_not_found(
     ]
 
 
-def test_missing_definition_leaves_the_setting_alone(
+def test_missing_definition_fails_before_touching_github(
     github: fake_github.FakeGitHub,
     checkout: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    (checkout / immutable_releases.PATH).unlink()
     assert (
-        fake_github.run(monkeypatch, checkout, 'apply', fake_github.ADMIN) == 0
+        fake_github.run(monkeypatch, checkout, 'apply', fake_github.ADMIN) == 1
     )
     assert (
-        'immutable releases skipped' in (checkout / 'summary.md').read_text()
+        'immutable-releases.json: missing'
+        in (checkout / 'summary.md').read_text()
     )
-    assert not [c for c in github.calls if 'immutable' in c]
+    assert not github.calls
 
 
 def test_invalid_definition_fails_before_touching_github(
