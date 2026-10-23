@@ -47,6 +47,9 @@ The full list of available configs is as follows:
   ``default_language_version`` block, when set to a ``python`` version, will
   now be managed in the same way as any other use of ``python`` as a
   dependency.
+* ``//renovate/pins.json5``: pin GitHub Actions to commit SHAs (but leave
+  reusable workflows on their branch), and hold back packages whose newer
+  versions are unsafe to use.
 * ``//renovate/custom.json5``: add support for some custom references, eg. to
   allow for managing chunks of configs which need to be manually identified as
   version pins. See comments in the file for usage instructions.
