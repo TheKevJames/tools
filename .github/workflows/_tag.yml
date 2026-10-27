@@ -63,7 +63,7 @@ jobs:
       - uses: astral-sh/setup-uv@v10.3.2
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
-          version: 0.13.5
+          version: 0.13.6
       - id: version
         env:
           TAG_PREFIX: ${{ inputs.tag-prefix }}
