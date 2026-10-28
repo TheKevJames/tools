@@ -12,11 +12,13 @@ FROM python:3.15.2-alpine AS builder
 RUN --mount=type=cache,target=/var/cache/apk \
     apk --update add \
         build-base \
+        flex \
         python3-dev
 
 ARG BEANCOUNT_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip \
-    python3 -m pip wheel --no-deps --wheel-dir=/tmp "beancount==${BEANCOUNT_VERSION}"
+    python3 -m pip wheel --no-deps --wheel-dir=/tmp \
+        "beancount==${BEANCOUNT_VERSION}"
 
 
 FROM python:3.15.2-alpine
