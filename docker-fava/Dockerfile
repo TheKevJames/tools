@@ -23,11 +23,10 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 FROM python:3.15.2-alpine
 
-ARG BEANCOUNT_VERSION
-COPY --from=builder "/tmp/beancount-${BEANCOUNT_VERSION}-cp315-cp315-linux_aarch64.whl" "/tmp/beancount-${BEANCOUNT_VERSION}-cp315-cp315-linux_aarch64.whl"
+COPY --from=builder "/tmp/beancount-*.whl" "/tmp/"
 RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m pip install \
-        "/tmp/beancount-${BEANCOUNT_VERSION}-cp315-cp315-linux_aarch64.whl"
+        /tmp/beancount-*.whl
 
 ARG FAVA_VERSION
 RUN --mount=type=cache,target=/root/.cache/pip \
