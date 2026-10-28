@@ -12,25 +12,5 @@
             "matchUpdateTypes": ["minor"],
             "automerge": true,
         },
-        {
-            "matchFileNames": [
-                "docker-atc1441-exporter/Dockerfile",
-            ],
-            "matchDepNames": [
-                "python",
-                "python/cpython",
-            ],
-            "allowedVersions": "3.9",
-        },
-        {
-            "matchFileNames": [
-                ".pre-commit-config.yaml",
-            ],
-            "matchDepNames": [
-                "python",
-                "python/cpython",
-            ],
-            "allowedVersions": "3.11",
-        },
     ],
 }
