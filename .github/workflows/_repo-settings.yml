@@ -64,7 +64,7 @@ jobs:
           ref: master
           path: tools
           persist-credentials: false
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
           version: 0.13.6
@@ -105,7 +105,7 @@ jobs:
           ref: master
           path: tools
           persist-credentials: false
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
           version: 0.13.6

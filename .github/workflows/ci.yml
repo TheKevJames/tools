@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
           version: 0.13.6
@@ -41,7 +41,7 @@ jobs:
         working-directory: docker-atc1441-exporter
     steps: &pytest
       - uses: actions/checkout@v7.0.1
-      - uses: astral-sh/setup-uv@v10.3.2
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
           version: 0.13.6
