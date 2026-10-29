@@ -12,11 +12,12 @@ completely forgotten about.
 - `CCTUI`_
 - `CircleCI Orbs`_
 - `DDTUI`_
-- `Dockerized caddy + caddy-security`_
+- `Deterministic SSH Key Generator`_
 - `Dockerized Fava`_
-- `Dockerized gcloud Pubsub Emulator`_
 - `Dockerized MySQLTuner`_
 - `Dockerized Tuning-Primer`_
+- `Dockerized caddy + caddy-security`_
+- `Dockerized gcloud Pubsub Emulator`_
 - `GHA Tools`_, used by the reuseable workflows
 - `GHA reuseable workflows`_ (``.github/workflows/_*.yml``)
 - `Renovate Shared Configurations`_
@@ -28,6 +29,7 @@ completely forgotten about.
 .. _CCTUI: https://github.com/TheKevJames/tools/tree/master/cctui
 .. _CircleCI Orbs: https://github.com/TheKevJames/tools/tree/master/circleci-orbs
 .. _DDTUI: https://github.com/TheKevJames/tools/tree/master/ddtui
+.. _Deterministic SSH Key Generator: https://github.com/TheKevJames/tools/tree/master/deterministic-ssh
 .. _Dockerized Fava: https://github.com/TheKevJames/tools/tree/master/docker-fava
 .. _Dockerized MySQLTuner: https://github.com/TheKevJames/tools/tree/master/docker-mysqltuner
 .. _Dockerized Tuning-Primer: https://github.com/TheKevJames/tools/tree/master/docker-tuning-primer

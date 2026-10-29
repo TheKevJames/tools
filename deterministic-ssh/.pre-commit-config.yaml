@@ -1,0 +1,102 @@
+repos:
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.94
+    hooks:
+      - id: ty
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: uv run --frozen pylint
+        language: system
+        types: [python]
+        require_serial: true
+        args:
+          - --max-line-length=79
+          - --max-module-lines=500
+          - --max-positional-arguments=10
+          - --max-args=10
+          - --score=n
+          - -d broad-except
+          - -d duplicate-code
+          - -d fixme
+          - -d invalid-name
+          - -d locally-disabled
+          - -d missing-docstring
+          - -d too-few-public-methods
+          - -d try-except-raise
+          - -d ungrouped-imports  # conflicts with ruff isort
+          - -d wrong-import-order  # conflicts with ruff isort
+      - id: flake8
+        name: flake8
+        entry: uv run --frozen flake8
+        language: system
+        types: [python]
+        require_serial: true
+        args:
+          # https://www.flake8rules.com/
+          # Restrict flake8 to plugins with no ruff equivalent; core
+          # pyflakes/pycodestyle (E/W/F) are handled by ruff.
+          # FCW: flake8-complicated-walrus
+          # I90: flake8-requirements
+          # IMR: flake8-import-restrictions
+          # N400: flake8-broken-line
+          # IMR200: Imports should only happen on module level, not locally. Covered by pylint.
+          # IMR241: TODO: figure out how to deal with cryptography imports
+          - --select=FCW,I90,IMR,N400
+          - --ignore=IMR200,IMR241
+          - --per-file-ignores=tests/*:I900 hatch_build.py:I900
+          - --imr241_exclude=__future__,collections.abc,typing
+      - id: disallow-untyped-imports
+        name: disallow-untyped-imports
+        entry: bash -c
+        language: system
+        pass_filenames: false
+        require_serial: true
+        types: [python]
+        # Allowlist packages below which are known to have no third-party typestubs.
+        args:
+          - uvx mypy . --python-executable .venv/bin/python --follow-imports=skip --no-error-summary --no-color-output 2>&1 | grep -E '\[import-untyped\]' | grep -vE '"(some_legacy_pkg)"' | { ! grep .; }
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.3
+    hooks:
+      - id: ruff-check
+        args:
+          - --fix
+          - --target-version
+          - py311
+          - --select
+          - A,ANN,C4,C901,D,E,F,G010,I,PYI,RUF006,RUF100,S307,T10,TRY,UP,W,YTT
+          - --preview
+          - --config
+          - lint.mccabe.max-complexity = 10
+          # Codes owned by flake8 plugins with no ruff equivalent; keeps
+          # RUF100 from stripping their noqa directives.
+          - --config
+          - lint.external = ['FCW', 'I90', 'IMR', 'N400']
+          - --config
+          - lint.isort.force-single-line = true
+          # D1,D203,D205,D212,D400,D401,D404,D407,D412,D413: pydocstyle opinions.
+          # E501: Line too long. Covered by ruff format.
+          # E741: Do not use variables named 'I', 'O', or 'l'.
+          # TRY003: Avoid long messages outside the exception class.
+          # TRY301: Abstract raise to an inner function.
+          - --ignore
+          - D1,D203,D205,D212,D400,D401,D404,D407,D412,D413,E501,E741,TRY003,TRY301
+      - id: ruff-format
+        args:
+          - --config
+          - line-length = 79
+          - --config
+          - format.quote-style = 'single'
+          - --config
+          - format.skip-magic-trailing-comma = true
+          # Silence the isort/formatter magic-comma incompatibility warning.
+          - --config
+          - lint.isort.split-on-trailing-comma = false
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.13.6
+    hooks:
+      - id: uv-audit
+      - id: uv-lock
+      - id: uv-sync
