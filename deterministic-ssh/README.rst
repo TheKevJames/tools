@@ -15,13 +15,13 @@ can use this script to preload an emergency ssh key:
 
 .. code-block:: shell
 
-    uv run https://raw.githubusercontent.com/TheKevJames/tools/refs/heads/master/deterministic-ssh/cli.py --public >> ~/.ssh/authorized_keys
+    uv run https://raw.githubusercontent.com/TheKevJames/tools/refs/heads/master/deterministic-ssh/cli.py >> ~/.ssh/authorized_keys
 
 Or, if the target machine doesn't have python/uv/etc:
 
 .. code-block:: shell
 
-    uv run https://raw.githubusercontent.com/TheKevJames/tools/refs/heads/master/deterministic-ssh/cli.py --public > ~/.ssh/emergency.pub
+    uv run https://raw.githubusercontent.com/TheKevJames/tools/refs/heads/master/deterministic-ssh/cli.py > ~/.ssh/emergency.pub
     # copy emergency.pub to the relevant machine(s)
 
 Then, in case of emergency, you can temporarily load the same key into your
@@ -29,10 +29,8 @@ ssh-agent to regain access to the box:
 
 .. code-block:: shell
 
-    uv run https://raw.githubusercontent.com/TheKevJames/tools/refs/heads/master/deterministic-ssh/cli.py | ssh-add -
+    uv run https://raw.githubusercontent.com/TheKevJames/tools/refs/heads/master/deterministic-ssh/cli.py --private | ssh-add -
     ssh-copy-id -i ~/.ssh/id_ed25519 user@host
     ssh-add -D
-
-TODO: document the public line, including when run directly from github
 
 .. _passphrase2pgp: https://github.com/skeeto/passphrase2pgp/tree/master#openssh-format

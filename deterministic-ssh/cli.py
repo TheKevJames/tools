@@ -27,8 +27,6 @@ key in the first place!
 
 import argparse
 import getpass
-import hashlib
-import pathlib
 import sys
 import unicodedata
 
@@ -82,17 +80,6 @@ def private_openssh(key: Ed25519PrivateKey) -> str:
     ).decode()
 
 
-def object_blob() -> None:
-    try:
-        data = pathlib.Path(__file__).read_bytes()
-    except OSError:
-        return None
-
-    print(hashlib.sha256(data).hexdigest())
-    print(hashlib.sha1(b'blob %d\0' % len(data) + data).hexdigest())
-    return None
-
-
 def main() -> None:
     summary = __doc__.split('\n\n', maxsplit=1)[0]
     ap = argparse.ArgumentParser(description=summary)
@@ -131,7 +118,6 @@ def main() -> None:
     if args.private:
         sys.stdout.write(private_openssh(key))
     else:
-        object_blob()
         print(f'{public_line(key)} {args.label}')
 
 
