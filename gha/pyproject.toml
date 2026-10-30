@@ -25,7 +25,7 @@ dev = [
     "pylint==4.1.3",
     "pytest-xdist==3.8.0",
     "pytest==9.2.0",
-    "types-pyyaml==6.0.12.20260906",
+    "types-pyyaml==6.0.12.20261030",
 ]
 
 [tool.pylint.main]
