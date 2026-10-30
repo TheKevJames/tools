@@ -16,6 +16,14 @@
             ],
         },
         {
+            "groupName": "flake8",
+            "matchDepNames": [
+                "/^PyCQA/flake8$/",
+                "/^flake8$/",
+                "/^pycqa/flake8$/",
+            ],
+        },
+        {
             "groupName": "gcsfs",
             "matchDatasources": ["pypi"],
             "matchDepNames": [
