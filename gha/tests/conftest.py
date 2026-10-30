@@ -38,14 +38,22 @@ def serve_fixture() -> Iterator[Serve]:
 
             do_GET = do_POST = do_PUT = do_DELETE = _serve
 
-        server = http.server.ThreadingHTTPServer(
-            ('127.0.0.1', 0), RequestHandler
-        )
+        class ReadyServer(http.server.ThreadingHTTPServer):
+            def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
+                self.is_ready = threading.Event()
+                super().__init__(*args, **kwargs)
+
+            def server_activate(self) -> None:
+                super().server_activate()
+                self.is_ready.set()
+
+        server = ReadyServer(('127.0.0.1', 0), RequestHandler)
         # shutdown() only takes effect at the next poll, so keep it short.
         thread = threading.Thread(
             target=server.serve_forever, kwargs={'poll_interval': 0.01}
         )
         thread.start()
+        server.is_ready.wait()
         servers.append((server, thread))
         return f'http://127.0.0.1:{server.server_address[1]}'
 
