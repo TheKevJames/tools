@@ -33,8 +33,8 @@ dev = [
 # only resolve its imports when the package itself is among the linted files.
 source-roots = ["."]
 
-[tool.pytest.ini_options]
-addopts = "-n auto"
+[tool.pytest]
+addopts = ["-n", "auto"]
 pythonpath = ["."]
 testpaths = ["tests"]
 

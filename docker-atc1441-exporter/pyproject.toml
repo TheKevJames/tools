@@ -31,7 +31,7 @@ dev = [
 [tool.pylint.main]
 source-roots = ["."]
 
-[tool.pytest.ini_options]
+[tool.pytest]
 pythonpath = ["."]
 
 [tool.ty.environment]
