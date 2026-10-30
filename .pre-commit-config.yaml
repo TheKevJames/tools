@@ -144,7 +144,7 @@ repos:
           - lint.isort.split-on-trailing-comma = false
         exclude: '(^deterministic-ssh/.*)|(^docker-atc1441-exporter/.*)|(^docker-gcloud-pubsub-emulator/.*)|(^gha/.*)'
   - repo: https://github.com/henryiii/validate-pyproject-schema-store
-    rev: 2026.10.28
+    rev: 2026.10.30
     hooks:
       - id: validate-pyproject
   - repo: local
