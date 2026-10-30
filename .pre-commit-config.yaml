@@ -12,7 +12,7 @@ exclude: '^docker-tuning-primer/root/tuning-primer\.sh$'
 
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: conventional-pre-commit
   - repo: https://github.com/gitleaks/gitleaks
