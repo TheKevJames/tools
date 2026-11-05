@@ -107,6 +107,21 @@ class Client:
     def set_actions_permissions(self, body: dict[str, Any]) -> None:
         self._request('PUT', f'{self.base}/actions/permissions/workflow', body)
 
+    def actions_policy(self) -> dict[str, Any] | None:
+        """Which actions may run, and how; None if the token can't read it."""
+        try:
+            result: dict[str, Any] = self._request(
+                'GET', f'{self.base}/actions/permissions'
+            )
+        except ApiError as exc:
+            if exc.status in {401, 403}:
+                return None
+            raise
+        return result
+
+    def set_actions_policy(self, body: dict[str, Any]) -> None:
+        self._request('PUT', f'{self.base}/actions/permissions', body)
+
     def _environment_path(self, name: str) -> str:
         return f'{self.base}/environments/{urllib.parse.quote(name, safe="")}'
 

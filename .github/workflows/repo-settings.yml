@@ -2,8 +2,8 @@ name: repo-settings
 
 # Reconciles repository settings with their definitions in .github/:
 # rulesets/*.json (authoritative: unlisted rulesets and classic branch
-# protection get deleted), actions-permissions.json, environments/*.json
-# (authoritative: unlisted environments get deleted) and
+# protection get deleted), actions-permissions.json, actions-policy.json,
+# environments/*.json (authoritative: unlisted environments get deleted) and
 # immutable-releases.json, and checks the deploy keys. See
 # TheKevJames/tools/.github/workflows/_repo-settings.yml for the event -> mode
 # mapping. Workflow changes are included since required checks are validated
@@ -13,6 +13,7 @@ on:
   pull_request:
     paths:
       - .github/actions-permissions.json
+      - .github/actions-policy.json
       - .github/environments/**
       - .github/immutable-releases.json
       - .github/rulesets/**
@@ -23,6 +24,7 @@ on:
     branches: ['**']
     paths:
       - .github/actions-permissions.json
+      - .github/actions-policy.json
       - .github/environments/**
       - .github/immutable-releases.json
       - .github/rulesets/**

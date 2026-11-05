@@ -1,6 +1,6 @@
 """
-The environments, deploy keys and immutable releases slice of the fake
-GitHub, modelled on observed API responses.
+The environments, deploy keys, Actions policy and immutable releases slice
+of the fake GitHub, modelled on observed API responses.
 """
 
 import copy
@@ -96,6 +96,11 @@ class Settings:
         self.environments: dict[str, dict[str, Any]] = {}
         self.keys: list[dict[str, Any]] = []
         self.immutable = False
+        self.policy = {
+            'enabled': True,
+            'allowed_actions': 'all',
+            'sha_pinning_required': False,
+        }
 
     def route(
         self,
@@ -118,7 +123,17 @@ class Settings:
             return _FORBIDDEN
         if path == '/keys?per_page=100':
             return 200, copy.deepcopy(self.keys)
+        if path == '/actions/permissions':
+            return self._policy(method, body)
         return self._immutable(method, path)
+
+    def _policy(self, method: str, body: Any) -> Response:  # noqa: ANN401
+        if method == 'GET':
+            return 200, self.policy.copy()
+        if 'enabled' not in body or set(body) - set(self.policy):
+            return 422, {'message': 'Invalid request'}
+        self.policy |= body
+        return 204, None
 
     def _immutable(self, method: str, path: str) -> Response:
         if path != '/immutable-releases':
