@@ -156,22 +156,25 @@ def test_plan_reports_without_writing_and_check_detects_drift(
     assert 'update environment "tag" protection rules' in summary
 
 
-@pytest.mark.parametrize('create_directory', [False, True])
-def test_no_definitions_leave_environments_alone(
+@pytest.mark.parametrize('remove_directory', [False, True])
+def test_no_definitions_fail_before_touching_github(
     github: fake_github.FakeGitHub,
     checkout: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
-    create_directory: bool,
+    remove_directory: bool,
 ) -> None:
-    if create_directory:
-        (checkout / environments.DIRECTORY).mkdir()
-    github.environments = {'copilot': settings.environment()}
+    directory = checkout / environments.DIRECTORY
+    for path in directory.iterdir():
+        path.unlink()
+    if remove_directory:
+        directory.rmdir()
     assert (
-        fake_github.run(monkeypatch, checkout, 'apply', fake_github.ADMIN) == 0
+        fake_github.run(monkeypatch, checkout, 'apply', fake_github.ADMIN) == 1
     )
-    assert 'environments skipped' in (checkout / 'summary.md').read_text()
-    assert 'copilot' in github.environments
-    assert not [c for c in github.calls if '/environments' in c]
+    summary = (checkout / 'summary.md').read_text()
+    print(summary)
+    assert 'no environment definitions' in summary
+    assert not github.calls
 
 
 def test_private_repositories_skip_environments(

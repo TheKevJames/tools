@@ -50,7 +50,7 @@ class _Settings:
     rulesets: dict[str, desired.Ruleset]
     permissions: actions_permissions.Permissions
     environments: dict[str, frozenset[environments.Policy]]
-    immutable_releases: dict[str, bool]
+    immutable_releases: bool
 
 
 def _validate(root: pathlib.Path, out: report.Report) -> _Settings | None:

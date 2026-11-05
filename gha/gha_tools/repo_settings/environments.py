@@ -13,7 +13,7 @@ definitions replace.
 
 The definitions are authoritative: environments missing from them are
 deleted, as are protection rules they don't express (required reviewers, wait
-timers). A repository without `.github/environments/` doesn't manage them.
+timers).
 """
 
 import dataclasses
@@ -114,16 +114,17 @@ def validate(
     root: pathlib.Path, out: report.Report
 ) -> dict[str, frozenset[Policy]] | None:
     """
-    Definitions keyed by environment name; {} if unmanaged.
+    Definitions keyed by environment name.
 
-    A missing or empty directory means unmanaged rather than "no
-    environments", which would delete every one.
+    A missing or empty directory is an error rather than "no environments":
+    the reconciler is authoritative, so it would delete every environment,
+    the `repo-settings` one holding its own token included.
     """
     directory = root / DIRECTORY
     paths = sorted(directory.glob('*.json')) if directory.is_dir() else []
     if not paths:
-        out.notice(f'environments skipped: no definitions in {DIRECTORY}/')
-        return {}
+        out.error(f'{DIRECTORY}/: no environment definitions')
+        return None
     try:
         return {
             path.stem: parse(
@@ -228,8 +229,6 @@ def reconcile(
     mode: str,
     out: report.Report,
 ) -> int:
-    if not definitions:
-        return 0
     if repo['private']:
         out.notice(
             'environments skipped: environments on private repositories '
