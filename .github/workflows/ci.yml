@@ -11,7 +11,7 @@ jobs:
       - uses: astral-sh/setup-uv@v10.3.3
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
-          version: 0.13.7
+          version: 0.13.8
           # renovate: datasource=docker depName=python
           python-version: 3.15.2
       - uses: j178/prek-action@v3.1.0
@@ -44,7 +44,7 @@ jobs:
       - uses: astral-sh/setup-uv@v10.3.3
         with:
           # renovate: datasource=github-releases depName=astral-sh/uv
-          version: 0.13.7
+          version: 0.13.8
       - run: uv run --frozen pytest
 
   test-gha:
