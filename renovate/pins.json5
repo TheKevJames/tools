@@ -1,5 +1,15 @@
 {
+    // Pin actions to commit SHAs (keeping a `# vX.Y.Z` comment), since tags
+    // can be moved to malicious commits.
+    "extends": ["helpers:pinGitHubActionDigests"],
     "packageRules": [
+        // Reusable workflows are deliberately called @master so that every
+        // caller always runs the current policy code, eg.
+        // TheKevJames/tools/.github/workflows/_repo-settings.yml@master.
+        {
+            "matchDepTypes": ["workflow"],
+            "pinDigests": false,
+        },
         // Until the licensing issue is determined, using a more recent chardet is unsafe.
         // Besides that, relying on a 100% vibe coded library for something so
         // deeply integrated with so many things is terrifying.

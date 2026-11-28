@@ -56,14 +56,6 @@
             "matchUpdateTypes": ["patch", "pin", "digest"],
             "automerge": true,
         },
-        // Automerge non-breaking minor actions bumps and also pin digests
-        {
-            "matchDepTypes": ["action"],
-            "matchUpdateTypes": ["minor"],
-            "matchJsonata": ["isBreaking != true"],
-            "pinDigests": true,
-            "automerge": true,
-        },
         // Automerge majors of gcloud CLI
         {
             "matchDatasources": ["docker"],
