@@ -288,6 +288,20 @@ def write_checkout(root: pathlib.Path) -> None:
     (root / '.github' / 'actions-permissions.json').write_text(
         json.dumps(PERMISSIONS)
     )
+    environments = root / '.github' / 'environments'
+    environments.mkdir()
+    (environments / 'repo-settings.json').write_text(
+        json.dumps(
+            {
+                'deployment_policies': [
+                    {'type': 'branch', 'name': '~DEFAULT_BRANCH'}
+                ]
+            }
+        )
+    )
+    (root / '.github' / 'immutable-releases.json').write_text(
+        json.dumps({'enabled': True})
+    )
 
 
 def run(

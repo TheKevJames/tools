@@ -9,8 +9,8 @@ name: _repo-settings
 #   actions-permissions.json  the GITHUB_TOKEN's default permissions and
 #                             whether Actions may approve pull requests
 #   environments/*.json       deployment environments and the refs that may
-#                             use them; authoritative when any are defined:
-#                             unlisted environments get deleted
+#                             use them; authoritative: unlisted environments
+#                             get deleted
 #   immutable-releases.json   whether published releases are immutable
 # Deploy keys are only reported on: any write key but the one titled "tag"
 # fails apply and check.

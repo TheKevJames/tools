@@ -19,7 +19,7 @@ class InvalidImmutableReleasesError(ValueError):
     pass
 
 
-def parse(label: str, text: str) -> dict[str, bool]:
+def parse(label: str, text: str) -> bool:
     try:
         data = json.loads(text)
     except json.JSONDecodeError as exc:
@@ -35,15 +35,14 @@ def parse(label: str, text: str) -> dict[str, bool]:
             f'{label}: expected exactly {{"enabled": <boolean>}}'
         )
     enabled: bool = data['enabled']
-    return {'enabled': enabled}
+    return enabled
 
 
-def validate(root: pathlib.Path, out: report.Report) -> dict[str, bool] | None:
-    """The definition; {} if unmanaged (no file), None if invalid."""
+def validate(root: pathlib.Path, out: report.Report) -> bool | None:
     path = root / PATH
     if not path.is_file():
-        out.notice(f'immutable releases skipped: no {PATH}')
-        return {}
+        out.error(f'{PATH}: missing')
+        return None
     try:
         return parse(str(PATH), path.read_text(encoding='utf-8'))
     except InvalidImmutableReleasesError as exc:
@@ -76,14 +75,8 @@ def _apply(
 
 
 def reconcile(
-    client: github.Client,
-    definition: dict[str, bool],
-    mode: str,
-    out: report.Report,
+    client: github.Client, enabled: bool, mode: str, out: report.Report
 ) -> int:
-    if not definition:
-        return 0
-    enabled = definition['enabled']
     have = client.immutable_releases()
     if have is None:
         return _unreadable(mode, out)
