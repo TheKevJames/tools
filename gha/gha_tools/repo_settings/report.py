@@ -1,6 +1,23 @@
+import json
 import pathlib
+from collections.abc import Mapping
+from typing import Any
 
 MODES = ('plan', 'apply', 'check')
+
+
+def field_diff(want: Mapping[str, Any], have: Mapping[str, Any]) -> str:
+    """A diff of the fields of `want` that `have` does not match."""
+    lines = ['--- github', '+++ repo']
+    for key, value in want.items():
+        if have.get(key) != value:
+            lines.extend(
+                (
+                    f'-{key}: {json.dumps(have.get(key))}',
+                    f'+{key}: {json.dumps(value)}',
+                )
+            )
+    return '\n'.join(lines)
 
 
 def _annotate(level: str, message: str) -> None:

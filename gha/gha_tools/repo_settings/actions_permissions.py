@@ -63,19 +63,6 @@ def validate(root: pathlib.Path, out: report.Report) -> Permissions | None:
         return None
 
 
-def _render_diff(want: Permissions, have: dict[str, Any]) -> str:
-    lines = ['--- github', '+++ repo']
-    for key, value in want.items():
-        if have.get(key) != value:
-            lines.extend(
-                (
-                    f'-{key}: {json.dumps(have.get(key))}',
-                    f'+{key}: {json.dumps(value)}',
-                )
-            )
-    return '\n'.join(lines)
-
-
 def _unreadable(mode: str, out: report.Report) -> int:
     # The Actions GITHUB_TOKEN cannot be granted administration, so only plan,
     # which never gets the admin token, may proceed without it.
@@ -114,7 +101,7 @@ def reconcile(
         return _unreadable(mode, out)
     if all(have.get(key) == value for key, value in permissions.items()):
         return 0
-    out.change(_CHANGE, _render_diff(permissions, have))
+    out.change(_CHANGE, report.field_diff(permissions, have))
     if mode == 'check':
         out.error(
             'Actions workflow permissions have drifted; run the workflow '
